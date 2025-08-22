@@ -1,5 +1,11 @@
 #!/bin/bash
 
-dotnet restore 
-# dotnet build
-dotnet run --project src/GQLServer --no-launch-profile
+# Legacy script - redirects to new run-server script
+# Kept for backward compatibility
+
+# Get the directory of this script
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# Call the new run-server script
+echo "Redirecting to new run-server script..."
+"$SCRIPT_DIR/run-server" "$@"

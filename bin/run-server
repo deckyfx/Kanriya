@@ -1,0 +1,110 @@
+#!/bin/bash
+
+# GraphQL Server Runner with Database Management
+# Ensures database is ready before starting the server
+
+# Ensure .dotnet/tools is in PATH for this script
+export PATH="$PATH:/home/decky/.dotnet/tools"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Change to project directory
+PROJECT_DIR="$(dirname "$0")/../src/GQLServer"
+cd "$PROJECT_DIR" || exit 1
+
+# Function to check database status
+check_database() {
+    echo -e "${YELLOW}Checking database status...${NC}"
+    
+    # Check if there are pending migrations
+    if dotnet ef migrations list | grep -q "(Pending)"; then
+        echo -e "${YELLOW}Pending migrations detected${NC}"
+        read -p "Apply migrations now? (Y/n): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+            echo -e "${YELLOW}Applying migrations...${NC}"
+            dotnet ef database update
+            echo -e "${GREEN}✓ Migrations applied${NC}"
+        fi
+    else
+        echo -e "${GREEN}✓ Database is up to date${NC}"
+    fi
+}
+
+# Function to show server info
+show_info() {
+    echo -e "${BLUE}================================${NC}"
+    echo -e "${BLUE}  GraphQL Server (v1.0.0)${NC}"
+    echo -e "${BLUE}================================${NC}"
+    echo ""
+    echo "Endpoints:"
+    echo "  GraphQL:     http://localhost:10000/graphql"
+    echo "  GraphQL UI:  http://localhost:10000/graphql (Banana Cake Pop)"
+    echo ""
+    echo "Database:"
+    echo "  Host:        localhost:10005"
+    echo "  Database:    mydatabase"
+    echo ""
+    echo "Commands:"
+    echo "  Ctrl+C       Stop server"
+    echo "  bin/db-migrate    Manage database migrations"
+    echo ""
+}
+
+# Parse command line arguments
+SKIP_DB_CHECK=false
+WATCH_MODE=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --skip-db)
+            SKIP_DB_CHECK=true
+            shift
+            ;;
+        --watch)
+            WATCH_MODE=true
+            shift
+            ;;
+        --help)
+            echo "Usage: $0 [options]"
+            echo ""
+            echo "Options:"
+            echo "  --skip-db    Skip database migration check"
+            echo "  --watch      Run in watch mode (auto-restart on changes)"
+            echo "  --help       Show this help message"
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            echo "Use --help for usage information"
+            exit 1
+            ;;
+    esac
+done
+
+# Clear screen for clean output
+clear
+
+# Show server info
+show_info
+
+# Check database unless skipped
+if [ "$SKIP_DB_CHECK" = false ]; then
+    check_database
+fi
+
+# Start the server
+echo -e "${YELLOW}Starting GraphQL server...${NC}"
+echo ""
+
+if [ "$WATCH_MODE" = true ]; then
+    echo -e "${YELLOW}Running in watch mode (auto-restart on file changes)${NC}"
+    dotnet watch run
+else
+    dotnet run
+fi

@@ -1,17 +1,24 @@
 using GQLServer.Program;
 
-// GRAPHQL SERVER WITH AUTHENTICATION & AUTHORIZATION
-// ===================================================
-// This server includes:
-// - JWT authentication
-// - Role-based authorization
-// - Policy-based authorization
-// - Protected queries and mutations
+// GRAPHQL SERVER WITH GREETLOG MANAGEMENT (v1.0.0)
+// =================================================
+// This server provides a simple greeting log system with:
+// - PostgreSQL database integration using Entity Framework Core
+// - CRUD operations for greeting logs
+// - Real-time subscriptions for live updates
+// - JWT authentication support (optional)
+//
+// Main Features:
+// - GreetLog entity with ID, Timestamp, and Content
+// - Query operations: list all, get by ID, get recent logs
+// - Mutation operations: add, update, delete greet logs
+// - Subscription operations: watch for additions, updates, deletions
 //
 // Configuration is modularized into separate classes:
-// - EnvironmentConfig: Handles .env file loading and server URLs
-// - JwtConfig: Configures JWT Bearer authentication
-// - AuthorizationConfig: Sets up authorization policies
+// - EnvironmentConfig: Handles .env file loading, server URLs, and database connection
+// - DatabaseConfig: Configures Entity Framework with PostgreSQL
+// - JwtConfig: Configures JWT Bearer authentication (optional)
+// - AuthorizationConfig: Sets up authorization policies (optional)
 // - GraphQLConfig: Configures GraphQL server and middleware
 
 // Step 1: Create the web application builder
@@ -45,24 +52,41 @@ GraphQLConfig.ConfigureGraphQLMiddleware(app);
 // Step 10: Run the application
 app.RunWithGraphQLCommands(args);
 
-// DEFAULT USERS FOR TESTING:
-// ==========================
-// Admin:     username: "admin",     password: "admin123"
-// Moderator: username: "moderator", password: "mod123"
-// User:      username: "user",      password: "user123"
-//
-// TEST AUTHENTICATION:
-// 1. Login to get JWT token:
-//    mutation {
-//      login(input: { username: "admin", password: "admin123" }) {
-//        token
-//        user { id username role }
+// EXAMPLE GRAPHQL OPERATIONS:
+// ===========================
+// 
+// 1. List all greet logs:
+//    query {
+//      greetLogs {
+//        id
+//        timestamp
+//        content
 //      }
 //    }
 //
-// 2. Use token in HTTP headers:
-//    {
-//      "Authorization": "Bearer YOUR_JWT_TOKEN_HERE"
+// 2. Add a new greet log:
+//    mutation {
+//      addGreetLog(input: { content: "Hello, World!" }) {
+//        id
+//        timestamp
+//        content
+//      }
 //    }
 //
-// 3. Access protected queries/mutations with proper authorization
+// 3. Subscribe to new greet logs:
+//    subscription {
+//      onGreetLogAdded {
+//        id
+//        timestamp
+//        content
+//      }
+//    }
+//
+// 4. Get recent greet logs:
+//    query {
+//      recentGreetLogs(count: 5) {
+//        id
+//        timestamp
+//        content
+//      }
+//    }

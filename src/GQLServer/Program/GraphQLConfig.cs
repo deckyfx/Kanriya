@@ -1,9 +1,11 @@
+using HotChocolate.Data;
 using GQLServer.Services;
 
 namespace GQLServer.Program;
 
 /// <summary>
 /// Configures GraphQL server with all queries, mutations, subscriptions, and middleware
+/// Version: 1.0.0 - GreetLog Management System
 /// </summary>
 public static class GraphQLConfig
 {
@@ -12,54 +14,54 @@ public static class GraphQLConfig
     /// </summary>
     public static void ConfigureGraphQL(IServiceCollection services)
     {
-        // Register application services
-        services.AddSingleton<AuthService>(); // Authentication service for user management
-        services.AddHttpContextAccessor(); // Required for accessing HTTP headers in resolvers
+        // Register application services as singletons for performance
+        // Each service manages its own scoped DbContext instances
+        services.AddSingleton<IGreetLogService, GreetLogService>();
+        
+        // Future services will be registered here
+        // services.AddSingleton<IUserService, UserService>();
+        // services.AddSingleton<ICategoryService, CategoryService>();
+        
+        // Register HTTP context accessor for headers in resolvers
+        services.AddHttpContextAccessor();
         
         // Configure GraphQL server
         services
             .AddGraphQLServer()
             
-            // Configure base GraphQL types
-            // These are the root types that will be extended
-            .AddQueryType(q => q.Name("Query"))
-            .AddMutationType(m => m.Name("Mutation"))
-            .AddSubscriptionType(s => s.Name("Subscription"))
+            // Configure GraphQL types for GreetLog operations
+            // Using direct type registration (not attribute-based)
+            .AddQueryType<GQLServer.Queries.GreetLogQueries>()
+            .AddMutationType<GQLServer.Mutations.GreetLogMutations>()
+            .AddSubscriptionType<GQLServer.Subscriptions.GreetLogSubscriptions>()
             
-            // Add query extensions from /Queries folder
-            // Each class extends the root Query type with additional fields
-            .AddTypeExtension<GQLServer.Queries.BasicQueries>()
-            .AddTypeExtension<GQLServer.Queries.HelloQueries>()
-            .AddTypeExtension<GQLServer.Queries.GreetingQueries>()
-            .AddTypeExtension<GQLServer.Queries.TimeQueries>()
-            .AddTypeExtension<GQLServer.Queries.UserQueries>()
-            .AddTypeExtension<GQLServer.Queries.HeaderQueries>()
+            // Add filtering and sorting capabilities
+            .AddFiltering()
+            .AddSorting()
             
-            // Add mutation extensions from /Mutations folder
-            // Each class extends the root Mutation type with additional fields
-            .AddTypeExtension<GQLServer.Mutations.ExampleMutations>()
-            .AddTypeExtension<GQLServer.Mutations.AuthMutations>()
-            .AddTypeExtension<GQLServer.Mutations.ProtectedMutations>()
-            
-            // Add subscription extensions from /Subscriptions folder
-            // Each class extends the root Subscription type with additional fields
-            .AddTypeExtension<GQLServer.Subscriptions.ExampleSubscriptions>()
-            
-            // Enable authorization middleware
+            // Enable authorization middleware (optional)
             // This allows using [Authorize] attributes on queries and mutations
             .AddAuthorization()
             
             // Enable in-memory subscriptions
             // This allows real-time updates via WebSocket connections
-            .AddInMemorySubscriptions();
+            .AddInMemorySubscriptions()
+            
+            // Set schema version
+            .ModifyOptions(options => 
+            {
+                options.StrictValidation = false; // Allow nullable reference types
+            });
 
-        Console.WriteLine("✓ GraphQL server configured:");
-        Console.WriteLine("  - Queries: Basic, Hello, Greeting, Time, User, Header");
-        Console.WriteLine("  - Mutations: Example, Auth, Protected");
-        Console.WriteLine("  - Subscriptions: Example");
-        Console.WriteLine("  - Authorization: Enabled");
+        Console.WriteLine("✓ GraphQL server configured (v1.0.0):");
+        Console.WriteLine("  - Architecture: Service Layer Pattern with Singleton Services");
+        Console.WriteLine("  - Services: GreetLogService (Singleton with Scoped DbContext)");
+        Console.WriteLine("  - Queries: GreetLog (list, getById, getRecent, search, dateRange, count)");
+        Console.WriteLine("  - Mutations: GreetLog (add, update, delete, bulkAdd, deleteOld)");
+        Console.WriteLine("  - Subscriptions: GreetLog (onAdded, onUpdated, onDeleted)");
+        Console.WriteLine("  - Features: Filtering, Sorting, Pagination");
+        Console.WriteLine("  - Authorization: Enabled (optional)");
         Console.WriteLine("  - In-Memory Subscriptions: Enabled");
-        Console.WriteLine("  - HTTP Context Access: Enabled");
     }
     
     /// <summary>

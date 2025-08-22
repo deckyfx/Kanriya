@@ -13,9 +13,11 @@
 
   <ItemGroup>
     <PackageReference Include="DotNetEnv" Version="3.1.1" />
+    <PackageReference Include="EFCore.NamingConventions" Version="9.0.0" />
     <PackageReference Include="HotChocolate.AspNetCore" Version="15.1.8" />
     <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="15.1.8" />
     <PackageReference Include="HotChocolate.AspNetCore.CommandLine" Version="15.1.8" />
+    <PackageReference Include="HotChocolate.Data" Version="15.1.8" />
     <PackageReference Include="HotChocolate.Types.Analyzers" Version="15.1.8">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

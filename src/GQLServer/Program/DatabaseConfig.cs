@@ -17,7 +17,8 @@ public static class DatabaseConfig
         
         services.AddDbContext<AppDbContext>(options =>
         {
-            options.UseNpgsql(connectionString);
+            options.UseNpgsql(connectionString)
+                   .UseSnakeCaseNamingConvention(); // Apply snake_case naming for PostgreSQL
             
             // Enable detailed errors in development
             #if DEBUG
