@@ -1,5 +1,6 @@
 using HotChocolate.Authorization;
 using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 
 namespace GQLServer.Queries;
 

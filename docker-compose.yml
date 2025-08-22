@@ -2,13 +2,31 @@ version: '3.8'
 services:
   db:
     image: postgres:17
-    restart: always
+    #restart: unless-stopped
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
+      - PGDATA=/var/lib/postgresql/data/pgdata
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
-    user: "${UID:-1000}:${GID:-1000}"
     ports:
-      - "5432:5432"
+      - "10005:5432"
+    networks:
+      - postgres-network
+  pgadmin:
+    image: dpage/pgadmin4
+    #restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "10004:80"
+    depends_on:
+      - db
+    networks:
+      - postgres-network
+
+networks:
+  postgres-network:
+    driver: bridge

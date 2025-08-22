@@ -21,22 +21,28 @@ var builder = WebApplication.CreateBuilder(args);
 // This loads .env file and configures server URLs from APP_IP and APP_PORT
 EnvironmentConfig.LoadEnvironment(builder);
 
-// Step 3: Configure JWT Authentication
+// Step 3: Configure Database (PostgreSQL with Entity Framework)
+DatabaseConfig.ConfigureDatabase(builder.Services);
+
+// Step 4: Configure JWT Authentication
 JwtConfig.ConfigureJwtAuthentication(builder.Services);
 
-// Step 4: Configure Authorization with Policies
+// Step 5: Configure Authorization with Policies
 AuthorizationConfig.ConfigureAuthorization(builder.Services);
 
-// Step 5: Configure GraphQL Server
+// Step 6: Configure GraphQL Server
 GraphQLConfig.ConfigureGraphQL(builder.Services);
 
-// Step 6: Build the application
+// Step 7: Build the application
 var app = builder.Build();
 
-// Step 7: Configure GraphQL middleware pipeline
+// Step 8: Initialize Database
+await DatabaseConfig.InitializeDatabaseAsync(app);
+
+// Step 9: Configure GraphQL middleware pipeline
 GraphQLConfig.ConfigureGraphQLMiddleware(app);
 
-// Step 8: Run the application
+// Step 10: Run the application
 app.RunWithGraphQLCommands(args);
 
 // DEFAULT USERS FOR TESTING:

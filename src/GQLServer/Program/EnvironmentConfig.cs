@@ -81,4 +81,29 @@ public static class EnvironmentConfig
         public static int ExpirationMinutes => 
             int.Parse(Environment.GetEnvironmentVariable("JWT__ExpirationMinutes") ?? "60");
     }
+    
+    /// <summary>
+    /// Get PostgreSQL configuration values from environment
+    /// </summary>
+    public static class Database
+    {
+        public static string GetConnectionString()
+        {
+            // POSTGRES_HOST can be:
+            // - "localhost" when running GQLServer as executable during development
+            // - "db" when running GQLServer as Docker container (using docker-compose service name)
+            var host = Environment.GetEnvironmentVariable("POSTGRES_HOST") ?? "localhost";
+            
+            // POSTGRES_PORT can be:
+            // - "10005" when connecting from host machine (exposed port)
+            // - "5432" when connecting from within Docker network (internal port)
+            var port = Environment.GetEnvironmentVariable("POSTGRES_PORT") ?? "5432";
+            
+            var database = Environment.GetEnvironmentVariable("POSTGRES_DB") ?? "mydatabase";
+            var username = Environment.GetEnvironmentVariable("POSTGRES_USER") ?? "user";
+            var password = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "password";
+            
+            return $"Host={host};Port={port};Database={database};Username={username};Password={password}";
+        }
+    }
 }
