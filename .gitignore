@@ -1,0 +1,6 @@
+!data/.gitkeep
+data/postgres/*
+!data/postgres/.gitkeep
+.env
+src/**/bin
+src/**/obj
