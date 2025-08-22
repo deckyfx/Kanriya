@@ -70,7 +70,7 @@ public class AuthService
     }
     
     // Register a new user
-    public async Task<User?> RegisterAsync(string username, string email, string password, string? role = null)
+    public Task<User?> RegisterAsync(string username, string email, string password, string? role = null)
     {
         // Check if user already exists
         if (_users.Any(u => u.Username == username || u.Email == email))
@@ -92,18 +92,18 @@ public class AuthService
         _users.Add(newUser);
         
         // Return user without password hash
-        return new User
+        return Task.FromResult<User?>(new User
         {
             Id = newUser.Id,
             Username = newUser.Username,
             Email = newUser.Email,
             Role = newUser.Role,
             CreatedAt = newUser.CreatedAt
-        };
+        });
     }
     
     // Authenticate user and generate JWT token
-    public async Task<AuthPayload?> LoginAsync(string username, string password)
+    public Task<AuthPayload?> LoginAsync(string username, string password)
     {
         // Find user by username
         var userData = _users.FirstOrDefault(u => u.Username == username);
@@ -124,7 +124,7 @@ public class AuthService
         var expiresAt = DateTime.UtcNow.AddMinutes(_jwtExpirationMinutes);
         
         // Return auth payload
-        return new AuthPayload
+        return Task.FromResult<AuthPayload?>(new AuthPayload
         {
             Token = token,
             User = new User
@@ -136,7 +136,7 @@ public class AuthService
                 CreatedAt = userData.CreatedAt
             },
             ExpiresAt = expiresAt
-        };
+        });
     }
     
     // Get user by ID
