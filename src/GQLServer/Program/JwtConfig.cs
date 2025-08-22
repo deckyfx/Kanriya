@@ -36,7 +36,7 @@ public static class JwtConfig
                     ClockSkew = TimeSpan.Zero // Remove default 5 min clock skew
                 };
                 
-                // Configure JWT events for GraphQL subscriptions over WebSocket
+                // Configure JWT events for custom token extraction
                 options.Events = new JwtBearerEvents
                 {
                     OnMessageReceived = context =>
@@ -45,9 +45,16 @@ public static class JwtConfig
                         var accessToken = context.Request.Query["access_token"];
                         var path = context.HttpContext.Request.Path;
                         
-                        // If the request is for GraphQL and the token is in query string,
-                        // extract it and make it available for authentication
-                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/graphql"))
+                        // Check for custom X-API-TOKEN header
+                        var apiToken = context.Request.Headers["X-API-TOKEN"].FirstOrDefault();
+                        
+                        // If X-API-TOKEN is present, use it
+                        if (!string.IsNullOrEmpty(apiToken))
+                        {
+                            context.Token = apiToken;
+                        }
+                        // Otherwise, if the request is for GraphQL and the token is in query string
+                        else if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/graphql"))
                         {
                             context.Token = accessToken;
                         }
@@ -58,5 +65,8 @@ public static class JwtConfig
             });
 
         Console.WriteLine($"✓ JWT authentication configured with issuer: {jwtIssuer}");
+        Console.WriteLine("  - Supports Authorization Bearer header");
+        Console.WriteLine("  - Supports X-API-TOKEN header");
+        Console.WriteLine("  - Supports access_token query parameter");
     }
 }

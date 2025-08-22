@@ -14,6 +14,7 @@ public static class GraphQLConfig
     {
         // Register application services
         services.AddSingleton<AuthService>(); // Authentication service for user management
+        services.AddHttpContextAccessor(); // Required for accessing HTTP headers in resolvers
         
         // Configure GraphQL server
         services
@@ -32,6 +33,7 @@ public static class GraphQLConfig
             .AddTypeExtension<GQLServer.Queries.GreetingQueries>()
             .AddTypeExtension<GQLServer.Queries.TimeQueries>()
             .AddTypeExtension<GQLServer.Queries.UserQueries>()
+            .AddTypeExtension<GQLServer.Queries.HeaderQueries>()
             
             // Add mutation extensions from /Mutations folder
             // Each class extends the root Mutation type with additional fields
@@ -52,11 +54,12 @@ public static class GraphQLConfig
             .AddInMemorySubscriptions();
 
         Console.WriteLine("✓ GraphQL server configured:");
-        Console.WriteLine("  - Queries: Basic, Hello, Greeting, Time, User");
+        Console.WriteLine("  - Queries: Basic, Hello, Greeting, Time, User, Header");
         Console.WriteLine("  - Mutations: Example, Auth, Protected");
         Console.WriteLine("  - Subscriptions: Example");
         Console.WriteLine("  - Authorization: Enabled");
         Console.WriteLine("  - In-Memory Subscriptions: Enabled");
+        Console.WriteLine("  - HTTP Context Access: Enabled");
     }
     
     /// <summary>
