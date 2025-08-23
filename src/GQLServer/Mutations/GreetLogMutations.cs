@@ -1,6 +1,7 @@
 using GQLServer.Data;
 using GQLServer.Services;
 using GQLServer.Types.Inputs;
+using GQLServer.Types.Outputs;
 using HotChocolate.Subscriptions;
 
 namespace GQLServer.Mutations;
@@ -30,11 +31,15 @@ public class GreetLogMutations
             // Use service to create the greet log
             var greetLog = await service.CreateAsync(input.Content, cancellationToken);
             
-            // Send event for subscriptions
-            await eventSender.SendAsync(
-                nameof(Subscriptions.GreetLogSubscriptions.OnGreetLogAdded), 
-                greetLog, 
-                cancellationToken);
+            // Send event for unified subscription
+            var eventData = new GreetLogEvent
+            {
+                Event = EventType.Created,
+                Document = greetLog,
+                Time = DateTime.UtcNow,
+                Previous = null
+            };
+            await eventSender.SendAsync("GreetLogChanges", eventData, cancellationToken);
             
             return greetLog;
         }
@@ -63,6 +68,9 @@ public class GreetLogMutations
     {
         try
         {
+            // Get the original greet log for comparison
+            var originalGreetLog = await service.GetByIdAsync(id, cancellationToken);
+            
             // Use service to update the greet log
             var greetLog = await service.UpdateAsync(id, newContent, cancellationToken);
             
@@ -71,11 +79,15 @@ public class GreetLogMutations
                 throw new GraphQLException($"GreetLog with ID '{id}' not found");
             }
             
-            // Send event for subscriptions
-            await eventSender.SendAsync(
-                nameof(Subscriptions.GreetLogSubscriptions.OnGreetLogUpdated), 
-                greetLog, 
-                cancellationToken);
+            // Send event for unified subscription
+            var eventData = new GreetLogEvent
+            {
+                Event = EventType.Updated,
+                Document = greetLog,
+                Time = DateTime.UtcNow,
+                Previous = originalGreetLog
+            };
+            await eventSender.SendAsync("GreetLogChanges", eventData, cancellationToken);
             
             return greetLog;
         }
@@ -100,6 +112,9 @@ public class GreetLogMutations
         [Service] ITopicEventSender eventSender,
         CancellationToken cancellationToken = default)
     {
+        // Get the greet log before deletion for the event
+        var greetLogToDelete = await service.GetByIdAsync(id, cancellationToken);
+        
         // Use service to delete the greet log
         var deleted = await service.DeleteAsync(id, cancellationToken);
         
@@ -108,11 +123,15 @@ public class GreetLogMutations
             throw new GraphQLException($"GreetLog with ID '{id}' not found");
         }
         
-        // Send event for subscriptions
-        await eventSender.SendAsync(
-            nameof(Subscriptions.GreetLogSubscriptions.OnGreetLogDeleted), 
-            id, 
-            cancellationToken);
+        // Send event for unified subscription
+        var eventData = new GreetLogEvent
+        {
+            Event = EventType.Deleted,
+            Document = null, // No current state for deleted items
+            Time = DateTime.UtcNow,
+            Previous = greetLogToDelete // Full previous state
+        };
+        await eventSender.SendAsync("GreetLogChanges", eventData, cancellationToken);
         
         return true;
     }

@@ -1,7 +1,8 @@
 using GQLServer.Program;
 
-// GRAPHQL SERVER WITH GREETLOG MANAGEMENT (v1.0.0)
+// GRAPHQL SERVER WITH GREETLOG MANAGEMENT
 // =================================================
+// Version: 1.0.1 (GreetLog) - 2025-08-22
 // This server provides a simple greeting log system with:
 // - PostgreSQL database integration using Entity Framework Core
 // - CRUD operations for greeting logs
@@ -20,6 +21,11 @@ using GQLServer.Program;
 // - JwtConfig: Configures JWT Bearer authentication (optional)
 // - AuthorizationConfig: Sets up authorization policies (optional)
 // - GraphQLConfig: Configures GraphQL server and middleware
+
+// Display application version
+Console.WriteLine($"🚀 GraphQL Server {AppVersion.GetFullVersion()}");
+Console.WriteLine("=====================================");
+Console.WriteLine();
 
 // Step 1: Create the web application builder
 var builder = WebApplication.CreateBuilder(args);

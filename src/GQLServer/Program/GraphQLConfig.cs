@@ -32,6 +32,7 @@ public static class GraphQLConfig
             // Configure GraphQL types for GreetLog operations
             // Using direct type registration (not attribute-based)
             .AddQueryType<GQLServer.Queries.GreetLogQueries>()
+            .AddTypeExtension<GQLServer.Queries.SystemQueries>()
             .AddMutationType<GQLServer.Mutations.GreetLogMutations>()
             .AddSubscriptionType<GQLServer.Subscriptions.GreetLogSubscriptions>()
             
@@ -53,12 +54,14 @@ public static class GraphQLConfig
                 options.StrictValidation = false; // Allow nullable reference types
             });
 
-        Console.WriteLine("✓ GraphQL server configured (v1.0.0):");
+        Console.WriteLine($"✓ GraphQL server configured ({AppVersion.GetShortVersion()}):");
         Console.WriteLine("  - Architecture: Service Layer Pattern with Singleton Services");
         Console.WriteLine("  - Services: GreetLogService (Singleton with Scoped DbContext)");
-        Console.WriteLine("  - Queries: GreetLog (list, getById, getRecent, search, dateRange, count)");
+        Console.WriteLine("  - Queries:");
+        Console.WriteLine("    • GreetLog: list, getById, getRecent, search, dateRange, count");
+        Console.WriteLine("    • System: version, health");
         Console.WriteLine("  - Mutations: GreetLog (add, update, delete, bulkAdd, deleteOld)");
-        Console.WriteLine("  - Subscriptions: GreetLog (onAdded, onUpdated, onDeleted)");
+        Console.WriteLine("  - Subscriptions: GreetLog (unified onChanged event)");
         Console.WriteLine("  - Features: Filtering, Sorting, Pagination");
         Console.WriteLine("  - Authorization: Enabled (optional)");
         Console.WriteLine("  - In-Memory Subscriptions: Enabled");

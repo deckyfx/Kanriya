@@ -1,4 +1,5 @@
 using GQLServer.Data;
+using GQLServer.Types.Outputs;
 using HotChocolate.Execution;
 using HotChocolate.Subscriptions;
 
@@ -11,35 +12,13 @@ namespace GQLServer.Subscriptions;
 public class GreetLogSubscriptions
 {
     /// <summary>
-    /// Subscribe to be notified when a new greet log is added
-    /// Clients will receive real-time updates whenever a new greeting is created
+    /// Unified subscription for all GreetLog changes
+    /// Single subscription that handles all event types (add, update, delete)
+    /// More resource-efficient than multiple separate subscriptions
     /// </summary>
-    /// <param name="greetLog">The newly added greet log (provided by the event)</param>
-    /// <returns>The newly added greet log</returns>
+    /// <param name="greetLogEvent">The event containing type and data</param>
+    /// <returns>The greet log event with all details</returns>
     [Subscribe]
-    [Topic]
-    public GreetLog OnGreetLogAdded([EventMessage] GreetLog greetLog) => greetLog;
-    
-    /// <summary>
-    /// Subscribe to be notified when a greet log is updated
-    /// Clients will receive real-time updates whenever a greeting's content is modified
-    /// </summary>
-    /// <param name="greetLog">The updated greet log (provided by the event)</param>
-    /// <returns>The updated greet log</returns>
-    [Subscribe]
-    [Topic]
-    public GreetLog OnGreetLogUpdated([EventMessage] GreetLog greetLog) => greetLog;
-    
-    /// <summary>
-    /// Subscribe to be notified when a greet log is deleted
-    /// Clients will receive the ID of the deleted greet log
-    /// </summary>
-    /// <param name="greetLogId">The ID of the deleted greet log (provided by the event)</param>
-    /// <returns>The ID of the deleted greet log</returns>
-    [Subscribe]
-    [Topic]
-    public string OnGreetLogDeleted([EventMessage] string greetLogId) => greetLogId;
-    
-    // Note: Combined watch subscription removed in v1.0.0 for simplicity
-    // Use individual subscriptions (onGreetLogAdded, onGreetLogUpdated, onGreetLogDeleted) instead
+    [Topic("GreetLogChanges")]
+    public GreetLogEvent OnGreetLogChanged([EventMessage] GreetLogEvent greetLogEvent) => greetLogEvent;
 }
