@@ -10,6 +10,7 @@ namespace GQLServer.Mutations;
 /// GraphQL mutations for GreetLog operations
 /// Uses GreetLogService for all data access and business logic
 /// </summary>
+[ExtendObjectType(typeof(RootMutation))]
 public class GreetLogMutations
 {
     /// <summary>

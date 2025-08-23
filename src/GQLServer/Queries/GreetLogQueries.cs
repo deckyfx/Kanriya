@@ -7,6 +7,7 @@ namespace GQLServer.Queries;
 /// GraphQL queries for GreetLog operations
 /// Uses GreetLogService for all data access
 /// </summary>
+[ExtendObjectType(typeof(RootQuery))]
 public class GreetLogQueries
 {
     /// <summary>

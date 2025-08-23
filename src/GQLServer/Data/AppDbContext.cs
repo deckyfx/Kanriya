@@ -24,8 +24,22 @@ public class AppDbContext : DbContext
     /// </summary>
     public DbSet<GreetLog> GreetLogs { get; set; } = null!;
     
+    /// <summary>
+    /// DbSet for User entities - represents the users table in the database
+    /// </summary>
+    public DbSet<User> Users { get; set; } = null!;
+    
+    /// <summary>
+    /// DbSet for PendingUser entities - represents the pending_users table in the database
+    /// </summary>
+    public DbSet<PendingUser> PendingUsers { get; set; } = null!;
+    
+    /// <summary>
+    /// DbSet for UserRole entities - represents the user_roles table in the database
+    /// </summary>
+    public DbSet<UserRole> UserRoles { get; set; } = null!;
+    
     // Future DbSets will be added here as the application grows
-    // public DbSet<User> Users { get; set; } = null!;
     // public DbSet<Category> Categories { get; set; } = null!;
     // public DbSet<Tag> Tags { get; set; } = null!;
 

@@ -9,6 +9,7 @@ namespace GQLServer.Subscriptions;
 /// GraphQL subscriptions for GreetLog operations
 /// Provides real-time updates when greet logs are added, updated, or deleted
 /// </summary>
+[ExtendObjectType(typeof(RootSubscription))]
 public class GreetLogSubscriptions
 {
     /// <summary>

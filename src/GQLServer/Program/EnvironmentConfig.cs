@@ -1,3 +1,5 @@
+using GQLServer.Constants;
+using GQLServer.Services;
 using IOPath = System.IO.Path;
 
 namespace GQLServer.Program;
@@ -8,7 +10,12 @@ namespace GQLServer.Program;
 public static class EnvironmentConfig
 {
     /// <summary>
-    /// Load environment variables from .env file and configure server URLs
+    /// Track the last loaded .env file path for logging
+    /// </summary>
+    public static string? LastLoadedEnvPath { get; private set; }
+    
+    /// <summary>
+    /// Load environment variables from .env file and configure server URLs (with logging)
     /// </summary>
     public static void LoadEnvironment(WebApplicationBuilder builder)
     {
@@ -17,26 +24,29 @@ public static class EnvironmentConfig
     }
     
     /// <summary>
-    /// Load .env file from multiple possible locations
+    /// Load environment variables from .env file and configure server URLs (without logging)
+    /// </summary>
+    public static void LoadEnvironmentWithoutLogging(WebApplicationBuilder builder)
+    {
+        LoadEnvFileQuiet();
+        ConfigureServerUrlsQuiet(builder);
+    }
+    
+    /// <summary>
+    /// Load .env file from multiple possible locations (with logging)
     /// </summary>
     private static void LoadEnvFile()
     {
-        var envPaths = new[]
-        {
-            ".env",                                                      // Current directory
-            IOPath.Combine(AppContext.BaseDirectory, ".env"),           // Where the binary is
-            IOPath.Combine(AppContext.BaseDirectory, "../../../.env"),  // Development path
-            IOPath.Combine(Directory.GetCurrentDirectory(), ".env"),    // Working directory
-            "/home/decky/Documents/works/others/learn-csharp/.env"      // Absolute path fallback
-        };
-
+        var envPaths = ApplicationPaths.GetEnvironmentFilePaths();
+        
         bool envLoaded = false;
         foreach (var path in envPaths)
         {
             if (File.Exists(path))
             {
                 DotNetEnv.Env.Load(path);
-                Console.WriteLine($"✓ Loaded .env from: {path}");
+                LastLoadedEnvPath = path;
+                LogService.LogSuccess($"Loaded .env from: {path}");
                 envLoaded = true;
                 break;
             }
@@ -44,12 +54,42 @@ public static class EnvironmentConfig
 
         if (!envLoaded)
         {
-            Console.WriteLine("⚠ No .env file found, using defaults");
+            LastLoadedEnvPath = null;
+            LogService.LogWarning("No .env file found, using defaults");
         }
     }
     
     /// <summary>
-    /// Configure Kestrel server URLs from environment variables
+    /// Load .env file from multiple possible locations (without logging)
+    /// </summary>
+    private static void LoadEnvFileQuiet()
+    {
+        var envPaths = ApplicationPaths.GetEnvironmentFilePaths();
+        
+        // Debug: Show all paths being checked
+        Console.WriteLine($"DEBUG: Checking for .env file in:");
+        foreach (var path in envPaths)
+        {
+            Console.WriteLine($"  - {path} (exists: {File.Exists(path)})");
+        }
+        
+        foreach (var path in envPaths)
+        {
+            if (File.Exists(path))
+            {
+                DotNetEnv.Env.Load(path);
+                LastLoadedEnvPath = path;
+                
+                // Debug: Verify that the environment variable was actually loaded
+                var testPort = Environment.GetEnvironmentVariable("APP_PORT");
+                Console.WriteLine($"DEBUG: After loading {path}, APP_PORT = {testPort}");
+                break;
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Configure Kestrel server URLs from environment variables (with logging)
     /// </summary>
     private static void ConfigureServerUrls(WebApplicationBuilder builder)
     {
@@ -58,7 +98,19 @@ public static class EnvironmentConfig
         var urls = $"http://{appIp}:{appPort}";
         
         builder.WebHost.UseUrls(urls);
-        Console.WriteLine($"Server will listen on: {urls}");
+        LogService.LogInfo($"Server will listen on: {urls}");
+    }
+    
+    /// <summary>
+    /// Configure Kestrel server URLs from environment variables (without logging)
+    /// </summary>
+    private static void ConfigureServerUrlsQuiet(WebApplicationBuilder builder)
+    {
+        var appIp = Environment.GetEnvironmentVariable("APP_IP") ?? "localhost";
+        var appPort = Environment.GetEnvironmentVariable("APP_PORT") ?? "5000";
+        var urls = $"http://{appIp}:{appPort}";
+        
+        builder.WebHost.UseUrls(urls);
     }
     
     /// <summary>

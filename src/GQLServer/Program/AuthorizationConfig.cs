@@ -1,3 +1,5 @@
+using GQLServer.Constants;
+
 namespace GQLServer.Program;
 
 /// <summary>
@@ -17,35 +19,39 @@ public static class AuthorizationConfig
             options.AddPolicy("Authenticated", policy =>
                 policy.RequireAuthenticatedUser());
             
-            // Admin policy - requires Admin role
-            // For operations that only administrators should perform
-            options.AddPolicy("AdminOnly", policy =>
-                policy.RequireRole("Admin"));
+            // SuperAdmin policy - requires SuperAdmin role
+            // For operations that only super administrators should perform
+            options.AddPolicy("SuperAdminOnly", policy =>
+                policy.RequireRole(UserRoles.SuperAdmin));
             
-            // Moderator policy - requires Admin OR Moderator role
-            // For operations that moderators and admins can perform
-            options.AddPolicy("ModeratorOrAbove", policy =>
-                policy.RequireRole("Admin", "Moderator"));
+            // Business Owner policy - requires BusinessOwner role
+            // For operations that business owners can perform
+            options.AddPolicy("BusinessOwnerOnly", policy =>
+                policy.RequireRole(UserRoles.BusinessOwner));
+            
+            // Business Operator policy - requires BusinessOperator role
+            // For operations that business operators can perform
+            options.AddPolicy("BusinessOperatorOnly", policy =>
+                policy.RequireRole(UserRoles.BusinessOperator));
+            
+            // Business Access policy - requires either BusinessOwner or BusinessOperator role
+            // For operations that any business member can perform
+            options.AddPolicy("BusinessAccess", policy =>
+                policy.RequireRole(UserRoles.BusinessOwner, UserRoles.BusinessOperator));
             
             // Custom policy example - requires specific claim
             // For users who have verified their email address
             options.AddPolicy("EmailVerified", policy =>
                 policy.RequireClaim("email_verified", "true"));
             
-            // Complex policy example - multiple requirements
-            // For premium users with valid subscription
-            options.AddPolicy("PremiumUser", policy =>
+            // Complex policy example - SuperAdmin or explicit permission
+            // For operations that require SuperAdmin or specific permissions
+            options.AddPolicy("AdminOperations", policy =>
             {
                 policy.RequireAuthenticatedUser();
-                policy.RequireRole("User", "Moderator", "Admin");
-                policy.RequireClaim("subscription", "premium");
-            });
-            
-            // Developer policy - for development/debugging operations
-            options.AddPolicy("DeveloperOnly", policy =>
-            {
-                policy.RequireRole("Admin");
-                policy.RequireClaim("developer", "true");
+                policy.RequireAssertion(context =>
+                    context.User.IsInRole(UserRoles.SuperAdmin) ||
+                    context.User.HasClaim("permission", "admin_operations"));
             });
             
             // Service account policy - for automated processes
@@ -58,11 +64,12 @@ public static class AuthorizationConfig
 
         Console.WriteLine("✓ Authorization policies configured:");
         Console.WriteLine("  - Authenticated: Requires any authenticated user");
-        Console.WriteLine("  - AdminOnly: Requires Admin role");
-        Console.WriteLine("  - ModeratorOrAbove: Requires Admin or Moderator role");
+        Console.WriteLine("  - SuperAdminOnly: Requires SuperAdmin role");
+        Console.WriteLine("  - BusinessOwnerOnly: Requires BusinessOwner role");
+        Console.WriteLine("  - BusinessOperatorOnly: Requires BusinessOperator role");
+        Console.WriteLine("  - BusinessAccess: Requires BusinessOwner or BusinessOperator role");
         Console.WriteLine("  - EmailVerified: Requires verified email claim");
-        Console.WriteLine("  - PremiumUser: Requires premium subscription claim");
-        Console.WriteLine("  - DeveloperOnly: Requires Admin role with developer claim");
+        Console.WriteLine("  - AdminOperations: Requires SuperAdmin or admin_operations permission");
         Console.WriteLine("  - ServiceAccount: Requires service account claim");
     }
 }

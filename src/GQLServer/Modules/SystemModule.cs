@@ -1,9 +1,11 @@
 using GQLServer.Program;
+using GQLServer.Queries;
 
-namespace GQLServer.Queries;
+namespace GQLServer.Modules;
 
 /// <summary>
-/// System-level queries for server information and health checks
+/// GraphQL module for System domain
+/// Contains all queries related to system information and health
 /// </summary>
 [ExtendObjectType(typeof(RootQuery))]
 public class SystemQueries
@@ -11,12 +13,12 @@ public class SystemQueries
     /// <summary>
     /// Get the current server version information
     /// </summary>
-    /// <returns>Version information object</returns>
+    [GraphQLName("version")]
     public VersionInfo GetVersion()
     {
         return new VersionInfo
         {
-            Version = AppVersion.Version,
+            Version = AppVersion.GetShortVersion(),
             Codename = AppVersion.Codename,
             BuildDate = AppVersion.BuildDate,
             FullVersion = AppVersion.GetFullVersion()
@@ -24,63 +26,63 @@ public class SystemQueries
     }
     
     /// <summary>
-    /// Simple health check endpoint
+    /// Get the current health status of the server
     /// </summary>
-    /// <returns>Server status</returns>
+    [GraphQLName("health")]
     public HealthStatus GetHealth()
     {
         return new HealthStatus
         {
-            Status = "healthy",
+            Status = "Healthy",
             Timestamp = DateTime.UtcNow,
-            Version = AppVersion.GetShortVersion()
+            Version = AppVersion.GetFullVersion()
         };
     }
 }
 
 /// <summary>
-/// Version information response type
+/// Version information about the GraphQL server
 /// </summary>
 public class VersionInfo
 {
     /// <summary>
-    /// Semantic version number
+    /// The semantic version number (e.g., "1.1.0")
     /// </summary>
     public string Version { get; set; } = string.Empty;
     
     /// <summary>
-    /// Version codename
+    /// The codename of this version
     /// </summary>
     public string Codename { get; set; } = string.Empty;
     
     /// <summary>
-    /// Build date
+    /// The build date
     /// </summary>
     public string BuildDate { get; set; } = string.Empty;
     
     /// <summary>
-    /// Full version string
+    /// The full version string including codename and date
     /// </summary>
     public string FullVersion { get; set; } = string.Empty;
 }
 
 /// <summary>
-/// Health status response type
+/// Health status of the GraphQL server
 /// </summary>
 public class HealthStatus
 {
     /// <summary>
-    /// Current server status
+    /// The current status of the server
     /// </summary>
     public string Status { get; set; } = string.Empty;
     
     /// <summary>
-    /// Current timestamp
+    /// The timestamp of the health check
     /// </summary>
     public DateTime Timestamp { get; set; }
     
     /// <summary>
-    /// Server version
+    /// The server version
     /// </summary>
     public string Version { get; set; } = string.Empty;
 }

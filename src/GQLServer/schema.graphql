@@ -1,0 +1,172 @@
+schema {
+  query: Query
+  mutation: Mutation
+  subscription: Subscription
+}
+
+type AuthPayload {
+  success: Boolean!
+  message: String!
+  user: User
+  token: String
+  verificationToken: String
+}
+
+type GreetLog {
+  id: String!
+  timestamp: DateTime!
+  content: String!
+}
+
+type GreetLogEvent {
+  event: EventType!
+  document: GreetLog
+  time: DateTime!
+  _previous: GreetLog
+}
+
+type HealthStatus {
+  status: String!
+  timestamp: DateTime!
+  version: String!
+}
+
+type Mutation {
+  addGreetLog(input: AddGreetLogInput!): GreetLog! @cost(weight: "10")
+  updateGreetLog(id: String! newContent: String!): GreetLog! @cost(weight: "10")
+  deleteGreetLog(id: String!): Boolean! @cost(weight: "10")
+  addGreetLogsBulk(contents: [String!]!): [GreetLog!]! @cost(weight: "10")
+  deleteOldGreetLogs(olderThan: DateTime!): Int! @cost(weight: "10")
+  signUp(input: SignUpInput!): AuthPayload! @cost(weight: "10")
+  verifyEmail(verificationToken: String!): AuthPayload! @cost(weight: "10")
+  signIn(input: SignInInput!): AuthPayload! @cost(weight: "10")
+  resendVerification(email: String!): AuthPayload! @cost(weight: "10")
+  changePassword(currentPassword: String! newPassword: String!): AuthPayload! @authorize @cost(weight: "10")
+  updateProfile(fullName: String profilePictureUrl: String): AuthPayload! @authorize @cost(weight: "10")
+  grantRole(userId: String! role: String!): UserManagementResult! @authorize(policy: "SuperAdminOnly") @cost(weight: "10")
+  revokeRole(userId: String! role: String!): UserManagementResult! @authorize(policy: "SuperAdminOnly") @cost(weight: "10")
+  deleteUser(userId: String!): UserManagementResult! @authorize @cost(weight: "10")
+  forceVerifyUser(pendingUserId: String!): UserManagementResult! @authorize(policy: "SuperAdminOnly") @cost(weight: "10")
+}
+
+type PendingUser {
+  id: String!
+  email: String!
+  passwordHash: String!
+  createdAt: DateTime!
+  verificationToken: String!
+  tokenExpiresAt: DateTime!
+}
+
+type Query {
+  greetLogs(skip: Int take: Int): [GreetLog!]! @cost(weight: "10")
+  greetLogById(id: String!): GreetLog @cost(weight: "10")
+  recentGreetLogs(count: Int! = 10): [GreetLog!]! @cost(weight: "10")
+  searchGreetLogs(searchTerm: String!): [GreetLog!]! @cost(weight: "10")
+  greetLogsByDateRange(startDate: DateTime! endDate: DateTime!): [GreetLog!]! @cost(weight: "10")
+  greetLogCount: Int! @cost(weight: "10")
+  me: User @authorize @cost(weight: "10")
+  userById(id: String!): User @authorize(policy: "SuperAdminOnly") @cost(weight: "10")
+  userByEmail(email: String!): User @authorize(policy: "SuperAdminOnly") @cost(weight: "10")
+  users(skip: Int take: Int): [User!]! @authorize(policy: "SuperAdminOnly") @cost(weight: "10")
+  pendingUsers: [PendingUser!]! @authorize(policy: "SuperAdminOnly") @cost(weight: "10")
+  isEmailAvailable(email: String!): Boolean! @cost(weight: "10")
+  version: VersionInfo!
+  health: HealthStatus!
+}
+
+type Subscription {
+  onGreetLogChanged: GreetLogEvent!
+  onUserChanged: SubscriptionEventOfUser!
+  onPendingUserChanged: SubscriptionEventOfPendingUser!
+}
+
+type SubscriptionEventOfPendingUser {
+  event: EventType!
+  document: PendingUser
+  time: DateTime!
+  _previous: PendingUser
+}
+
+type SubscriptionEventOfUser {
+  event: EventType!
+  document: User
+  time: DateTime!
+  _previous: User
+}
+
+type User {
+  id: String!
+  email: String!
+  passwordHash: String!
+  fullName: String!
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  profilePictureUrl: String
+  lastLoginAt: DateTime
+  userRoles: [UserRole!]!
+}
+
+type UserManagementResult {
+  success: Boolean!
+  message: String!
+  user: User
+}
+
+type UserRole {
+  id: String!
+  userId: String!
+  role: String!
+  assignedAt: DateTime!
+  assignedBy: String
+  user: User!
+}
+
+type VersionInfo {
+  version: String!
+  codename: String!
+  buildDate: String!
+  fullVersion: String!
+}
+
+input AddGreetLogInput {
+  content: String!
+}
+
+input SignInInput {
+  email: String!
+  password: String!
+}
+
+input SignUpInput {
+  email: String!
+  password: String!
+}
+
+"Defines when a policy shall be executed."
+enum ApplyPolicy {
+  "Before the resolver was executed."
+  BEFORE_RESOLVER
+  "After the resolver was executed."
+  AFTER_RESOLVER
+  "The policy is applied in the validation step before the execution."
+  VALIDATION
+}
+
+enum EventType {
+  CREATED
+  UPDATED
+  DELETED
+}
+
+"The authorize directive."
+directive @authorize("The name of the authorization policy that determines access to the annotated resource." policy: String "Roles that are allowed to access the annotated resource." roles: [String!] "Defines when when the authorize directive shall be applied.By default the authorize directives are applied during the validation phase." apply: ApplyPolicy! = BEFORE_RESOLVER) repeatable on OBJECT | FIELD_DEFINITION
+
+"The purpose of the `cost` directive is to define a `weight` for GraphQL types, fields, and arguments. Static analysis can use these weights when calculating the overall cost of a query or response."
+directive @cost("The `weight` argument defines what value to add to the overall cost for every appearance, or possible appearance, of a type, field, argument, etc." weight: String!) on SCALAR | OBJECT | FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM | INPUT_FIELD_DEFINITION
+
+"The `@specifiedBy` directive is used within the type system definition language to provide a URL for specifying the behavior of custom scalar definitions."
+directive @specifiedBy("The specifiedBy URL points to a human-readable specification. This field will only read a result for scalar types." url: String!) on SCALAR
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime @specifiedBy(url: "https:\/\/www.graphql-scalars.com\/date-time")

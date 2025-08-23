@@ -4,3 +4,4 @@ data/postgres/*
 .env
 src/**/bin
 src/**/obj
+src/**/data
