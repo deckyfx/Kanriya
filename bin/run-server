@@ -4,7 +4,7 @@
 # Ensures database is ready before starting the server
 
 # Ensure .dotnet/tools is in PATH for this script
-export PATH="$PATH:/home/decky/.dotnet/tools"
+export PATH="$PATH:$HOME/.dotnet/tools"
 
 # Colors for output
 RED='\033[0;31m'
@@ -28,8 +28,20 @@ check_database() {
         echo
         if [[ ! $REPLY =~ ^[Nn]$ ]]; then
             echo -e "${YELLOW}Applying migrations...${NC}"
-            dotnet ef database update
-            echo -e "${GREEN}✓ Migrations applied${NC}"
+            if ! dotnet ef database update; then
+                echo -e "${RED}✗ Migration failed!${NC}"
+                echo -e "${RED}Please fix the migration issues before starting the server.${NC}"
+                echo ""
+                echo "Possible solutions:"
+                echo "  1. Check your database connection in .env"
+                echo "  2. Ensure PostgreSQL is running: docker-compose up -d"
+                echo "  3. Review migration errors above"
+                echo "  4. Use --skip-db flag to skip migrations (not recommended)"
+                exit 1
+            fi
+            echo -e "${GREEN}✓ Migrations applied successfully${NC}"
+        else
+            echo -e "${YELLOW}⚠ Skipping migrations - database may not be up to date${NC}"
         fi
     else
         echo -e "${GREEN}✓ Database is up to date${NC}"
@@ -97,6 +109,32 @@ show_info
 if [ "$SKIP_DB_CHECK" = false ]; then
     check_database
 fi
+
+# Build frontend assets
+echo -e "${BLUE}Building frontend assets...${NC}"
+
+# Check if node_modules exists, if not install dependencies
+if [ ! -d "node_modules" ]; then
+    echo -e "${YELLOW}Installing npm dependencies...${NC}"
+    npm install
+fi
+
+# Build all frontend assets (TypeScript, Webpack, CSS)
+echo -e "${YELLOW}Building TypeScript, bundling JavaScript, and compiling CSS...${NC}"
+if ! npm run build; then
+    echo -e "${RED}✗ Frontend build failed!${NC}"
+    echo -e "${RED}Please fix the build errors above before starting the server.${NC}"
+    echo ""
+    echo "Common solutions:"
+    echo "  1. Check TypeScript errors in src/ts/ files"
+    echo "  2. Ensure all npm dependencies are installed: npm install"
+    echo "  3. Check for missing type definitions: npm i --save-dev @types/[package]"
+    echo "  4. Review webpack configuration for any issues"
+    exit 1
+fi
+
+echo -e "${GREEN}✓ Frontend assets built successfully${NC}"
+echo ""
 
 # Start the server
 echo -e "${YELLOW}Starting GraphQL server...${NC}"

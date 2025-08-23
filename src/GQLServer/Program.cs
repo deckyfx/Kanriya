@@ -74,7 +74,11 @@ try
     LogService.LogSection("GraphQL Configuration");
     GraphQLConfig.ConfigureGraphQL(builder.Services);
 
-    // Step 7: Build the application
+    // Step 7: Configure HTTP Endpoints and Swagger
+    LogService.LogSection("HTTP Endpoints Configuration");
+    HttpEndpointsConfig.ConfigureHttpServices(builder.Services);
+
+    // Step 8: Build the application
     LogService.LogSection("Building Application");
     var app = await LogService.RunWithProgressAsync("Building application", async () => 
     {
@@ -82,15 +86,20 @@ try
         return builder.Build();
     });
 
-    // Step 8: Initialize Database
+    // Step 9: Initialize Database
     LogService.LogSection("Database Initialization");
     await DatabaseConfig.InitializeDatabaseAsync(app);
 
-    // Step 9: Configure GraphQL middleware pipeline
+    // Step 10: Configure middleware pipeline
     LogService.LogSection("Middleware Configuration");
+    
+    // Configure HTTP endpoints first
+    HttpEndpointsConfig.ConfigureHttpMiddleware(app);
+    
+    // Then configure GraphQL middleware
     GraphQLConfig.ConfigureGraphQLMiddleware(app);
 
-    // Step 10: Run the application
+    // Step 11: Run the application
     LogService.LogSection("Starting Server");
     LogService.LogSuccess("Server is ready!");
     LogService.LogInfo("Press Ctrl+C to shutdown gracefully");

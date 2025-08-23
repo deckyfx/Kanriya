@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+# API endpoints
+Disallow: /graphql
+Disallow: /api/
+Disallow: /swagger
+
+# Admin areas
+Disallow: /admin/
+Disallow: /manage/
+
+# Temporary files
+Disallow: /temp/
+Disallow: /tmp/
+
+Sitemap: https://example.com/sitemap.xml

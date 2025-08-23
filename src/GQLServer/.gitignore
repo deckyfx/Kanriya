@@ -1,0 +1,78 @@
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Node modules and build output
+node_modules/
+wwwroot/dist/
+wwwroot/css/app.min.css
+wwwroot/js/*.bundle.js
+wwwroot/js/compiled/
+src/ts/**/*.js
+src/ts/**/*.js.map
+src/ts/**/*.d.ts
+
+# Database
+*.db
+*.db-shm
+*.db-wal
+data/postgres/
+data/logs/
+
+# User-specific files
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Rider
+.idea/
+*.sln.iml
+
+# VS Code
+.vscode/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.pid
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Swagger generated files
+swagger.json
+swagger.yaml

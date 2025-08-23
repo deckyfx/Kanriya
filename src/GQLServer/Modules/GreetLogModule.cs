@@ -137,6 +137,10 @@ public class GreetLogMutations
         }
         
         var updatedGreetLog = await service.UpdateAsync(id, newContent, cancellationToken);
+        if (updatedGreetLog == null)
+        {
+            throw new GraphQLException($"Failed to update GreetLog with ID '{id}'.");
+        }
         
         // Publish event for subscriptions
         var evt = new GreetLogEvent

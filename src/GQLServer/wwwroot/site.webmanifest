@@ -1,0 +1,16 @@
+{
+    "name": "GQLServer",
+    "short_name": "GQLServer",
+    "description": "GraphQL API Server with Authentication",
+    "start_url": "/",
+    "display": "standalone",
+    "theme_color": "#667eea",
+    "background_color": "#ffffff",
+    "icons": [
+        {
+            "src": "/favicon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml"
+        }
+    ]
+}

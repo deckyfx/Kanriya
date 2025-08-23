@@ -1,0 +1,129 @@
+@model AboutViewModel
+@{
+    ViewData["Title"] = "About - GQLServer";
+    ViewData["Description"] = "Learn more about GQLServer and the team behind it";
+}
+
+<div class="space-y-12">
+    <!-- Hero Section -->
+    <div class="bg-gradient-to-r from-primary-600 to-secondary-600 rounded-2xl p-12 text-white text-center">
+        <h1 class="text-4xl font-bold mb-4">About GQLServer</h1>
+        <p class="text-xl">Building the future of GraphQL APIs with .NET</p>
+        
+        <!-- Test Button -->
+        <button id="about-test-button" class="btn bg-white text-primary-600 hover:bg-gray-100 mt-6">
+            Test Page Alert (About)
+        </button>
+    </div>
+
+    <!-- Project Statistics -->
+    <div>
+        <h2 class="text-3xl font-bold text-center mb-8">📊 Project Statistics</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="card text-center">
+                <div class="text-3xl font-bold text-primary-600">@Model.Version</div>
+                <div class="text-sm text-gray-600 mt-2">Current Version</div>
+            </div>
+            <div class="card text-center">
+                <div class="text-3xl font-bold text-primary-600">.NET @Model.DotNetVersion.Split('.')[0]</div>
+                <div class="text-sm text-gray-600 mt-2">Framework</div>
+            </div>
+            <div class="card text-center">
+                <div class="text-3xl font-bold text-primary-600">v@Model.HotChocolateVersion</div>
+                <div class="text-sm text-gray-600 mt-2">HotChocolate</div>
+            </div>
+            <div class="card text-center">
+                <div class="text-3xl font-bold text-primary-600">@Model.BuildDate.ToString("MMM yyyy")</div>
+                <div class="text-sm text-gray-600 mt-2">Last Build</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Our Team -->
+    <div>
+        <h2 class="text-3xl font-bold text-center mb-8">👥 Our Team</h2>
+        <div class="grid md:grid-cols-3 gap-6">
+            @foreach (var member in Model.TeamMembers)
+            {
+                <div class="card text-center hover:shadow-lg transition-shadow team-card cursor-pointer">
+                    <div class="text-5xl mb-4">@member.Avatar</div>
+                    <h3 class="text-lg font-semibold text-gray-900 team-name">@member.Name</h3>
+                    <p class="text-sm text-gray-600 mt-1 team-role">@member.Role</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Technology Stack -->
+    <div>
+        <h2 class="text-3xl font-bold text-center mb-8">🛠️ Technology Stack</h2>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            @foreach (var tech in Model.Technologies)
+            {
+                <div class="border-l-4 border-primary-500 bg-white p-4 rounded-r-lg shadow hover:shadow-md transition-shadow">
+                    <div class="text-xs text-primary-600 font-semibold uppercase tracking-wider">@tech.Category</div>
+                    <h3 class="text-lg font-bold text-gray-900 mt-1">@tech.Name</h3>
+                    <p class="text-sm text-gray-600 mt-2">@tech.Description</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Project Timeline -->
+    <div>
+        <h2 class="text-3xl font-bold text-center mb-8">🚀 Project Timeline</h2>
+        <div class="relative">
+            <!-- Timeline line -->
+            <div class="absolute left-1/2 transform -translate-x-1/2 w-0.5 h-full bg-gray-300"></div>
+            
+            <!-- Timeline items -->
+            <div class="space-y-8">
+                @{
+                    var index = 0;
+                }
+                @foreach (var milestone in Model.Milestones.OrderByDescending(m => m.Date))
+                {
+                    <div class="relative flex items-center @(index % 2 == 0 ? "justify-start" : "justify-end")">
+                        <!-- Dot -->
+                        <div class="absolute left-1/2 transform -translate-x-1/2 w-4 h-4 bg-primary-600 rounded-full border-4 border-white"></div>
+                        
+                        <!-- Content -->
+                        <div class="card timeline-item @(index % 2 == 0 ? "mr-auto ml-0" : "ml-auto mr-0") max-w-md">
+                            <div class="text-sm text-primary-600 font-semibold">@milestone.Date.ToString("MMMM yyyy")</div>
+                            <h3 class="text-lg font-bold text-gray-900 mt-1">@milestone.Title</h3>
+                            <p class="text-sm text-gray-600 mt-2">@milestone.Description</p>
+                        </div>
+                    </div>
+                    index++;
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Animate timeline items on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('opacity-100', 'translate-y-0');
+                    entry.target.classList.remove('opacity-0', 'translate-y-4');
+                }
+            });
+        }, observerOptions);
+        
+        // Add initial classes and observe
+        document.querySelectorAll('.card').forEach(card => {
+            if (card.closest('.space-y-8')) { // Only timeline cards
+                card.classList.add('opacity-0', 'translate-y-4', 'transition-all', 'duration-500');
+                observer.observe(card);
+            }
+        });
+    </script>
+}
