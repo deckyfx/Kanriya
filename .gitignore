@@ -5,3 +5,4 @@ data/postgres/*
 src/**/bin
 src/**/obj
 src/**/data
+data/seq/

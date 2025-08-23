@@ -39,9 +39,25 @@ public class AppDbContext : DbContext
     /// </summary>
     public DbSet<UserRole> UserRoles { get; set; } = null!;
     
-    // Future DbSets will be added here as the application grows
-    // public DbSet<Category> Categories { get; set; } = null!;
-    // public DbSet<Tag> Tags { get; set; } = null!;
+    /// <summary>
+    /// DbSet for EmailOutbox entities - represents the email_outbox table in the database
+    /// </summary>
+    public DbSet<EmailOutbox> EmailOutboxes { get; set; } = null!;
+    
+    /// <summary>
+    /// DbSet for EmailTemplate entities - represents the email_templates table in the database
+    /// </summary>
+    public DbSet<EmailTemplate> EmailTemplates { get; set; } = null!;
+    
+    /// <summary>
+    /// DbSet for UserMailSettings entities - represents the user_mail_settings table in the database
+    /// </summary>
+    public DbSet<UserMailSettings> UserMailSettings { get; set; } = null!;
+    
+    /// <summary>
+    /// DbSet for EmailLog entities - represents the email_logs table in the database
+    /// </summary>
+    public DbSet<EmailLog> EmailLogs { get; set; } = null!;
 
     /// <summary>
     /// Configures the model and relationships for the database

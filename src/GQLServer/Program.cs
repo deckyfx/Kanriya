@@ -42,7 +42,12 @@ try
         EnableConsole = true,
         EnableFile = true,
         ConsoleMinimumLevel = LogEventLevel.Information,
-        FileMinimumLevel = LogEventLevel.Debug
+        FileMinimumLevel = LogEventLevel.Debug,
+        // Enable Seq (always enabled in development)
+        EnableSeq = true,
+        SeqServerUrl = EnvironmentConfig.Seq.ServerUrl,
+        SeqApiKey = EnvironmentConfig.Seq.ApiKey,
+        SeqMinimumLevel = LogEventLevel.Debug
     };
     LogService.Initialize(logConfig);
     
@@ -54,9 +59,7 @@ try
     LogService.LogSection("Environment Configuration");
     LogService.LogSuccess($"Loaded environment from: {EnvironmentConfig.LastLoadedEnvPath ?? "defaults"}");
     
-    var appIp = Environment.GetEnvironmentVariable("APP_IP") ?? "localhost";
-    var appPort = Environment.GetEnvironmentVariable("APP_PORT") ?? "5000";
-    LogService.LogInfo($"Server will listen on: http://{appIp}:{appPort}");
+    LogService.LogInfo($"Server will listen on: {EnvironmentConfig.App.Urls}");
 
     // Step 3: Configure Database (PostgreSQL with Entity Framework)
     LogService.LogSection("Database Configuration");
@@ -74,11 +77,25 @@ try
     LogService.LogSection("GraphQL Configuration");
     GraphQLConfig.ConfigureGraphQL(builder.Services);
 
-    // Step 7: Configure HTTP Endpoints and Swagger
+    // Step 7: Configure Hangfire for Background Jobs
+    LogService.LogSection("Hangfire Configuration");
+    HangfireConfig.ConfigureHangfireServices(builder.Services, builder.Configuration);
+    LogService.LogSuccess("Hangfire configured with PostgreSQL storage");
+    LogService.LogInfo("Dashboard will be available at: /hangfire");
+
+    // Step 8: Configure Mail Services
+    LogService.LogSection("Mail Services Configuration");
+    MailServiceConfig.ConfigureMailServices(builder.Services);
+    LogService.LogSuccess("Mail services configured with SMTP driver");
+    LogService.LogInfo("Email queue system ready for processing");
+
+    // Step 9: Feature flags removed (too complex for current needs)
+
+    // Step 10: Configure HTTP Endpoints and Swagger
     LogService.LogSection("HTTP Endpoints Configuration");
     HttpEndpointsConfig.ConfigureHttpServices(builder.Services);
 
-    // Step 8: Build the application
+    // Step 11: Build the application
     LogService.LogSection("Building Application");
     var app = await LogService.RunWithProgressAsync("Building application", async () => 
     {
@@ -86,20 +103,28 @@ try
         return builder.Build();
     });
 
-    // Step 9: Initialize Database
+    // Step 12: Initialize Database
     LogService.LogSection("Database Initialization");
     await DatabaseConfig.InitializeDatabaseAsync(app);
 
-    // Step 10: Configure middleware pipeline
+    // Step 13: Initialize Mail Services (load SMTP config at startup)
+    LogService.LogSection("Mail Services Initialization");
+    await MailServiceConfig.InitializeMailServicesAsync(app.Services);
+
+    // Step 14: Configure middleware pipeline
     LogService.LogSection("Middleware Configuration");
     
     // Configure HTTP endpoints first
     HttpEndpointsConfig.ConfigureHttpMiddleware(app);
     
+    // Configure Hangfire middleware
+    HangfireConfig.ConfigureHangfireMiddleware(app);
+    
+    
     // Then configure GraphQL middleware
     GraphQLConfig.ConfigureGraphQLMiddleware(app);
 
-    // Step 11: Run the application
+    // Step 15: Run the application
     LogService.LogSection("Starting Server");
     LogService.LogSuccess("Server is ready!");
     LogService.LogInfo("Press Ctrl+C to shutdown gracefully");

@@ -4,6 +4,7 @@ using Serilog.Events;
 using Serilog.Sinks.Spectre;
 using Spectre.Console;
 using GQLServer.Constants;
+using GQLServer.Program;
 using IOPath = System.IO.Path;
 
 namespace GQLServer.Services;
@@ -48,7 +49,7 @@ public static class LogService
                 .Enrich.FromLogContext()
                 .Enrich.WithProperty("ThreadId", System.Threading.Thread.CurrentThread.ManagedThreadId)
                 .Enrich.WithProperty("MachineName", Environment.MachineName)
-                .Enrich.WithProperty("Environment", Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production")
+                .Enrich.WithProperty("Environment", EnvironmentConfig.App.AspNetCoreEnvironment)
                 .Enrich.WithProperty("Application", ApplicationPaths.ApplicationName)
                 .Enrich.WithProperty("Version", ApplicationPaths.ApplicationVersion);
 
@@ -75,6 +76,17 @@ public static class LogService
                     retainedFileCountLimit: config.RetainedFileCountLimit,
                     shared: true,
                     flushToDiskInterval: TimeSpan.FromSeconds(1));
+            }
+
+            // Configure Seq output if enabled
+            if (config.EnableSeq)
+            {
+                loggerConfig.WriteTo.Seq(
+                    serverUrl: config.SeqServerUrl,
+                    apiKey: config.SeqApiKey,
+                    restrictedToMinimumLevel: config.SeqMinimumLevel,
+                    batchPostingLimit: 100,
+                    period: TimeSpan.FromSeconds(2));
             }
 
             _logger = loggerConfig.CreateLogger();
@@ -296,4 +308,24 @@ public class LogConfiguration
     /// Number of log files to retain (null = unlimited)
     /// </summary>
     public int? RetainedFileCountLimit { get; set; } = 30;
+    
+    /// <summary>
+    /// Enable Seq centralized logging
+    /// </summary>
+    public bool EnableSeq { get; set; } = false;
+    
+    /// <summary>
+    /// Seq server URL
+    /// </summary>
+    public string SeqServerUrl { get; set; } = "http://localhost:5341";
+    
+    /// <summary>
+    /// Seq API key (optional)
+    /// </summary>
+    public string? SeqApiKey { get; set; }
+    
+    /// <summary>
+    /// Minimum log level for Seq output
+    /// </summary>
+    public LogEventLevel SeqMinimumLevel { get; set; } = LogEventLevel.Information;
 }

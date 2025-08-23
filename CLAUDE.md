@@ -1,5 +1,33 @@
 # Project Structure Guidelines - Learn C# GraphQL with HotChocolate
 
+## Environment Configuration
+
+**IMPORTANT**: All environment variable access MUST go through the centralized `EnvironmentConfig` class.
+
+### Rules
+1. **Never use** `Environment.GetEnvironmentVariable()` directly in code
+2. **Always use** `EnvironmentConfig` static properties:
+   - `EnvironmentConfig.App.Port` for APP_PORT
+   - `EnvironmentConfig.Database.Host` for POSTGRES_HOST
+   - `EnvironmentConfig.Mail.Provider` for MAIL_PROVIDER
+   - `EnvironmentConfig.Jwt.Secret` for AUTH_JWT_SECRET
+   - etc.
+
+### Adding New Environment Variables
+When adding new environment variables:
+1. Add the property to the appropriate nested class in `EnvironmentConfig.cs`
+2. Use the centralized property throughout the codebase
+3. Never access environment variables directly
+
+### Example
+```csharp
+// ❌ WRONG - Direct access
+var port = Environment.GetEnvironmentVariable("APP_PORT") ?? "5000";
+
+// ✅ CORRECT - Through EnvironmentConfig
+var port = EnvironmentConfig.App.Port;
+```
+
 ## Database Naming Convention
 
 This project follows PostgreSQL naming conventions for database objects:

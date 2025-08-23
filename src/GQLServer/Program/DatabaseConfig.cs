@@ -31,9 +31,7 @@ public static class DatabaseConfig
         Console.WriteLine($"  Connection: {GetSafeConnectionString(connectionString)}");
         
         // Show which configuration is being used
-        var host = Environment.GetEnvironmentVariable("POSTGRES_HOST") ?? "localhost";
-        var port = Environment.GetEnvironmentVariable("POSTGRES_PORT") ?? "5432";
-        Console.WriteLine($"  Using {host}:{port} (set POSTGRES_HOST and POSTGRES_PORT in .env to change)");
+        Console.WriteLine($"  Using {EnvironmentConfig.Database.Host}:{EnvironmentConfig.Database.Port} (set POSTGRES_HOST and POSTGRES_PORT in .env to change)");
     }
     
     /// <summary>
@@ -55,6 +53,8 @@ public static class DatabaseConfig
                 // Create database if it doesn't exist
                 await dbContext.Database.EnsureCreatedAsync();
                 Console.WriteLine("✓ Database is ready");
+                
+                // Email templates seeding removed for now
             }
             else
             {

@@ -43,6 +43,7 @@ public class AuthMutations
     /// <summary>
     /// Verify email address with token
     /// Moves user from pending to active
+    /// Note: Does not return JWT token - user must sign in after activation
     /// </summary>
     public async Task<AuthPayload> VerifyEmail(
         string verificationToken,
@@ -51,19 +52,16 @@ public class AuthMutations
     {
         var result = await userService.VerifyEmailAsync(verificationToken, cancellationToken);
         
-        // Auto-generate token for verified user
-        string? token = null;
-        if (result.Success && result.User != null)
-        {
-            token = userService.GenerateJwtToken(result.User);
-        }
+        // Don't generate token here - user must sign in after email verification
         
         return new AuthPayload
         {
             Success = result.Success,
-            Message = result.Message,
+            Message = result.Success 
+                ? "Email verified successfully. Please sign in to get your access token."
+                : result.Message,
             User = result.User,
-            Token = token
+            Token = null // No token on verification, only on signin
         };
     }
     

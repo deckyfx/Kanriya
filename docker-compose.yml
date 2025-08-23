@@ -26,6 +26,21 @@ services:
       - db
     networks:
       - postgres-network
+  
+  seq:
+    image: datalust/seq:latest
+    #restart: unless-stopped
+    environment:
+      - ACCEPT_EULA=Y
+      # Optional: Set an admin password (remove for no auth)
+      - SEQ_FIRSTRUN_ADMINPASSWORD=admin123
+    ports:
+      - "10003:80"     # Web UI
+      - "10002:5341"    # Ingestion API
+    volumes:
+      - ./data/seq:/data
+    networks:
+      - postgres-network
 
 networks:
   postgres-network:

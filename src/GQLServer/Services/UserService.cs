@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
 using GQLServer.Data;
+using GQLServer.Program;
 using GQLServer.Types.Outputs;
 using HotChocolate.Subscriptions;
 using Microsoft.EntityFrameworkCore;
@@ -18,15 +19,18 @@ public class UserService : IUserService
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<UserService> _logger;
     private readonly IConfiguration _configuration;
+    private readonly IMailerService _mailerService;
     
     public UserService(
         IServiceProvider serviceProvider,
         ILogger<UserService> logger,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IMailerService mailerService)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
         _configuration = configuration;
+        _mailerService = mailerService;
     }
     
     private IServiceScope CreateScope() => _serviceProvider.CreateScope();
@@ -104,9 +108,10 @@ public class UserService : IUserService
         
         _logger.LogInformation("Created pending user for {Email}", email);
         
-        // In production, send email here
-        // For development, return token
-        return (true, "Verification email sent", pendingUser.VerificationToken);
+        // Send activation email
+        await SendActivationEmailAsync(pendingUser, cancellationToken);
+        
+        return (true, "Verification email sent. Please check your inbox.", pendingUser.VerificationToken);
     }
     
     public async Task<(bool Success, string Message, User? User)> VerifyEmailAsync(
@@ -244,9 +249,12 @@ public class UserService : IUserService
         
         await dbContext.SaveChangesAsync(cancellationToken);
         
+        // Send new activation email
+        await SendActivationEmailAsync(pendingUser, cancellationToken);
+        
         _logger.LogInformation("Resent verification email for {Email}", email);
         
-        return (true, "Verification email resent", pendingUser.VerificationToken);
+        return (true, "Verification email resent. Please check your inbox.", pendingUser.VerificationToken);
     }
     
     // ==================== USER MANAGEMENT ====================
@@ -610,11 +618,10 @@ public class UserService : IUserService
     
     public string GenerateJwtToken(User user)
     {
-        var jwtSettings = _configuration.GetSection("JWT");
-        var secretKey = jwtSettings["Secret"] ?? throw new InvalidOperationException("JWT Secret not configured");
-        var issuer = jwtSettings["Issuer"] ?? "YourGraphQLServer";
-        var audience = jwtSettings["Audience"] ?? "YourGraphQLClient";
-        var expirationMinutes = int.Parse(jwtSettings["ExpirationMinutes"] ?? "60");
+        var secretKey = EnvironmentConfig.Jwt.Secret;
+        var issuer = EnvironmentConfig.Jwt.Issuer;
+        var audience = EnvironmentConfig.Jwt.Audience;
+        var expirationMinutes = EnvironmentConfig.Jwt.ExpirationMinutes;
         
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -675,5 +682,132 @@ public class UserService : IUserService
     public bool VerifyPassword(string password, string hash)
     {
         return BCrypt.Net.BCrypt.Verify(password, hash);
+    }
+    
+    // ==================== EMAIL NOTIFICATIONS ====================
+    
+    private async Task SendActivationEmailAsync(PendingUser pendingUser, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Generate activation URL using public-facing URL
+            var baseUrl = EnvironmentConfig.App.PublicUrl;
+            var activationUrl = $"{baseUrl}/api/auth/activate?token={pendingUser.VerificationToken}";
+            
+            // Prepare email data
+            var emailRequest = new SendEmailRequest
+            {
+                ToEmail = pendingUser.Email,
+                Subject = "Activate Your Account - Kanriya",
+                HtmlBody = $@"
+                    <html>
+                    <body style='font-family: Arial, sans-serif;'>
+                        <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
+                            <h2 style='color: #333;'>Welcome to Kanriya!</h2>
+                            <p>Thank you for signing up. Please click the button below to activate your account:</p>
+                            <div style='text-align: center; margin: 30px 0;'>
+                                <a href='{activationUrl}' 
+                                   style='background-color: #4CAF50; color: white; padding: 12px 30px; 
+                                          text-decoration: none; border-radius: 5px; display: inline-block;'>
+                                    Activate Account
+                                </a>
+                            </div>
+                            <p>Or copy and paste this link in your browser:</p>
+                            <p style='word-break: break-all; color: #666;'>{activationUrl}</p>
+                            <hr style='border: none; border-top: 1px solid #eee; margin: 30px 0;'>
+                            <p style='color: #999; font-size: 12px;'>
+                                This link will expire in 24 hours. If you didn't sign up for this account, 
+                                you can safely ignore this email.
+                            </p>
+                        </div>
+                    </body>
+                    </html>",
+                TextBody = $@"
+Welcome to Kanriya!
+
+Thank you for signing up. Please click the link below to activate your account:
+
+{activationUrl}
+
+This link will expire in 24 hours. If you didn't sign up for this account, you can safely ignore this email.",
+                Priority = 1, // High priority for activation emails
+                Metadata = new Dictionary<string, object>
+                {
+                    { "type", "account_activation" },
+                    { "user_email", pendingUser.Email }
+                }
+            };
+            
+            // Queue the email
+            var result = await _mailerService.QueueEmailAsync(emailRequest, cancellationToken);
+            
+            _logger.LogInformation("Queued activation email for {Email} with ID {EmailId}", 
+                pendingUser.Email, result.EmailId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send activation email to {Email}", pendingUser.Email);
+            // Don't throw - let signup succeed even if email fails
+        }
+    }
+    
+    private async Task SendPasswordResetEmailAsync(User user, string resetToken, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var baseUrl = EnvironmentConfig.App.PublicUrl;
+            var resetUrl = $"{baseUrl}/api/auth/reset-password?token={resetToken}";
+            
+            var emailRequest = new SendEmailRequest
+            {
+                ToEmail = user.Email,
+                Subject = "Reset Your Password - Kanriya",
+                HtmlBody = $@"
+                    <html>
+                    <body style='font-family: Arial, sans-serif;'>
+                        <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
+                            <h2 style='color: #333;'>Password Reset Request</h2>
+                            <p>We received a request to reset your password. Click the button below to set a new password:</p>
+                            <div style='text-align: center; margin: 30px 0;'>
+                                <a href='{resetUrl}' 
+                                   style='background-color: #2196F3; color: white; padding: 12px 30px; 
+                                          text-decoration: none; border-radius: 5px; display: inline-block;'>
+                                    Reset Password
+                                </a>
+                            </div>
+                            <p>Or copy and paste this link in your browser:</p>
+                            <p style='word-break: break-all; color: #666;'>{resetUrl}</p>
+                            <hr style='border: none; border-top: 1px solid #eee; margin: 30px 0;'>
+                            <p style='color: #999; font-size: 12px;'>
+                                This link will expire in 1 hour. If you didn't request a password reset, 
+                                you can safely ignore this email.
+                            </p>
+                        </div>
+                    </body>
+                    </html>",
+                TextBody = $@"
+Password Reset Request
+
+We received a request to reset your password. Click the link below to set a new password:
+
+{resetUrl}
+
+This link will expire in 1 hour. If you didn't request a password reset, you can safely ignore this email.",
+                Priority = 1,
+                Metadata = new Dictionary<string, object>
+                {
+                    { "type", "password_reset" },
+                    { "user_id", user.Id }
+                }
+            };
+            
+            await _mailerService.QueueEmailAsync(emailRequest, cancellationToken);
+            
+            _logger.LogInformation("Queued password reset email for {Email}", user.Email);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send password reset email to {Email}", user.Email);
+        }
     }
 }

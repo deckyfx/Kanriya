@@ -125,7 +125,8 @@ public static class HttpEndpointsConfig
         
         Console.WriteLine("✓ HTTP endpoints mapped:");
         Console.WriteLine("  - GET /              : Home page");
-        Console.WriteLine("  - GET /verify-email  : Email verification");
+        Console.WriteLine("  - GET /api/auth/activate : Email activation");
+        Console.WriteLine("  - GET /api/auth/reset-password : Password reset");
         Console.WriteLine("  - GET /health        : Health check");
         Console.WriteLine("  - GET /api           : API information");
         Console.WriteLine("  - GET /swagger       : Swagger UI");
