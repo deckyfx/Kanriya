@@ -54,6 +54,10 @@ public class AuthenticationMiddleware
                             // Set the ClaimsPrincipal for authorization
                             context.User = principal;
                         }
+                        else
+                        {
+                            _logger.LogWarning("User not found in database for ID: {UserId}", userIdClaim.Value);
+                        }
                     }
                 }
             }
@@ -83,16 +87,20 @@ public class AuthenticationMiddleware
     {
         try
         {
-            var jwtSecret = _configuration["Jwt:Secret"] ?? "your-secret-key-here-replace-in-production";
-            var key = Encoding.ASCII.GetBytes(jwtSecret);
+            var jwtSecret = EnvironmentConfig.Jwt.Secret;
+            var jwtIssuer = EnvironmentConfig.Jwt.Issuer;
+            var jwtAudience = EnvironmentConfig.Jwt.Audience;
+            var key = Encoding.UTF8.GetBytes(jwtSecret);
             
             var tokenHandler = new JwtSecurityTokenHandler();
             var validationParameters = new TokenValidationParameters
             {
                 ValidateIssuerSigningKey = true,
                 IssuerSigningKey = new SymmetricSecurityKey(key),
-                ValidateIssuer = false,
-                ValidateAudience = false,
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidIssuer = jwtIssuer,
+                ValidAudience = jwtAudience,
                 ClockSkew = TimeSpan.Zero
             };
             

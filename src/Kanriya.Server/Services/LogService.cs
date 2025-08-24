@@ -29,11 +29,8 @@ public static class LogService
     {
         lock (_lockObject)
         {
-            if (_logger != null)
-            {
-                _logger.Dispose();
-                _logger = null;
-            }
+            _logger?.Dispose();
+            _logger = null;
 
             config ??= new LogConfiguration();
             
@@ -46,6 +43,7 @@ public static class LogService
                 .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
                 .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
                 .MinimumLevel.Override("System", LogEventLevel.Warning)
+                .MinimumLevel.Override("Hangfire", LogEventLevel.Information)
                 .Enrich.FromLogContext()
                 .Enrich.WithProperty("ThreadId", System.Threading.Thread.CurrentThread.ManagedThreadId)
                 .Enrich.WithProperty("MachineName", Environment.MachineName)
@@ -204,8 +202,8 @@ public static class LogService
     /// </summary>
     public static void LogSuccess(string message)
     {
-        AnsiConsole.MarkupLine($"[green]✓[/] {message}");
-        Logger.Information(message);
+        // Only log through Serilog to avoid duplication
+        Logger.Information($"✓ {message}");
     }
 
     /// <summary>
@@ -213,8 +211,8 @@ public static class LogService
     /// </summary>
     public static void LogWarning(string message)
     {
-        AnsiConsole.MarkupLine($"[yellow]⚠[/] {message}");
-        Logger.Warning(message);
+        // Only log through Serilog to avoid duplication
+        Logger.Warning($"⚠ {message}");
     }
 
     /// <summary>
@@ -222,15 +220,14 @@ public static class LogService
     /// </summary>
     public static void LogError(string message, Exception? exception = null)
     {
-        AnsiConsole.MarkupLine($"[red]✗[/] {message}");
+        // Only log through Serilog to avoid duplication
         if (exception != null)
         {
-            Logger.Error(exception, message);
-            AnsiConsole.WriteException(exception, ExceptionFormats.ShortenEverything);
+            Logger.Error(exception, $"✗ {message}");
         }
         else
         {
-            Logger.Error(message);
+            Logger.Error($"✗ {message}");
         }
     }
 
@@ -239,8 +236,8 @@ public static class LogService
     /// </summary>
     public static void LogInfo(string message)
     {
-        AnsiConsole.MarkupLine($"[blue]ℹ[/] {message}");
-        Logger.Information(message);
+        // Only log through Serilog to avoid duplication
+        Logger.Information($"ℹ {message}");
     }
 }
 
@@ -280,7 +277,7 @@ public class LogConfiguration
     public LogEventLevel FileMinimumLevel { get; set; } = LogEventLevel.Debug;
 
     /// <summary>
-    /// File output template
+    /// File output template  
     /// </summary>
     public string FileOutputTemplate { get; set; } = "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}";
 

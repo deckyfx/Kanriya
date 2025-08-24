@@ -20,11 +20,6 @@ public class AppDbContext : DbContext
     }
 
     /// <summary>
-    /// DbSet for GreetLog entities - represents the greet_logs table in the database
-    /// </summary>
-    public DbSet<GreetLog> GreetLogs { get; set; } = null!;
-    
-    /// <summary>
     /// DbSet for User entities - represents the users table in the database
     /// </summary>
     public DbSet<User> Users { get; set; } = null!;
@@ -74,13 +69,8 @@ public class AppDbContext : DbContext
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         
         // Alternative: Apply specific configurations manually (if you prefer explicit control)
-        // modelBuilder.ApplyConfiguration(new EntityConfigurations.GreetLogConfiguration());
         // modelBuilder.ApplyConfiguration(new EntityConfigurations.UserConfiguration());
-        // modelBuilder.ApplyConfiguration(new EntityConfigurations.CategoryConfiguration());
-        
-        // Global query filters (optional)
-        // Example: Soft delete filter that could be applied to all entities
-        // modelBuilder.Entity<GreetLog>().HasQueryFilter(e => !e.IsDeleted);
+        // modelBuilder.ApplyConfiguration(new EntityConfigurations.EmailTemplateConfiguration());
         
         // Global conventions (optional)
         // Example: Set all string properties to have a max length of 250 by default

@@ -1,11 +1,12 @@
 using HotChocolate.Data;
 using Kanriya.Server.Services;
+using Serilog.Context;
 
 namespace Kanriya.Server.Program;
 
 /// <summary>
 /// Configures GraphQL server with all queries, mutations, subscriptions, and middleware
-/// Version: 1.0.0 - GreetLog Management System
+/// Version: 1.0.0 - Kanriya Server
 /// </summary>
 public static class GraphQLConfig
 {
@@ -16,7 +17,6 @@ public static class GraphQLConfig
     {
         // Register application services as singletons for performance
         // Each service manages its own scoped DbContext instances
-        services.AddSingleton<IGreetLogService, GreetLogService>();
         services.AddSingleton<IUserService, UserService>();
         
         // Future services will be registered here
@@ -25,21 +25,22 @@ public static class GraphQLConfig
         // Register HTTP context accessor for headers in resolvers
         services.AddHttpContextAccessor();
         
+        // Register GraphQL interceptors
+        services.AddScoped<GraphQLLoggingInterceptor>();
+        services.AddScoped<CurrentUserGlobalState>();
+        
         // Configure GraphQL server
         services
             .AddGraphQLServer()
+            .AddHttpRequestInterceptor<GraphQLLoggingInterceptor>()
             .AddHttpRequestInterceptor<CurrentUserGlobalState>()
+            
             
             // Configure GraphQL with domain-based modules
             // Each module contains all operations (queries, mutations, subscriptions) for its domain
             .AddQueryType<Kanriya.Server.Queries.RootQuery>()
             .AddMutationType<Kanriya.Server.Mutations.RootMutation>()
             .AddSubscriptionType<Kanriya.Server.Subscriptions.RootSubscription>()
-            
-            // GreetLog Module - All GreetLog operations
-            .AddTypeExtension<Kanriya.Server.Modules.GreetLogQueries>()
-            .AddTypeExtension<Kanriya.Server.Modules.GreetLogMutations>()
-            .AddTypeExtension<Kanriya.Server.Modules.GreetLogSubscriptions>()
             
             // User/Auth Module - All User and Authentication operations
             .AddTypeExtension<Kanriya.Server.Modules.UserQueries>()
@@ -62,39 +63,42 @@ public static class GraphQLConfig
             // This allows real-time updates via WebSocket connections
             .AddInMemorySubscriptions()
             
-            // Set schema version
+            // Set schema version and error handling
             .ModifyOptions(options => 
             {
                 options.StrictValidation = false; // Allow nullable reference types
+                options.UseXmlDocumentation = true; // Enable XML documentation
+                options.EnableOneOf = true; // Enable OneOf input objects
+            })
+            
+            // Add error filter for better error logging
+            .AddErrorFilter(error =>
+            {
+                using (LogContext.PushProperty("Tag", "GraphQL"))
+                {
+                    // Log the error with full details
+                    if (error.Exception != null)
+                    {
+                        LogService.Logger.Error(error.Exception, 
+                            "[GraphQL] Error | Code: {Code} | Path: {Path} | Message: {Message}",
+                            error.Code ?? "UNKNOWN",
+                            error.Path?.Print() ?? "Unknown",
+                            error.Message);
+                    }
+                    else
+                    {
+                        LogService.Logger.Warning(
+                            "[GraphQL] Error | Code: {Code} | Path: {Path} | Message: {Message}",
+                            error.Code ?? "UNKNOWN", 
+                            error.Path?.Print() ?? "Unknown",
+                            error.Message);
+                    }
+                }
+                
+                return error;
             });
 
-        Console.WriteLine($"✓ GraphQL server configured ({AppVersion.GetShortVersion()}):");
-        Console.WriteLine("  - Architecture: Domain-Based Modular Design");
-        Console.WriteLine("  - Services:");
-        Console.WriteLine("    • GreetLogService: CRUD operations for greet logs");
-        Console.WriteLine("    • UserService: Authentication and user management");
-        Console.WriteLine("");
-        Console.WriteLine("  - Domain Modules:");
-        Console.WriteLine("    📦 GreetLog Module:");
-        Console.WriteLine("       Queries: greetLogs, greetLogById, recentGreetLogs, searchGreetLogs,");
-        Console.WriteLine("                greetLogsByDateRange, greetLogCount");
-        Console.WriteLine("       Mutations: addGreetLog, updateGreetLog, deleteGreetLog,");
-        Console.WriteLine("                  addGreetLogsBulk, deleteOldGreetLogs");
-        Console.WriteLine("       Subscriptions: onGreetLogChanged");
-        Console.WriteLine("");
-        Console.WriteLine("    👤 User/Auth Module:");
-        Console.WriteLine("       Queries: me, userById, userByEmail, users, pendingUsers, isEmailAvailable");
-        Console.WriteLine("       Auth Mutations: signUp, verifyEmail, signIn, resendVerification,");
-        Console.WriteLine("                       changePassword, updateProfile");
-        Console.WriteLine("       Admin Mutations: grantRole, revokeRole, deleteUser, forceVerifyUser");
-        Console.WriteLine("       Subscriptions: onUserChanged, onPendingUserChanged");
-        Console.WriteLine("");
-        Console.WriteLine("    ⚙️ System Module:");
-        Console.WriteLine("       Queries: version, health");
-        Console.WriteLine("");
-        Console.WriteLine("  - Features: Filtering, Sorting, Pagination, JWT Authentication");
-        Console.WriteLine("  - Authorization: Role-based policies (SuperAdmin, BusinessOwner, etc.)");
-        Console.WriteLine("  - In-Memory Subscriptions: Enabled");
+        LogService.LogSuccess($"GraphQL server configured ({AppVersion.GetShortVersion()})");
     }
     
     /// <summary>
@@ -117,6 +121,6 @@ public static class GraphQLConfig
         // Map GraphQL endpoint at /graphql
         app.MapGraphQL();
         
-        Console.WriteLine("✓ GraphQL middleware configured at /graphql endpoint");
+        LogService.LogSuccess("GraphQL middleware configured at /graphql endpoint");
     }
 }

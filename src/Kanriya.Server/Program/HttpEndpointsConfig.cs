@@ -1,4 +1,5 @@
 using Kanriya.Server.HttpRoutes;
+using Kanriya.Server.Services;
 using Microsoft.OpenApi.Models;
 
 namespace Kanriya.Server.Program;
@@ -81,7 +82,7 @@ public static class HttpEndpointsConfig
             }
         });
         
-        Console.WriteLine("✓ HTTP services configured (MVC, Razor, Swagger)");
+        LogService.LogSuccess("HTTP services configured (MVC, Razor, Swagger)");
     }
     
     /// <summary>
@@ -103,7 +104,7 @@ public static class HttpEndpointsConfig
                 options.EnableTryItOutByDefault();
             });
             
-            Console.WriteLine("✓ Swagger UI enabled at /swagger");
+            LogService.LogSuccess("Swagger UI enabled at /swagger");
         }
         
         // Serve static files (css, js, images, etc.)
@@ -122,13 +123,5 @@ public static class HttpEndpointsConfig
         
         // Map custom API routes (health and api info)
         app.MapApiInfoRoutes();
-        
-        Console.WriteLine("✓ HTTP endpoints mapped:");
-        Console.WriteLine("  - GET /              : Home page");
-        Console.WriteLine("  - GET /api/auth/activate : Email activation");
-        Console.WriteLine("  - GET /api/auth/reset-password : Password reset");
-        Console.WriteLine("  - GET /health        : Health check");
-        Console.WriteLine("  - GET /api           : API information");
-        Console.WriteLine("  - GET /swagger       : Swagger UI");
     }
 }

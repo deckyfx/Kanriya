@@ -4,80 +4,98 @@ schema {
   subscription: Subscription
 }
 
+"Standard authentication response payload"
 type AuthPayload {
+  "Whether the operation was successful"
   success: Boolean!
+  "Message describing the result"
   message: String!
+  "The authenticated user (null if failed)"
   user: User
+  "JWT token for authentication (only for sign in)"
   token: String
+  "Verification token (only for sign up, dev mode only)"
   verificationToken: String
 }
 
-type GreetLog {
-  id: String!
-  timestamp: DateTime!
-  content: String!
-}
-
-type GreetLogEvent {
-  event: EventType!
-  document: GreetLog
-  time: DateTime!
-  _previous: GreetLog
-}
-
+"Health status of the GraphQL server"
 type HealthStatus {
+  "The current status of the server"
   status: String!
+  "The timestamp of the health check"
   timestamp: DateTime!
+  "The server version"
   version: String!
 }
 
+"Root mutation type that combines all mutation operations"
 type Mutation {
-  addGreetLog(input: AddGreetLogInput!): GreetLog! @cost(weight: "10")
-  updateGreetLog(id: String! newContent: String!): GreetLog! @cost(weight: "10")
-  deleteGreetLog(id: String!): Boolean! @cost(weight: "10")
-  addGreetLogsBulk(contents: [String!]!): [GreetLog!]! @cost(weight: "10")
-  deleteOldGreetLogs(olderThan: DateTime!): Int! @cost(weight: "10")
+  "Sign up a new user"
   signUp(input: SignUpInput!): AuthPayload! @cost(weight: "10")
+  "Verify email address with token"
   verifyEmail(verificationToken: String!): AuthPayload! @cost(weight: "10")
+  "Sign in an existing user"
   signIn(input: SignInInput!): AuthPayload! @cost(weight: "10")
+  "Resend verification email"
   resendVerification(email: String!): AuthPayload! @cost(weight: "10")
+  "Change password for authenticated user"
   changePassword(currentPassword: String! newPassword: String!): AuthPayload! @authorize @cost(weight: "10")
+  "Update user profile"
   updateProfile(fullName: String profilePictureUrl: String): AuthPayload! @authorize @cost(weight: "10")
+  "Grant a role to a user (SuperAdmin only)"
   grantRole(userId: String! role: String!): UserManagementResult! @authorize(policy: "SuperAdminOnly") @cost(weight: "10")
+  "Revoke a role from a user (SuperAdmin only)"
   revokeRole(userId: String! role: String!): UserManagementResult! @authorize(policy: "SuperAdminOnly") @cost(weight: "10")
+  "Delete a user (SuperAdmin can delete any, users can delete themselves)"
   deleteUser(userId: String!): UserManagementResult! @authorize @cost(weight: "10")
+  "Force verify a pending user (SuperAdmin only)"
   forceVerifyUser(pendingUserId: String!): UserManagementResult! @authorize(policy: "SuperAdminOnly") @cost(weight: "10")
 }
 
+"""
+Represents a user pending email verification
+After verification, data is moved to users table and deleted from here
+"""
 type PendingUser {
+  "Unique identifier for the pending user"
   id: String!
+  "User's email address (unique)"
   email: String!
+  "Hashed password (never store plain text)"
   passwordHash: String!
+  "When the pending user was created"
   createdAt: DateTime!
+  "Email verification token"
   verificationToken: String!
+  "Token expiry time (24 hours from creation)"
   tokenExpiresAt: DateTime!
 }
 
+"Root query type that combines all query operations"
 type Query {
-  greetLogs(skip: Int take: Int): [GreetLog!]! @cost(weight: "10")
-  greetLogById(id: String!): GreetLog @cost(weight: "10")
-  recentGreetLogs(count: Int! = 10): [GreetLog!]! @cost(weight: "10")
-  searchGreetLogs(searchTerm: String!): [GreetLog!]! @cost(weight: "10")
-  greetLogsByDateRange(startDate: DateTime! endDate: DateTime!): [GreetLog!]! @cost(weight: "10")
-  greetLogCount: Int! @cost(weight: "10")
+  "Get the current authenticated user"
   me: User @authorize @cost(weight: "10")
+  "Get a user by ID (SuperAdmin only)"
   userById(id: String!): User @authorize(policy: "SuperAdminOnly") @cost(weight: "10")
+  "Get a user by email (SuperAdmin only)"
   userByEmail(email: String!): User @authorize(policy: "SuperAdminOnly") @cost(weight: "10")
+  "Get all users with pagination (SuperAdmin only)"
   users(skip: Int take: Int): [User!]! @authorize(policy: "SuperAdminOnly") @cost(weight: "10")
+  "Get pending users awaiting verification (SuperAdmin only)"
   pendingUsers: [PendingUser!]! @authorize(policy: "SuperAdminOnly") @cost(weight: "10")
+  "Check if an email is available for registration"
   isEmailAvailable(email: String!): Boolean! @cost(weight: "10")
+  "Get the current server version information"
   version: VersionInfo!
+  "Get the current health status of the server"
   health: HealthStatus!
 }
 
+"Root subscription type that combines all subscription operations"
 type Subscription {
-  onGreetLogChanged: GreetLogEvent!
+  "Subscribe to all user changes (created, updated, deleted)"
   onUserChanged: SubscriptionEventOfUser!
+  "Subscribe to pending user changes"
   onPendingUserChanged: SubscriptionEventOfPendingUser!
 }
 
@@ -95,51 +113,82 @@ type SubscriptionEventOfUser {
   _previous: User
 }
 
+"""
+Represents a verified user in the system
+Users are created after email verification from pending_users
+"""
 type User {
+  "Unique identifier for the user"
   id: String!
+  "User's email address (unique)"
   email: String!
+  "Hashed password (never store plain text)"
   passwordHash: String!
+  "User's full name"
   fullName: String!
+  "When the user account was created (verified)"
   createdAt: DateTime!
+  "When the user account was last updated"
   updatedAt: DateTime!
+  "Optional profile picture URL"
   profilePictureUrl: String
+  "Last login timestamp"
   lastLoginAt: DateTime
+  "Navigation property for user roles"
   userRoles: [UserRole!]!
 }
 
+"Result type for user management operations"
 type UserManagementResult {
   success: Boolean!
   message: String!
   user: User
 }
 
+"""
+Represents a role assigned to a user
+One user can have multiple roles
+"""
 type UserRole {
+  "Unique identifier for the user role assignment"
   id: String!
+  "Foreign key to User"
   userId: String!
+  "The role name (from UserRoles constants)"
   role: String!
+  "When this role was assigned"
   assignedAt: DateTime!
+  "Who assigned this role (user ID of the admin)"
   assignedBy: String
+  "Navigation property to User"
   user: User!
 }
 
+"Version information about the GraphQL server"
 type VersionInfo {
+  "The semantic version number (e.g., \"1.1.0\")"
   version: String!
+  "The codename of this version"
   codename: String!
+  "The build date"
   buildDate: String!
+  "The full version string including codename and date"
   fullVersion: String!
 }
 
-input AddGreetLogInput {
-  content: String!
-}
-
+"Input type for user sign in mutation"
 input SignInInput {
+  "User's email address"
   email: String!
+  "User's password"
   password: String!
 }
 
+"Input type for user sign up mutation"
 input SignUpInput {
+  "User's email address"
   email: String!
+  "User's password (will be hashed)"
   password: String!
 }
 
@@ -153,9 +202,13 @@ enum ApplyPolicy {
   VALIDATION
 }
 
+"Event types for subscription notifications"
 enum EventType {
+  "Entity was created"
   CREATED
+  "Entity was updated"
   UPDATED
+  "Entity was deleted"
   DELETED
 }
 

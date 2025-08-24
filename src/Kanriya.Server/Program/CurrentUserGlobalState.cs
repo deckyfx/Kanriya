@@ -20,12 +20,13 @@ public class CurrentUserGlobalState : DefaultHttpRequestInterceptor
             currentUserObj is CurrentUser currentUser)
         {
             // Add to global state for GraphQL resolvers
-            requestBuilder.SetGlobalState("CurrentUser", currentUser);
+            // HotChocolate expects camelCase for parameter names
+            requestBuilder.SetGlobalState("currentUser", currentUser);
         }
         else
         {
             // Add empty CurrentUser if not authenticated
-            requestBuilder.SetGlobalState("CurrentUser", new CurrentUser());
+            requestBuilder.SetGlobalState("currentUser", new CurrentUser());
         }
 
         return base.OnCreateAsync(context, requestExecutor, requestBuilder, cancellationToken);

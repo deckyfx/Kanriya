@@ -82,7 +82,7 @@ public static class EnvironmentConfig
                 
                 // Debug: Verify that the environment variable was actually loaded
                 var testPort = App.Port;
-                Console.WriteLine($"DEBUG: After loading {path}, APP_PORT = {testPort}");
+                Console.WriteLine($"DEBUG: After loading {path}, SERVER_LISTEN_PORT = {testPort}");
                 break;
             }
         }
@@ -168,16 +168,16 @@ public static class EnvironmentConfig
     public static class App
     {
         public static string Ip => 
-            Environment.GetEnvironmentVariable("APP_IP") ?? "localhost";
+            Environment.GetEnvironmentVariable("SERVER_BIND_IP") ?? "localhost";
             
         public static string Port => 
-            Environment.GetEnvironmentVariable("APP_PORT") ?? "5000";
+            Environment.GetEnvironmentVariable("SERVER_LISTEN_PORT") ?? "5000";
             
         public static string Urls => $"http://{Ip}:{Port}";
         
         // Public-facing URL for emails, callbacks, etc. (can be different from bind URL)
         public static string PublicUrl => 
-            Environment.GetEnvironmentVariable("APP_URL") ?? Urls;
+            Environment.GetEnvironmentVariable("SERVER_PUBLIC_URL") ?? Urls;
         
         public static string AspNetCoreEnvironment =>
             Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
@@ -188,8 +188,17 @@ public static class EnvironmentConfig
     /// </summary>
     public static class Seq
     {
-        public static string ServerUrl => 
-            Environment.GetEnvironmentVariable("SEQ_URL") ?? "http://localhost:10002";
+        public static string ServerUrl
+        {
+            get
+            {
+                var host = Environment.GetEnvironmentVariable("SEQ_LOG_HOST") ?? "localhost";
+                var port = Environment.GetEnvironmentVariable("SEQ_LOG_PORT") ?? "10002";
+                var secure = Environment.GetEnvironmentVariable("SEQ_LOG_SECURE") ?? "false";
+                var protocol = secure.ToLower() == "true" ? "https" : "http";
+                return $"{protocol}://{host}:{port}";
+            }
+        }
             
         public static string? ApiKey => 
             Environment.GetEnvironmentVariable("SEQ_API_KEY");

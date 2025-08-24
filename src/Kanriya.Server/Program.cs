@@ -4,20 +4,20 @@ using Kanriya.Server.Constants;
 using Serilog;
 using Serilog.Events;
 
-// GRAPHQL SERVER WITH GREETLOG MANAGEMENT
+// KANRIYA GRAPHQL SERVER
 // =================================================
-// Version: 1.0.1 (GreetLog) - 2025-08-22
-// This server provides a simple greeting log system with:
+// Version: 1.0.2 - 2025-08-24
+// This server provides a comprehensive backend system with:
 // - PostgreSQL database integration using Entity Framework Core
-// - CRUD operations for greeting logs
-// - Real-time subscriptions for live updates
-// - JWT authentication support (optional)
+// - User authentication and authorization with JWT
+// - Email queue system with SMTP support
+// - Real-time subscriptions via WebSockets
 //
 // Main Features:
-// - GreetLog entity with ID, Timestamp, and Content
-// - Query operations: list all, get by ID, get recent logs
-// - Mutation operations: add, update, delete greet logs
-// - Subscription operations: watch for additions, updates, deletions
+// - User management with role-based access control
+// - Email templating and queue system with Hangfire
+// - GraphQL API with queries, mutations, and subscriptions
+// - Secure authentication and authorization
 //
 // Configuration is modularized into separate classes:
 // - EnvironmentConfig: Handles .env file loading, server URLs, and database connection
@@ -32,18 +32,19 @@ try
     var builder = WebApplication.CreateBuilder(args);
     
     // Step 2: Load environment configuration FIRST (before logging)
-    // This loads .env file and configures server URLs from APP_IP and APP_PORT
+    // This loads .env file and configures server URLs from SERVER_BIND_IP and SERVER_LISTEN_PORT
     EnvironmentConfig.LoadEnvironmentWithoutLogging(builder);
     
     // Step 3: Initialize logging service after environment is loaded
     var logConfig = new LogConfiguration
     {
         MinimumLevel = LogEventLevel.Debug,
+        // Keep console output enabled - we'll handle deduplication in LogService
         EnableConsole = true,
         EnableFile = true,
         ConsoleMinimumLevel = LogEventLevel.Information,
         FileMinimumLevel = LogEventLevel.Debug,
-        // Enable Seq (always enabled in development)
+        // Enable Seq for centralized logging (doesn't output to console)
         EnableSeq = true,
         SeqServerUrl = EnvironmentConfig.Seq.ServerUrl,
         SeqApiKey = EnvironmentConfig.Seq.ApiKey,
@@ -143,38 +144,31 @@ finally
 // EXAMPLE GRAPHQL OPERATIONS:
 // ===========================
 // 
-// 1. List all greet logs:
-//    query {
-//      greetLogs {
-//        id
-//        timestamp
-//        content
-//      }
-//    }
-//
-// 2. Add a new greet log:
+// 1. Sign in:
 //    mutation {
-//      addGreetLog(input: { content: "Hello, World!" }) {
-//        id
-//        timestamp
-//        content
+//      signIn(input: { email: "user@example.com", password: "password" }) {
+//        success
+//        message
+//        token
+//        user { id, email, fullName }
 //      }
 //    }
 //
-// 3. Subscribe to new greet logs:
-//    subscription {
-//      onGreetLogAdded {
-//        id
-//        timestamp
-//        content
-//      }
-//    }
-//
-// 4. Get recent greet logs:
+// 2. Get current user:
 //    query {
-//      recentGreetLogs(count: 5) {
+//      me {
 //        id
-//        timestamp
-//        content
+//        email
+//        fullName
+//        userRoles { role, assignedAt }
+//      }
+//    }
+//
+// 3. Subscribe to user changes:
+//    subscription {
+//      onUserChanged {
+//        event
+//        document { id, email, fullName }
+//        time
 //      }
 //    }

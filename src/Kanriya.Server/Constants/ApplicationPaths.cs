@@ -34,9 +34,14 @@ public static class ApplicationPaths
     public static string DataDirectory => IOPath.Combine(WorkingDirectory, "data");
     
     /// <summary>
-    /// Gets the logs directory path (inside data directory)
+    /// Gets the cache directory path
     /// </summary>
-    public static string LogsDirectory => IOPath.Combine(DataDirectory, "logs");
+    public static string CacheDirectory => IOPath.Combine(WorkingDirectory, "cache");
+    
+    /// <summary>
+    /// Gets the logs directory path (inside cache directory)
+    /// </summary>
+    public static string LogsDirectory => IOPath.Combine(CacheDirectory, "logs");
 
     /// <summary>
     /// Gets potential paths for .env file in priority order
@@ -87,7 +92,8 @@ public static class ApplicationPaths
         Console.WriteLine($"  Working Directory: {WorkingDirectory}");
         Console.WriteLine($"  Executable Directory: {ExecutableDirectory}");
         Console.WriteLine($"  Assembly Directory: {AssemblyDirectory}");
-        Console.WriteLine($"  Logs Directory: {LogsDirectory}");
         Console.WriteLine($"  Data Directory: {DataDirectory}");
+        Console.WriteLine($"  Cache Directory: {CacheDirectory}");
+        Console.WriteLine($"  Logs Directory: {LogsDirectory}");
     }
 }

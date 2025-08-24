@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Kanriya.Server.Data;
+using Kanriya.Server.Services;
 
 namespace Kanriya.Server.Program;
 
@@ -27,11 +28,9 @@ public static class DatabaseConfig
             #endif
         });
         
-        Console.WriteLine($"✓ Database configured with PostgreSQL");
-        Console.WriteLine($"  Connection: {GetSafeConnectionString(connectionString)}");
-        
-        // Show which configuration is being used
-        Console.WriteLine($"  Using {EnvironmentConfig.Database.Host}:{EnvironmentConfig.Database.Port} (set POSTGRES_HOST and POSTGRES_PORT in .env to change)");
+        LogService.LogSuccess($"Database configured with PostgreSQL");
+        LogService.LogInfo($"Connection: {GetSafeConnectionString(connectionString)}");
+        LogService.LogInfo($"Using {EnvironmentConfig.Database.Host}:{EnvironmentConfig.Database.Port} (set POSTGRES_HOST and POSTGRES_PORT in .env to change)");
     }
     
     /// <summary>
@@ -48,24 +47,24 @@ public static class DatabaseConfig
             var canConnect = await dbContext.Database.CanConnectAsync();
             if (canConnect)
             {
-                Console.WriteLine("✓ Successfully connected to PostgreSQL database");
+                LogService.LogSuccess("Successfully connected to PostgreSQL database");
                 
                 // Create database if it doesn't exist
                 await dbContext.Database.EnsureCreatedAsync();
-                Console.WriteLine("✓ Database is ready");
+                LogService.LogSuccess("Database is ready");
                 
                 // Email templates seeding removed for now
             }
             else
             {
-                Console.WriteLine("✗ Failed to connect to PostgreSQL database");
+                LogService.LogError("Failed to connect to PostgreSQL database");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"✗ Database connection error: {ex.Message}");
-            Console.WriteLine("  Make sure PostgreSQL is running on localhost:10005");
-            Console.WriteLine("  Check your docker-compose is up: docker-compose up -d");
+            LogService.LogError($"Database connection error: {ex.Message}", ex);
+            LogService.LogInfo("Make sure PostgreSQL is running on localhost:10005");
+            LogService.LogInfo("Check your docker-compose is up: docker-compose up -d");
         }
     }
     

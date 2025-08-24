@@ -66,11 +66,11 @@
 ```
 1. EnvironmentConfig.LoadEnvironment()
    ├── Loads .env file
-   ├── Sets APP_IP, APP_PORT
+   ├── Sets SERVER_BIND_IP, SERVER_LISTEN_PORT
    └── Must run BEFORE everything else
 
 2. LogService.Initialize()
-   ├── Depends on: EnvironmentConfig (for SEQ_URL)
+   ├── Depends on: EnvironmentConfig (for SEQ_LOG_HOST, SEQ_LOG_PORT, SEQ_LOG_SECURE)
    └── Provides: Logging for all subsequent operations
 
 3. Serilog Configuration

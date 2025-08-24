@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# GraphQL Server Runner with Database Management
+# Kanriya Server Runner with Database Management
 # Ensures database is ready before starting the server
 
 # Ensure .dotnet/tools is in PATH for this script
@@ -48,21 +48,59 @@ check_database() {
     fi
 }
 
+# Function to build frontend assets
+build_frontend() {
+    echo -e "${BLUE}Building frontend assets...${NC}"
+    
+    # Check if node_modules exists, if not install dependencies
+    if [ ! -d "node_modules" ]; then
+        echo -e "${YELLOW}Installing npm dependencies...${NC}"
+        if ! npm install; then
+            echo -e "${RED}✗ npm install failed!${NC}"
+            echo -e "${RED}Please fix the npm dependency issues before starting the server.${NC}"
+            return 1
+        fi
+        echo -e "${GREEN}✓ npm dependencies installed${NC}"
+    fi
+    
+    # Build all frontend assets (TypeScript, Webpack, CSS)
+    echo -e "${YELLOW}Building TypeScript, bundling JavaScript, and compiling CSS...${NC}"
+    if ! npm run build; then
+        echo -e "${RED}✗ Frontend build failed!${NC}"
+        echo -e "${RED}Please fix the build errors above before starting the server.${NC}"
+        echo ""
+        echo "Common solutions:"
+        echo "  1. Check TypeScript errors in src/ts/ files"
+        echo "  2. Ensure all npm dependencies are installed: npm install"
+        echo "  3. Check for missing type definitions: npm i --save-dev @types/[package]"
+        echo "  4. Review webpack configuration for any issues"
+        return 1
+    fi
+    
+    echo -e "${GREEN}✓ Frontend assets built successfully${NC}"
+    return 0
+}
+
 # Function to show server info
 show_info() {
     echo -e "${BLUE}================================${NC}"
-    echo -e "${BLUE}  Kanriya Server ${NC}"
+    echo -e "${BLUE}  Kanriya Server Runner ${NC}"
     echo -e "${BLUE}================================${NC}"
 }
 
 # Parse command line arguments
 SKIP_DB_CHECK=false
+SKIP_WEB_BUILD=false
 WATCH_MODE=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
         --skip-db)
             SKIP_DB_CHECK=true
+            shift
+            ;;
+        --skip-web)
+            SKIP_WEB_BUILD=true
             shift
             ;;
         --watch)
@@ -74,6 +112,7 @@ while [[ $# -gt 0 ]]; do
             echo ""
             echo "Options:"
             echo "  --skip-db    Skip database migration check"
+            echo "  --skip-web   Skip frontend build (npm install, TypeScript, Webpack, CSS)"
             echo "  --watch      Run in watch mode (auto-restart on changes)"
             echo "  --help       Show this help message"
             exit 0
@@ -97,34 +136,19 @@ if [ "$SKIP_DB_CHECK" = false ]; then
     check_database
 fi
 
-# Build frontend assets
-echo -e "${BLUE}Building frontend assets...${NC}"
-
-# Check if node_modules exists, if not install dependencies
-if [ ! -d "node_modules" ]; then
-    echo -e "${YELLOW}Installing npm dependencies...${NC}"
-    npm install
-fi
-
-# Build all frontend assets (TypeScript, Webpack, CSS)
-echo -e "${YELLOW}Building TypeScript, bundling JavaScript, and compiling CSS...${NC}"
-if ! npm run build; then
-    echo -e "${RED}✗ Frontend build failed!${NC}"
-    echo -e "${RED}Please fix the build errors above before starting the server.${NC}"
+# Build frontend assets unless skipped
+if [ "$SKIP_WEB_BUILD" = false ]; then
+    if ! build_frontend; then
+        exit 1
+    fi
     echo ""
-    echo "Common solutions:"
-    echo "  1. Check TypeScript errors in src/ts/ files"
-    echo "  2. Ensure all npm dependencies are installed: npm install"
-    echo "  3. Check for missing type definitions: npm i --save-dev @types/[package]"
-    echo "  4. Review webpack configuration for any issues"
-    exit 1
+else
+    echo -e "${YELLOW}⚠ Skipping frontend build (--skip-web flag)${NC}"
+    echo ""
 fi
-
-echo -e "${GREEN}✓ Frontend assets built successfully${NC}"
-echo ""
 
 # Start the server
-echo -e "${YELLOW}Starting GraphQL server...${NC}"
+echo -e "${YELLOW}Starting Kanriya server...${NC}"
 echo ""
 
 if [ "$WATCH_MODE" = true ]; then

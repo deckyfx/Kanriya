@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Kanriya.Server.Services;
 
 namespace Kanriya.Server.Program;
 
@@ -64,9 +65,6 @@ public static class JwtConfig
                 };
             });
 
-        Console.WriteLine($"✓ JWT authentication configured with issuer: {jwtIssuer}");
-        Console.WriteLine("  - Supports Authorization Bearer header");
-        Console.WriteLine("  - Supports X-API-TOKEN header");
-        Console.WriteLine("  - Supports access_token query parameter");
+        LogService.LogSuccess($"JWT authentication configured with issuer: {jwtIssuer}");
     }
 }

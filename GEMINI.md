@@ -17,4 +17,4 @@ All .NET projects in this solution must adhere to the following configuration pr
 *   Configuration should be loaded from a `.env` file in the root of the project.
 *   The `DotNetEnv` NuGet package should be used to load the `.env` file.
 *   Sensitive information, such as credentials, and environment-specific settings, like ports and binding IPs, should be stored in the `.env` file.
-*   The binding IP and port should be configured separately using `APP_IP` and `APP_PORT` variables in the `.env` file. The run script will then construct the `ASPNETCORE_URLS` variable from these.
+*   The binding IP and port should be configured separately using `SERVER_BIND_IP` and `SERVER_LISTEN_PORT` variables in the `.env` file. The run script will then construct the `ASPNETCORE_URLS` variable from these.

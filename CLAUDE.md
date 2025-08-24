@@ -7,7 +7,7 @@
 ### Rules
 1. **Never use** `Environment.GetEnvironmentVariable()` directly in code
 2. **Always use** `EnvironmentConfig` static properties:
-   - `EnvironmentConfig.App.Port` for APP_PORT
+   - `EnvironmentConfig.App.Port` for SERVER_LISTEN_PORT
    - `EnvironmentConfig.Database.Host` for POSTGRES_HOST
    - `EnvironmentConfig.Mail.Provider` for MAIL_PROVIDER
    - `EnvironmentConfig.Jwt.Secret` for AUTH_JWT_SECRET
@@ -22,7 +22,7 @@ When adding new environment variables:
 ### Example
 ```csharp
 // ❌ WRONG - Direct access
-var port = Environment.GetEnvironmentVariable("APP_PORT") ?? "5000";
+var port = Environment.GetEnvironmentVariable("SERVER_LISTEN_PORT") ?? "5000";
 
 // ✅ CORRECT - Through EnvironmentConfig
 var port = EnvironmentConfig.App.Port;

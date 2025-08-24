@@ -16,6 +16,7 @@ public class UserQueries
     /// Get the current authenticated user
     /// </summary>
     [Authorize]
+    [GraphQLDescription("Get the current authenticated user")]
     public async Task<User?> GetMe(
         [Service] IUserService userService,
         [GlobalState] CurrentUser currentUser,

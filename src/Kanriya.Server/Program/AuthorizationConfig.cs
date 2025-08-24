@@ -1,4 +1,5 @@
 using Kanriya.Server.Constants;
+using Kanriya.Server.Services;
 
 namespace Kanriya.Server.Program;
 
@@ -62,14 +63,6 @@ public static class AuthorizationConfig
             });
         });
 
-        Console.WriteLine("✓ Authorization policies configured:");
-        Console.WriteLine("  - Authenticated: Requires any authenticated user");
-        Console.WriteLine("  - SuperAdminOnly: Requires SuperAdmin role");
-        Console.WriteLine("  - BusinessOwnerOnly: Requires BusinessOwner role");
-        Console.WriteLine("  - BusinessOperatorOnly: Requires BusinessOperator role");
-        Console.WriteLine("  - BusinessAccess: Requires BusinessOwner or BusinessOperator role");
-        Console.WriteLine("  - EmailVerified: Requires verified email claim");
-        Console.WriteLine("  - AdminOperations: Requires SuperAdmin or admin_operations permission");
-        Console.WriteLine("  - ServiceAccount: Requires service account claim");
+        LogService.LogSuccess("Authorization policies configured");
     }
 }

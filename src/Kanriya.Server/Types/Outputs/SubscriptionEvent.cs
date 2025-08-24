@@ -3,6 +3,27 @@ using HotChocolate;
 namespace Kanriya.Server.Types.Outputs;
 
 /// <summary>
+/// Event types for subscription notifications
+/// </summary>
+public enum EventType
+{
+    /// <summary>
+    /// Entity was created
+    /// </summary>
+    Created,
+    
+    /// <summary>
+    /// Entity was updated
+    /// </summary>
+    Updated,
+    
+    /// <summary>
+    /// Entity was deleted
+    /// </summary>
+    Deleted
+}
+
+/// <summary>
 /// Generic base class for all subscription events
 /// This standardized structure ensures consistency across all entity subscriptions
 /// </summary>
