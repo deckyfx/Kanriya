@@ -14,7 +14,7 @@ A modern GraphQL API built with .NET 9, HotChocolate, and PostgreSQL. Features a
 
 ```bash
 git clone <repository-url>
-cd learn-csharp
+cd Kanriya
 ```
 
 ### 2. Set Up Environment Variables
@@ -44,7 +44,7 @@ This starts:
 
 ```bash
 # Navigate to the project
-cd src/GQLServer
+cd src/Kanriya.Server
 
 # Restore NuGet packages
 dotnet restore
@@ -63,7 +63,7 @@ cd ../..
 ./bin/db-migrate update
 
 # Or if the script doesn't work, use:
-cd src/GQLServer
+cd src/Kanriya.Server
 dotnet ef database update
 ```
 
@@ -74,7 +74,7 @@ dotnet ef database update
 ./bin/run-server
 
 # Or directly with dotnet:
-cd src/GQLServer
+cd src/Kanriya.Server
 dotnet run
 ```
 
@@ -85,9 +85,9 @@ The GraphQL server will be available at:
 ## Project Structure
 
 ```
-learn-csharp/
+Kanriya/
 ├── src/
-│   └── GQLServer/              # Main GraphQL server project
+│   └── Kanriya.Server/              # Main GraphQL server project
 │       ├── Data/                # Database context & entities
 │       ├── Queries/             # GraphQL queries
 │       ├── Mutations/           # GraphQL mutations
@@ -139,7 +139,7 @@ learn-csharp/
 
 ### Making Code Changes
 
-1. Make your changes in the `src/GQLServer` directory
+1. Make your changes in the `src/Kanriya.Server` directory
 2. The server will auto-restart if running with `--watch` flag
 3. Test your changes at http://localhost:10000/graphql
 

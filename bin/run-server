@@ -14,7 +14,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Change to project directory
-PROJECT_DIR="$(dirname "$0")/../src/GQLServer"
+PROJECT_DIR="$(dirname "$0")/../src/Kanriya.Server"
 cd "$PROJECT_DIR" || exit 1
 
 # Function to check database status
@@ -51,21 +51,8 @@ check_database() {
 # Function to show server info
 show_info() {
     echo -e "${BLUE}================================${NC}"
-    echo -e "${BLUE}  GraphQL Server (v1.0.0)${NC}"
+    echo -e "${BLUE}  Kanriya Server ${NC}"
     echo -e "${BLUE}================================${NC}"
-    echo ""
-    echo "Endpoints:"
-    echo "  GraphQL:     http://localhost:10000/graphql"
-    echo "  GraphQL UI:  http://localhost:10000/graphql (Banana Cake Pop)"
-    echo ""
-    echo "Database:"
-    echo "  Host:        localhost:10005"
-    echo "  Database:    mydatabase"
-    echo ""
-    echo "Commands:"
-    echo "  Ctrl+C       Stop server"
-    echo "  bin/db-migrate    Manage database migrations"
-    echo ""
 }
 
 # Parse command line arguments

@@ -13,7 +13,7 @@ YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
 # Change to project directory
-cd "$(dirname "$0")/../src/GQLServer" || exit 1
+cd "$(dirname "$0")/../src/Kanriya.Server" || exit 1
 
 # Function to check if dotnet ef is available
 check_ef_tools() {

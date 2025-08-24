@@ -7,7 +7,7 @@
       "type": "process",
       "args": [
         "build",
-        "${workspaceFolder}/learn-csharp.sln",
+        "${workspaceFolder}/Kanriya.sln",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary"
       ],
@@ -23,7 +23,7 @@
       "type": "process",
       "args": [
         "publish",
-        "${workspaceFolder}/learn-csharp.sln",
+        "${workspaceFolder}/Kanriya.sln",
         "/property:GenerateFullPaths=true",
         "/consoleloggerparameters:NoSummary"
       ],
@@ -37,7 +37,7 @@
         "watch",
         "run",
         "--project",
-        "${workspaceFolder}/src/GQLServer/GQLServer.csproj"
+        "${workspaceFolder}/src/Kanriya.Server/Kanriya.Server.csproj"
       ],
       "problemMatcher": "$msCompile"
     },
@@ -47,7 +47,7 @@
       "type": "process",
       "args": [
         "clean",
-        "${workspaceFolder}/learn-csharp.sln"
+        "${workspaceFolder}/Kanriya.sln"
       ],
       "problemMatcher": "$msCompile"
     },
@@ -57,7 +57,7 @@
       "type": "process",
       "args": [
         "restore",
-        "${workspaceFolder}/learn-csharp.sln"
+        "${workspaceFolder}/Kanriya.sln"
       ],
       "problemMatcher": "$msCompile"
     }

@@ -58,7 +58,7 @@ This project follows PostgreSQL naming conventions for database objects:
 This project follows a clear, organized structure for GraphQL components:
 
 ```
-/src/GQLServer
+/src/Kanriya.Server
 ├── /Queries         # All GraphQL query declarations
 ├── /Mutations       # All GraphQL mutation declarations  
 ├── /Subscriptions   # All GraphQL subscription declarations

@@ -3,19 +3,19 @@
 ## Current Folder Structure (Cleaned)
 
 ```
-/learn-csharp
+/Kanriya
 ├── CLAUDE.md             # Project conventions for AI assistant
 ├── PROJECT_STRUCTURE.md  # This file
-├── learn-csharp.sln      # Solution file
+├── Kanriya.sln      # Solution file
 ├── docker-compose.yml    # Docker configuration
 ├── .vscode/              # VS Code configuration
 │   ├── settings.json
 │   ├── tasks.json
 │   └── launch.json
 │
-└── /src/GQLServer
+└── /src/Kanriya.Server
     ├── Program.cs                 # Application entry point
-    ├── GQLServer.csproj          # Project file
+    ├── Kanriya.Server.csproj          # Project file
     ├── appsettings.json          # Configuration
     ├── appsettings.Development.json
     │

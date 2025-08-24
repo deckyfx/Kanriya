@@ -5,10 +5,8 @@
   "omnisharp.enableMsBuildLoadProjectsOnDemand": false,
   "omnisharp.enableRoslynAnalyzers": true,
   "omnisharp.enableEditorConfigSupport": true,
-  "omnisharp.enableImportCompletion": true,
-  "omnisharp.organizeImportsOnFormat": true,
-  "omnisharp.defaultLaunchSolution": "learn-csharp.sln",
-  "dotnet.defaultSolution": "learn-csharp.sln",
+  "omnisharp.defaultLaunchSolution": "Kanriya.sln",
+  "dotnet.defaultSolution": "Kanriya.sln",
   "dotnet.server.useOmnisharp": false,
   "files.exclude": {
     "src/**/bin": true,
@@ -17,5 +15,7 @@
   "search.exclude": {
     "src/**/bin": true,
     "src/**/obj": true
-  }
+  },
+  "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
+  "dotnet.formatting.organizeImportsOnFormat": true
 }
