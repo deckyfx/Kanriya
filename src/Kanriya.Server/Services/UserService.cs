@@ -195,6 +195,9 @@ public class UserService : IUserService
         
         _logger.LogInformation("Verified and activated user {Email}", user.Email);
         
+        // Send welcome email
+        await SendWelcomeEmailAsync(user, cancellationToken);
+        
         return (true, "Email verified successfully", user);
     }
     
@@ -694,42 +697,21 @@ public class UserService : IUserService
             var baseUrl = EnvironmentConfig.App.PublicUrl;
             var activationUrl = $"{baseUrl}/api/auth/activate?token={pendingUser.VerificationToken}";
             
-            // Prepare email data
-            var emailRequest = new SendEmailRequest
+            // Prepare template data
+            var templateData = new Dictionary<string, object>
+            {
+                { "appName", "Kanriya" },
+                { "userName", pendingUser.Email.Split('@')[0] }, // Use email username as display name
+                { "activationUrl", activationUrl },
+                { "year", DateTime.UtcNow.Year }
+            };
+            
+            // Prepare templated email request
+            var emailRequest = new SendTemplatedEmailRequest
             {
                 ToEmail = pendingUser.Email,
-                Subject = "Activate Your Account - Kanriya",
-                HtmlBody = $@"
-                    <html>
-                    <body style='font-family: Arial, sans-serif;'>
-                        <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
-                            <h2 style='color: #333;'>Welcome to Kanriya!</h2>
-                            <p>Thank you for signing up. Please click the button below to activate your account:</p>
-                            <div style='text-align: center; margin: 30px 0;'>
-                                <a href='{activationUrl}' 
-                                   style='background-color: #4CAF50; color: white; padding: 12px 30px; 
-                                          text-decoration: none; border-radius: 5px; display: inline-block;'>
-                                    Activate Account
-                                </a>
-                            </div>
-                            <p>Or copy and paste this link in your browser:</p>
-                            <p style='word-break: break-all; color: #666;'>{activationUrl}</p>
-                            <hr style='border: none; border-top: 1px solid #eee; margin: 30px 0;'>
-                            <p style='color: #999; font-size: 12px;'>
-                                This link will expire in 24 hours. If you didn't sign up for this account, 
-                                you can safely ignore this email.
-                            </p>
-                        </div>
-                    </body>
-                    </html>",
-                TextBody = $@"
-Welcome to Kanriya!
-
-Thank you for signing up. Please click the link below to activate your account:
-
-{activationUrl}
-
-This link will expire in 24 hours. If you didn't sign up for this account, you can safely ignore this email.",
+                TemplateName = "user_activation",
+                TemplateData = templateData,
                 Priority = 1, // High priority for activation emails
                 Metadata = new Dictionary<string, object>
                 {
@@ -738,8 +720,8 @@ This link will expire in 24 hours. If you didn't sign up for this account, you c
                 }
             };
             
-            // Queue the email
-            var result = await _mailerService.QueueEmailAsync(emailRequest, cancellationToken);
+            // Queue the templated email
+            var result = await _mailerService.QueueTemplatedEmailAsync(emailRequest, cancellationToken);
             
             _logger.LogInformation("Queued activation email for {Email} with ID {EmailId}", 
                 pendingUser.Email, result.EmailId);
@@ -748,6 +730,51 @@ This link will expire in 24 hours. If you didn't sign up for this account, you c
         {
             _logger.LogError(ex, "Failed to send activation email to {Email}", pendingUser.Email);
             // Don't throw - let signup succeed even if email fails
+        }
+    }
+    
+    private async Task SendWelcomeEmailAsync(User user, CancellationToken cancellationToken)
+    {
+        try
+        {
+            // Generate login URL
+            var baseUrl = EnvironmentConfig.App.PublicUrl;
+            var loginUrl = $"{baseUrl}/login";
+            
+            // Prepare template data
+            var templateData = new Dictionary<string, object>
+            {
+                { "appName", "Kanriya" },
+                { "userName", user.FullName ?? user.Email.Split('@')[0] },
+                { "loginUrl", loginUrl },
+                { "year", DateTime.UtcNow.Year }
+            };
+            
+            // Prepare templated email request
+            var emailRequest = new SendTemplatedEmailRequest
+            {
+                ToEmail = user.Email,
+                TemplateName = "welcome",
+                TemplateData = templateData,
+                Priority = 3, // Normal priority for welcome emails
+                Metadata = new Dictionary<string, object>
+                {
+                    { "type", "welcome_email" },
+                    { "user_id", user.Id },
+                    { "user_email", user.Email }
+                }
+            };
+            
+            // Queue the templated email
+            var result = await _mailerService.QueueTemplatedEmailAsync(emailRequest, cancellationToken);
+            
+            _logger.LogInformation("Queued welcome email for {Email} with ID {EmailId}", 
+                user.Email, result.EmailId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send welcome email to {Email}", user.Email);
+            // Don't throw - email failure shouldn't prevent user activation
         }
     }
     

@@ -184,6 +184,21 @@ public static class EnvironmentConfig
     }
     
     /// <summary>
+    /// Get admin seeder configuration values from environment
+    /// </summary>
+    public static class Admin
+    {
+        public static string? Username => 
+            Environment.GetEnvironmentVariable("SERVER_ADMIN_USERNAME");
+            
+        public static string? Password => 
+            Environment.GetEnvironmentVariable("SERVER_ADMIN_PASSWORD");
+            
+        public static bool HasAdminConfig => 
+            !string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password);
+    }
+    
+    /// <summary>
     /// Get Seq logging configuration values from environment
     /// </summary>
     public static class Seq

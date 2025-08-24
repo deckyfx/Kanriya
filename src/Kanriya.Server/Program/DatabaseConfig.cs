@@ -28,6 +28,21 @@ public static class DatabaseConfig
             #endif
         });
         
+        // Add DbContextFactory for services that need to create contexts
+        services.AddDbContextFactory<AppDbContext>(options =>
+        {
+            options.UseNpgsql(connectionString)
+                   .UseSnakeCaseNamingConvention();
+                   
+            #if DEBUG
+            options.EnableSensitiveDataLogging();
+            options.EnableDetailedErrors();
+            #endif
+        });
+        
+        // Register DatabaseSeeder service
+        services.AddScoped<DatabaseSeeder>();
+        
         LogService.LogSuccess($"Database configured with PostgreSQL");
         LogService.LogInfo($"Connection: {GetSafeConnectionString(connectionString)}");
         LogService.LogInfo($"Using {EnvironmentConfig.Database.Host}:{EnvironmentConfig.Database.Port} (set POSTGRES_HOST and POSTGRES_PORT in .env to change)");
@@ -40,6 +55,7 @@ public static class DatabaseConfig
     {
         using var scope = app.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var seeder = scope.ServiceProvider.GetRequiredService<DatabaseSeeder>();
         
         try
         {
@@ -53,7 +69,10 @@ public static class DatabaseConfig
                 await dbContext.Database.EnsureCreatedAsync();
                 LogService.LogSuccess("Database is ready");
                 
-                // Email templates seeding removed for now
+                // Run database seeders
+                LogService.LogInfo("Running database seeders...");
+                await seeder.SeedAsync();
+                LogService.LogSuccess("Database seeding completed");
             }
             else
             {
