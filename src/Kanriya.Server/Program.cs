@@ -173,3 +173,5 @@ finally
 //        time
 //      }
 //    }
+
+public partial class Program { }

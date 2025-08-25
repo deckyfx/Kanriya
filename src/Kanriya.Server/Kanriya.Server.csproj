@@ -52,4 +52,8 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Kanriya.Shared\Kanriya.Shared.csproj" />
+  </ItemGroup>
+
 </Project>

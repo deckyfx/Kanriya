@@ -48,6 +48,7 @@ public static class GraphQLConfig
             .AddTypeExtension<Kanriya.Server.Modules.UserQueries>()
             .AddTypeExtension<Kanriya.Server.Modules.UserAuthMutations>()
             .AddTypeExtension<Kanriya.Server.Modules.UserManagementMutations>()
+            .AddTypeExtension<Kanriya.Server.Modules.UserAccountModule>()  // Account deletion
             .AddTypeExtension<Kanriya.Server.Modules.UserSubscriptions>()
             
             // System Module - All System operations
