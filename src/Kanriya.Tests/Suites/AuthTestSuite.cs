@@ -121,7 +121,7 @@ public static class AuthTestSuite
                 firstSignUp ? user1 : null, firstSignUp ? token1 : null);
     }
 
-    private static async Task RunEmailVerificationStage(
+    private static async Task<(TestUser? verifiedValidUser, TestUser? verifiedDupUser)> RunEmailVerificationStage(
         UserTestHelper userHelper, 
         DatabaseHelper dbHelper,
         TestUser? validUser,
@@ -135,7 +135,7 @@ public static class AuthTestSuite
         if (validUser == null || string.IsNullOrEmpty(validToken))
         {
             TestReporter.ReportInfo("No valid user from Stage 1, skipping verification tests");
-            return;
+            return (null, null);
         }
 
         TestReporter.ReportInfo($"Using test user from Stage 1: {validUser.Email}");
@@ -306,8 +306,8 @@ public static class AuthTestSuite
         }
         client.SetAuthToken(token);
 
-        // Scenario 4.1: Wrong current password (negative test)
-        TestReporter.StartScenario("4.1", "Wrong current password",
+        // Scenario 4.1: Wrong current password for change (negative test)
+        TestReporter.StartScenario("4.1", "Change password with wrong current password",
             "Expecting: System should reject incorrect current password");
         
         var wrongCurrentSuccess = await userHelper.ChangePasswordAsync("WrongPassword123!", "NewPassword456!");
@@ -315,20 +315,87 @@ public static class AuthTestSuite
             "Current password incorrect");
         if (!wrongCurrentSuccess) _negativePass++; else _negativeFail++;
 
-        // Scenario 4.2: Weak new password (negative test)
-        TestReporter.StartScenario("4.2", "Weak new password",
-            "Expecting: System should reject weak new password");
+        // Scenario 4.2: Request password reset (positive test)
+        TestReporter.StartScenario("4.2", "Request password reset",
+            "Expecting: System should send reset token for valid email");
+        
+        var (resetRequestSuccess, resetToken) = await userHelper.RequestPasswordResetAsync(testUser.Email);
+        TestReporter.ReportPositiveTest("Request password reset", resetRequestSuccess,
+            resetRequestSuccess ? "Reset token received" : "Failed to request reset");
+        if (resetRequestSuccess) _positivePass++; else _positiveFail++;
+
+        // Scenario 4.3: Reset with invalid token (negative test)
+        TestReporter.StartScenario("4.3", "Reset password with invalid token",
+            "Expecting: System should reject invalid reset token");
+        
+        var invalidResetSuccess = await userHelper.ResetPasswordAsync("invalid-token-12345", "NewPassword789!");
+        TestReporter.ReportNegativeTest("Reset with invalid token", !invalidResetSuccess,
+            "Invalid or expired token");
+        if (!invalidResetSuccess) _negativePass++; else _negativeFail++;
+
+        // Scenario 4.4: Reset with valid token (positive test)
+        TestReporter.StartScenario("4.4", "Reset password with valid token",
+            "Expecting: System should accept valid reset token and new password");
+        
+        var resetNewPassword = "ResetPassword789!";
+        if (resetRequestSuccess && !string.IsNullOrEmpty(resetToken))
+        {
+            var resetSuccess = await userHelper.ResetPasswordAsync(resetToken, resetNewPassword);
+            TestReporter.ReportPositiveTest("Reset password with valid token", resetSuccess);
+            if (resetSuccess) 
+            {
+                _positivePass++;
+                testUser.Password = resetNewPassword; // Update password for next scenario
+            }
+            else 
+            {
+                _positiveFail++;
+            }
+        }
+        else
+        {
+            TestReporter.ReportInfo("Skipping reset test - no valid token");
+        }
+
+        // Scenario 4.5: Sign in with reset password (positive test)
+        TestReporter.StartScenario("4.5", "Sign in with reset password",
+            "Expecting: User should be able to sign in with the new password from reset");
+        
+        client.SetAuthToken(null); // Clear any existing token
+        var (resetSignInSuccess, resetSignInToken) = await userHelper.SignInAsync(testUser);
+        TestReporter.ReportPositiveTest("Sign in with reset password", resetSignInSuccess);
+        if (resetSignInSuccess) 
+        {
+            _positivePass++;
+            client.SetAuthToken(resetSignInToken);
+        }
+        else 
+        {
+            _positiveFail++;
+            // Try to re-authenticate with original password if reset failed
+            TestReporter.ReportInfo("Attempting to sign in with original password");
+            testUser.Password = verifiedUser.Password; // Restore original password
+            var (reAuthSuccess, reAuthToken) = await userHelper.SignInAsync(testUser);
+            if (reAuthSuccess && !string.IsNullOrEmpty(reAuthToken))
+            {
+                client.SetAuthToken(reAuthToken);
+            }
+        }
+
+        // Scenario 4.6: Change to weak password (negative test)
+        TestReporter.StartScenario("4.6", "Change to weak password",
+            "Expecting: System should reject weak new password (requires authentication)");
         
         var weakNewSuccess = await userHelper.ChangePasswordAsync(testUser.Password, "weak");
         TestReporter.ReportNegativeTest("Change to weak password 'weak'", !weakNewSuccess,
             "New password too weak");
         if (!weakNewSuccess) _negativePass++; else _negativeFail++;
 
-        // Scenario 4.3: Valid password change (positive test)
-        TestReporter.StartScenario("4.3", "Valid password change",
-            "Expecting: System should accept strong new password");
+        // Scenario 4.7: Valid password change (positive test)
+        TestReporter.StartScenario("4.7", "Valid password change",
+            "Expecting: System should accept strong new password (requires authentication)");
         
-        var newPassword = "NewSecurePassword456!";
+        var newPassword = "ChangedPassword123!";
         var changeSuccess = await userHelper.ChangePasswordAsync(testUser.Password, newPassword);
         TestReporter.ReportPositiveTest("Change to strong password", changeSuccess);
         if (changeSuccess) _positivePass++; else _positiveFail++;
@@ -338,18 +405,17 @@ public static class AuthTestSuite
             client.SetAuthToken(null);
             testUser.Password = newPassword;
             var (newSignInSuccess, newToken) = await userHelper.SignInAsync(testUser);
-            TestReporter.ReportPositiveTest("Sign in with new password", newSignInSuccess);
-            if (newSignInSuccess) _positivePass++; else _positiveFail++;
-            
-            if (newSignInSuccess)
+            TestReporter.ReportPositiveTest("Sign in with changed password", newSignInSuccess);
+            if (newSignInSuccess) 
+            {
+                _positivePass++;
                 client.SetAuthToken(newToken);
+            }
+            else 
+            {
+                _positiveFail++;
+            }
         }
-
-        // TODO scenarios
-        TestReporter.StartScenario("4.4-4.6", "Password reset flow");
-        TestReporter.ReportTodo("Implement requestPasswordReset endpoint");
-        TestReporter.ReportTodo("Implement password reset token validation");
-        TestReporter.ReportTodo("Implement set new password with reset token");
     }
 
     private static async Task RunAccountDeletionStage(

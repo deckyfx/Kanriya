@@ -24,6 +24,7 @@ public class GraphQLClient
     /// </summary>
     public void SetAuthToken(string? token)
     {
+        _currentToken = token;
         if (string.IsNullOrEmpty(token))
         {
             _httpClient.DefaultRequestHeaders.Authorization = null;
@@ -34,6 +35,16 @@ public class GraphQLClient
                 new AuthenticationHeaderValue("Bearer", token);
         }
     }
+    
+    /// <summary>
+    /// Get current authentication token
+    /// </summary>
+    public string? GetAuthToken()
+    {
+        return _currentToken;
+    }
+    
+    private string? _currentToken;
     
     /// <summary>
     /// Execute a GraphQL query/mutation

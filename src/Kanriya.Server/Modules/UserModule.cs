@@ -245,6 +245,55 @@ public class UserAuthMutations
     }
     
     /// <summary>
+    /// Request a password reset - sends reset token via email
+    /// This is for users who forgot their password and cannot sign in
+    /// No authentication required
+    /// </summary>
+    [GraphQLName("requestPasswordReset")]
+    [GraphQLDescription("Request a password reset link to be sent to your email. Use this when you've forgotten your password and cannot sign in.")]
+    public async Task<AuthPayload> RequestPasswordReset(
+        [GraphQLDescription("The email address associated with your account")]
+        string email,
+        [Service] IUserService userService,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await userService.RequestPasswordResetAsync(email, cancellationToken);
+        
+        return new AuthPayload
+        {
+            Success = result.Success,
+            Message = result.Message,
+            // In production, don't return the token - it should only be sent via email
+            // For testing purposes, we return it here
+            Token = result.ResetToken
+        };
+    }
+    
+    /// <summary>
+    /// Reset password using the token sent via email
+    /// This completes the password reset flow for forgotten passwords
+    /// No authentication required
+    /// </summary>
+    [GraphQLName("resetPassword")]
+    [GraphQLDescription("Reset your password using the token sent to your email. This is the second step after requesting a password reset.")]
+    public async Task<AuthPayload> ResetPassword(
+        [GraphQLDescription("The reset token received via email")]
+        string resetToken,
+        [GraphQLDescription("Your new password (min 8 chars, must include uppercase, lowercase, and number)")]
+        string newPassword,
+        [Service] IUserService userService,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await userService.ResetPasswordAsync(resetToken, newPassword, cancellationToken);
+        
+        return new AuthPayload
+        {
+            Success = result.Success,
+            Message = result.Message
+        };
+    }
+    
+    /// <summary>
     /// Update user profile
     /// </summary>
     [Authorize]

@@ -100,4 +100,22 @@ public interface IMailerService
         string templateName, 
         Dictionary<string, object> data, 
         CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Send password reset email
+    /// </summary>
+    Task<EmailQueuedResponse> SendPasswordResetEmailAsync(
+        string email, 
+        string resetToken, 
+        string resetLink, 
+        CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Send verification email
+    /// </summary>
+    Task<EmailQueuedResponse> SendVerificationEmailAsync(
+        string email, 
+        string verificationToken, 
+        string verificationLink, 
+        CancellationToken cancellationToken = default);
 }

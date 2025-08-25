@@ -54,6 +54,16 @@ public class User
     public DateTime? LastLoginAt { get; set; }
     
     /// <summary>
+    /// Password reset token (null when not resetting)
+    /// </summary>
+    public string? PasswordResetToken { get; set; }
+    
+    /// <summary>
+    /// When the password reset token expires
+    /// </summary>
+    public DateTime? PasswordResetTokenExpiry { get; set; }
+    
+    /// <summary>
     /// Navigation property for user roles
     /// </summary>
     public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();

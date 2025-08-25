@@ -62,11 +62,26 @@ public interface IUserService
         CancellationToken cancellationToken = default);
     
     /// <summary>
-    /// Change user password
+    /// Change user password (requires current password)
     /// </summary>
     Task<(bool Success, string Message)> ChangePasswordAsync(
         string userId,
         string currentPassword,
+        string newPassword,
+        CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Request password reset (sends reset token via email)
+    /// </summary>
+    Task<(bool Success, string Message, string? ResetToken)> RequestPasswordResetAsync(
+        string email,
+        CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Reset password using reset token (for forgotten passwords)
+    /// </summary>
+    Task<(bool Success, string Message)> ResetPasswordAsync(
+        string resetToken,
         string newPassword,
         CancellationToken cancellationToken = default);
     

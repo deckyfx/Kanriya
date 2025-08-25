@@ -21,14 +21,43 @@ cd "$PROJECT_DIR" || exit 1
 check_database() {
     echo -e "${YELLOW}Checking database status...${NC}"
     
-    # Check if there are pending migrations
-    if dotnet ef migrations list | grep -q "(Pending)"; then
+    # First check if we can connect to the database and migrations table exists
+    # Capture migration status, hiding expected "Failed executing DbCommand" errors when table doesn't exist
+    MIGRATION_OUTPUT=$(dotnet ef migrations list --context AppDbContext 2>&1 | grep -v "Failed executing DbCommand" | grep -v "SELECT migration_id" | grep -v "FROM \"__EFMigrationsHistory\"")
+    
+    # Get the raw output to check for database errors (but don't display these expected errors)
+    RAW_OUTPUT=$(dotnet ef migrations list --context AppDbContext 2>&1)
+    
+    # Check if there's a database connection error (table doesn't exist or connection failed)
+    if echo "$RAW_OUTPUT" | grep -q "Failed executing DbCommand\|__EFMigrationsHistory"; then
+        echo -e "${YELLOW}Database needs initialization (migrations table not found)${NC}"
+        read -p "Initialize database and apply migrations now? (Y/n): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+            echo -e "${YELLOW}Applying migrations...${NC}"
+            if ! dotnet ef database update --context AppDbContext; then
+                echo -e "${RED}✗ Migration failed!${NC}"
+                echo -e "${RED}Please fix the migration issues before starting the server.${NC}"
+                echo ""
+                echo "Possible solutions:"
+                echo "  1. Check your database connection in .env"
+                echo "  2. Ensure PostgreSQL is running: docker-compose up -d"
+                echo "  3. Review migration errors above"
+                echo "  4. Use --skip-db flag to skip migrations (not recommended)"
+                exit 1
+            fi
+            echo -e "${GREEN}✓ Migrations applied successfully${NC}"
+        else
+            echo -e "${YELLOW}⚠ Skipping migrations - database not initialized${NC}"
+        fi
+    # Check if there are pending migrations (database exists but migrations are pending)
+    elif echo "$MIGRATION_OUTPUT" | grep -q "(Pending)"; then
         echo -e "${YELLOW}Pending migrations detected${NC}"
         read -p "Apply migrations now? (Y/n): " -n 1 -r
         echo
         if [[ ! $REPLY =~ ^[Nn]$ ]]; then
             echo -e "${YELLOW}Applying migrations...${NC}"
-            if ! dotnet ef database update; then
+            if ! dotnet ef database update --context AppDbContext; then
                 echo -e "${RED}✗ Migration failed!${NC}"
                 echo -e "${RED}Please fix the migration issues before starting the server.${NC}"
                 echo ""

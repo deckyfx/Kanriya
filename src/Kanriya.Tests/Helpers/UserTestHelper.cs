@@ -266,6 +266,68 @@ public class UserTestHelper
     }
     
     /// <summary>
+    /// Request a password reset
+    /// </summary>
+    public async Task<(bool success, string? resetToken)> RequestPasswordResetAsync(string email)
+    {
+        var mutation = @"
+            mutation RequestPasswordReset($email: String!) {
+                requestPasswordReset(email: $email) {
+                    success
+                    message
+                    token
+                }
+            }";
+            
+        var result = await _client.ExecuteAsync(mutation, new { email });
+        
+        var success = GraphQLClient.GetSuccess(result, "data", "requestPasswordReset");
+        var resetToken = GraphQLClient.GetString(result, "data", "requestPasswordReset", "token");
+        
+        if (success)
+        {
+            LogSuccess($"Password reset requested for {email}");
+        }
+        else
+        {
+            var message = GraphQLClient.GetMessage(result, "data", "requestPasswordReset");
+            LogError($"Password reset request failed: {message}");
+        }
+        
+        return (success, resetToken);
+    }
+    
+    /// <summary>
+    /// Reset password using token
+    /// </summary>
+    public async Task<bool> ResetPasswordAsync(string resetToken, string newPassword)
+    {
+        var mutation = @"
+            mutation ResetPassword($resetToken: String!, $newPassword: String!) {
+                resetPassword(resetToken: $resetToken, newPassword: $newPassword) {
+                    success
+                    message
+                }
+            }";
+            
+        var result = await _client.ExecuteAsync(mutation, new { resetToken, newPassword });
+        
+        var success = GraphQLClient.GetSuccess(result, "data", "resetPassword");
+        
+        if (success)
+        {
+            LogSuccess("Password reset successfully");
+        }
+        else
+        {
+            var message = GraphQLClient.GetMessage(result, "data", "resetPassword");
+            LogError($"Password reset failed: {message}");
+        }
+        
+        return success;
+    }
+    
+    /// <summary>
     /// Create a user and sign them in (helper for other tests)
     /// </summary>
     public async Task<TestUser?> CreateAndSignInUserAsync(string prefix = "test")

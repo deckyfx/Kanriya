@@ -368,4 +368,59 @@ public class MailerService : IMailerService
             // Don't throw - logging failure shouldn't stop email processing
         }
     }
+    
+    public async Task<EmailQueuedResponse> SendPasswordResetEmailAsync(
+        string email, 
+        string resetToken, 
+        string resetLink, 
+        CancellationToken cancellationToken = default)
+    {
+        // Use the templated email
+        var templateData = new Dictionary<string, object>
+        {
+            { "userName", email }, // Use email as username since we might not have the name
+            { "appName", "Kanriya" },
+            { "resetUrl", resetLink },
+            { "resetToken", resetToken },
+            { "expiryHours", "1" },
+            { "year", DateTime.UtcNow.Year.ToString() }
+        };
+        
+        var request = new SendTemplatedEmailRequest
+        {
+            ToEmail = email,
+            TemplateName = "password_reset",
+            TemplateData = templateData,
+            Priority = 1 // High priority
+        };
+        
+        return await QueueTemplatedEmailAsync(request, cancellationToken);
+    }
+    
+    public async Task<EmailQueuedResponse> SendVerificationEmailAsync(
+        string email, 
+        string verificationToken, 
+        string verificationLink, 
+        CancellationToken cancellationToken = default)
+    {
+        // Use the templated email
+        var templateData = new Dictionary<string, object>
+        {
+            { "userName", email }, // Use email as username since we might not have the name
+            { "appName", "Kanriya" },
+            { "activationUrl", verificationLink },
+            { "verificationToken", verificationToken },
+            { "year", DateTime.UtcNow.Year.ToString() }
+        };
+        
+        var request = new SendTemplatedEmailRequest
+        {
+            ToEmail = email,
+            TemplateName = "user_activation",
+            TemplateData = templateData,
+            Priority = 1 // High priority
+        };
+        
+        return await QueueTemplatedEmailAsync(request, cancellationToken);
+    }
 }

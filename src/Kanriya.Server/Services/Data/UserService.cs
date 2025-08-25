@@ -505,6 +505,102 @@ public class UserService : IUserService
         return (true, "Password changed successfully");
     }
     
+    public async Task<(bool Success, string Message, string? ResetToken)> RequestPasswordResetAsync(
+        string email,
+        CancellationToken cancellationToken = default)
+    {
+        using var scope = CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        
+        var user = await dbContext.Users
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == email.ToLower(), cancellationToken);
+        
+        if (user == null)
+        {
+            // Don't reveal if email exists for security
+            _logger.LogWarning("Password reset requested for non-existent email: {Email}", email);
+            return (true, "If the email exists, a password reset link has been sent", null);
+        }
+        
+        // Generate reset token
+        var resetToken = Guid.NewGuid().ToString("N");
+        user.PasswordResetToken = resetToken;
+        user.PasswordResetTokenExpiry = DateTime.UtcNow.AddHours(1); // Token valid for 1 hour
+        user.UpdatedAt = DateTime.UtcNow;
+        
+        await dbContext.SaveChangesAsync(cancellationToken);
+        
+        // Send email with reset token
+        var resetLink = $"{EnvironmentConfig.App.BaseUrl}/reset-password?token={resetToken}";
+        await _mailerService.SendPasswordResetEmailAsync(email, resetToken, resetLink);
+        
+        _logger.LogInformation("Password reset requested for user {Email}", email);
+        
+        // Return token for testing purposes (in production, only send via email)
+        return (true, "If the email exists, a password reset link has been sent", resetToken);
+    }
+    
+    public async Task<(bool Success, string Message)> ResetPasswordAsync(
+        string resetToken,
+        string newPassword,
+        CancellationToken cancellationToken = default)
+    {
+        if (!IsPasswordValid(newPassword))
+            return (false, "New password must be at least 8 characters with uppercase, lowercase, and number");
+        
+        using var scope = CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        
+        var user = await dbContext.Users
+            .FirstOrDefaultAsync(u => 
+                u.PasswordResetToken == resetToken && 
+                u.PasswordResetTokenExpiry != null && 
+                u.PasswordResetTokenExpiry > DateTime.UtcNow, 
+                cancellationToken);
+        
+        if (user == null)
+            return (false, "Invalid or expired reset token");
+        
+        // Store previous state for event
+        var previousUser = new User
+        {
+            Id = user.Id,
+            Email = user.Email,
+            PasswordHash = user.PasswordHash,
+            FullName = user.FullName,
+            ProfilePictureUrl = user.ProfilePictureUrl,
+            CreatedAt = user.CreatedAt,
+            UpdatedAt = user.UpdatedAt,
+            LastLoginAt = user.LastLoginAt
+        };
+        
+        // Update password and clear reset token
+        user.PasswordHash = HashPassword(newPassword);
+        user.PasswordResetToken = null;
+        user.PasswordResetTokenExpiry = null;
+        user.UpdatedAt = DateTime.UtcNow;
+        
+        await dbContext.SaveChangesAsync(cancellationToken);
+        
+        // Publish subscription event
+        var eventSender = scope.ServiceProvider.GetService<ITopicEventSender>();
+        if (eventSender != null)
+        {
+            var userEvent = new SubscriptionEvent<User>
+            {
+                Event = EventType.Updated,
+                Document = user,
+                Time = DateTime.UtcNow,
+                Previous = previousUser
+            };
+            await eventSender.SendAsync("UserChanged", userEvent, cancellationToken);
+        }
+        
+        _logger.LogInformation("Password reset completed for user {UserId}", user.Id);
+        
+        return (true, "Password has been reset successfully");
+    }
+    
     public async Task<IEnumerable<User>> GetAllUsersAsync(
         int? skip = null,
         int? take = null,

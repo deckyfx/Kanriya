@@ -180,6 +180,10 @@ public static class EnvironmentConfig
         public static string PublicUrl => 
             Environment.GetEnvironmentVariable("SERVER_PUBLIC_URL") ?? Urls;
         
+        // Base URL for application links (password reset, etc.)
+        public static string BaseUrl => 
+            Environment.GetEnvironmentVariable("APP_BASE_URL") ?? PublicUrl;
+        
         public static string AspNetCoreEnvironment =>
             Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production";
     }
