@@ -16,14 +16,14 @@ public static class UserRoles
     public const string User = "User";
     
     /// <summary>
-    /// Business Owner - Owns one or more businesses
+    /// Brand Owner - Owns one or more brands
     /// </summary>
-    public const string BusinessOwner = "BusinessOwner";
+    public const string BrandOwner = "BrandOwner";
     
     /// <summary>
-    /// Business Operator - Operates on behalf of a business
+    /// Brand Operator - Operates on behalf of a brand
     /// </summary>
-    public const string BusinessOperator = "BusinessOperator";
+    public const string BrandOperator = "BrandOperator";
     
     /// <summary>
     /// Get all available roles
@@ -32,8 +32,8 @@ public static class UserRoles
     {
         SuperAdmin,
         User,
-        BusinessOwner,
-        BusinessOperator
+        BrandOwner,
+        BrandOperator
     };
     
     /// <summary>

@@ -1,4 +1,5 @@
 using Kanriya.Server.Services;
+using Kanriya.Server.Services.Data;
 using Kanriya.Server.Types;
 using Kanriya.Server.Types.Inputs;
 using Kanriya.Server.Types.Outputs;
@@ -77,6 +78,7 @@ public class AuthMutations
         var result = await userService.SignInAsync(
             input.Email,
             input.Password,
+            input.BrandId,
             cancellationToken);
         
         return new AuthPayload

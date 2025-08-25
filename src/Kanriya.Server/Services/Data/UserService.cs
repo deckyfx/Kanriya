@@ -1,4 +1,5 @@
 using System.IdentityModel.Tokens.Jwt;
+using Kanriya.Server.Services.System;
 using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -9,7 +10,7 @@ using HotChocolate.Subscriptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
-namespace Kanriya.Server.Services;
+namespace Kanriya.Server.Services.Data;
 
 /// <summary>
 /// Service implementation for user authentication and management
@@ -201,36 +202,141 @@ public class UserService : IUserService
         return (true, "Email verified successfully", user);
     }
     
-    public async Task<(bool Success, string Message, User? User, string? Token)> SignInAsync(
-        string email,
+    public async Task<(bool Success, string Message, User? User, string? Token, string? TokenType)> SignInAsync(
+        string emailOrApiSecret,
         string password,
+        string? brandId = null,
         CancellationToken cancellationToken = default)
     {
+        // If brandId is provided, use brand authentication
+        if (!string.IsNullOrEmpty(brandId))
+        {
+            return await SignInBrandAsync(emailOrApiSecret, password, brandId, cancellationToken);
+        }
+        
+        // Otherwise, use principal authentication
         using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         
         // Find user by email
         var user = await dbContext.Users
             .Include(u => u.UserRoles)
-            .FirstOrDefaultAsync(u => u.Email == email.ToLower(), cancellationToken);
+            .FirstOrDefaultAsync(u => u.Email == emailOrApiSecret.ToLower(), cancellationToken);
         
         if (user == null)
-            return (false, "Invalid email or password", null, null);
+            return (false, "Invalid email or password", null, null, null);
         
         // Verify password
         if (!VerifyPassword(password, user.PasswordHash))
-            return (false, "Invalid email or password", null, null);
+            return (false, "Invalid email or password", null, null, null);
         
         // Update last login
         user.LastLoginAt = DateTime.UtcNow;
         await dbContext.SaveChangesAsync(cancellationToken);
         
-        // Generate JWT token
+        // Generate JWT token (keeping backward compatibility)
+        // For full dual-token support, use DualAuthService.GenerateDualTokensAsync
         var token = GenerateJwtToken(user);
         
         _logger.LogInformation("User {Email} signed in successfully", user.Email);
         
-        return (true, "Sign in successful", user, token);
+        return (true, "Sign in successful", user, token, "PRINCIPAL");
+    }
+    
+    /// <summary>
+    /// Sign in using brand API credentials
+    /// </summary>
+    private async Task<(bool Success, string Message, User? User, string? Token, string? TokenType)> SignInBrandAsync(
+        string apiSecret,
+        string apiPassword,
+        string brandId,
+        CancellationToken cancellationToken = default)
+    {
+        using var scope = CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var brandService = scope.ServiceProvider.GetRequiredService<IBrandConnectionService>();
+        var apiCredentialService = scope.ServiceProvider.GetRequiredService<IApiCredentialService>();
+        
+        // Get brand to retrieve PostgreSQL credentials
+        var brand = await dbContext.Brands
+            .FirstOrDefaultAsync(b => b.Id == brandId && b.IsActive, cancellationToken);
+        
+        if (brand == null)
+            return (false, "Brand not found or inactive", null, null, null);
+        
+        // Connect to brand schema using brand PostgreSQL credentials
+        var connectionString = brandService.BuildConnectionString(brand);
+        using var connection = new Npgsql.NpgsqlConnection(connectionString);
+        await connection.OpenAsync(cancellationToken);
+        
+        // Find user by API secret in brand schema
+        using var findUserCommand = new Npgsql.NpgsqlCommand($@"
+            SELECT id, api_secret, api_password_hash, display_name, is_active
+            FROM {brand.SchemaName}.users
+            WHERE api_secret = @apiSecret AND is_active = true
+        ", connection);
+        
+        findUserCommand.Parameters.AddWithValue("apiSecret", apiSecret);
+        
+        using var reader = await findUserCommand.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
+            return (false, "Invalid API credentials", null, null, null);
+        
+        var brandUserId = reader.GetGuid(0).ToString();
+        var storedApiSecret = reader.GetString(1);
+        var apiPasswordHash = reader.GetString(2);
+        var displayName = reader.IsDBNull(3) ? null : reader.GetString(3);
+        var isActive = reader.GetBoolean(4);
+        
+        reader.Close();
+        
+        // Verify API password
+        if (!apiCredentialService.VerifyApiPassword(apiPassword, apiPasswordHash))
+            return (false, "Invalid API credentials", null, null, null);
+        
+        // Get user roles from brand schema
+        var roles = new List<string>();
+        using var getRolesCommand = new Npgsql.NpgsqlCommand($@"
+            SELECT role FROM {brand.SchemaName}.user_roles
+            WHERE user_id = @userId AND is_active = true
+        ", connection);
+        
+        getRolesCommand.Parameters.AddWithValue("userId", Guid.Parse(brandUserId));
+        
+        using var rolesReader = await getRolesCommand.ExecuteReaderAsync(cancellationToken);
+        while (await rolesReader.ReadAsync(cancellationToken))
+        {
+            roles.Add(rolesReader.GetString(0));
+        }
+        rolesReader.Close();
+        
+        // Update last login in brand schema
+        using var updateLoginCommand = new Npgsql.NpgsqlCommand($@"
+            UPDATE {brand.SchemaName}.users
+            SET last_login_at = CURRENT_TIMESTAMP
+            WHERE id = @userId
+        ", connection);
+        
+        updateLoginCommand.Parameters.AddWithValue("userId", Guid.Parse(brandUserId));
+        await updateLoginCommand.ExecuteNonQueryAsync(cancellationToken);
+        
+        // Generate brand token
+        var token = GenerateBrandJwtToken(brandUserId, brandId, brand.SchemaName, roles.ToArray());
+        
+        _logger.LogInformation("Brand user {UserId} signed in successfully for brand {BrandId}", 
+            brandUserId, brandId);
+        
+        // Return a pseudo-user object for compatibility
+        var pseudoUser = new User
+        {
+            Id = brandUserId,
+            Email = $"{apiSecret}@{brandId}",
+            FullName = displayName ?? "Brand User",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        
+        return (true, "Brand sign in successful", pseudoUser, token, "BRAND");
     }
     
     public async Task<(bool Success, string Message, string? NewToken)> ResendVerificationAsync(
@@ -657,6 +763,44 @@ public class UserService : IUserService
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
     
+    /// <summary>
+    /// Generate JWT token for brand authentication
+    /// </summary>
+    private string GenerateBrandJwtToken(string userId, string brandId, string schemaName, string[] roles)
+    {
+        var secretKey = EnvironmentConfig.Jwt.Secret;
+        var issuer = EnvironmentConfig.Jwt.Issuer;
+        var audience = EnvironmentConfig.Jwt.Audience;
+        var expirationMinutes = EnvironmentConfig.Jwt.ExpirationMinutes;
+        
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+        var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, userId),
+            new Claim("brand_id", brandId),
+            new Claim("brand_schema", schemaName),
+            new Claim("token_type", "BRAND")
+        };
+        
+        // Add brand roles as claims
+        foreach (var role in roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
+        
+        var token = new JwtSecurityToken(
+            issuer: issuer,
+            audience: audience,
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(expirationMinutes),
+            signingCredentials: credentials
+        );
+        
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+    
     public bool IsPasswordValid(string password)
     {
         // At least 8 characters, one uppercase, one lowercase, one number
@@ -668,7 +812,7 @@ public class UserService : IUserService
     {
         try
         {
-            var addr = new System.Net.Mail.MailAddress(email);
+            var addr = new global::System.Net.Mail.MailAddress(email);
             return addr.Address == email;
         }
         catch

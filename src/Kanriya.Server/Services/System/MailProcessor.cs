@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Kanriya.Server.Services;
+namespace Kanriya.Server.Services.System;
 
 /// <summary>
 /// Background job processor for email queue

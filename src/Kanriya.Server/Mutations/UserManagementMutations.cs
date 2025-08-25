@@ -1,6 +1,7 @@
 using Kanriya.Server.Constants;
 using Kanriya.Server.Data;
 using Kanriya.Server.Services;
+using Kanriya.Server.Services.Data;
 using Kanriya.Server.Types;
 using HotChocolate.Authorization;
 

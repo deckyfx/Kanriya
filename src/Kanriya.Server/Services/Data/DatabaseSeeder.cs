@@ -1,7 +1,8 @@
 using System.Reflection;
+using Kanriya.Server.Services.System;
 using Kanriya.Server.Seeds;
 
-namespace Kanriya.Server.Services;
+namespace Kanriya.Server.Services.Data;
 
 /// <summary>
 /// Service responsible for orchestrating all database seeders

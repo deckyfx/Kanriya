@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Kanriya.Server.Data;
 using Kanriya.Server.Services;
+using Kanriya.Server.Services.System;
+using Kanriya.Server.Services.Data;
 
 namespace Kanriya.Server.Program;
 

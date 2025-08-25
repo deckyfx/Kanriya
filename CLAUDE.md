@@ -1,4 +1,21 @@
-# Project Structure Guidelines - Learn C# GraphQL with HotChocolate
+# Project Structure Guidelines - Multi-Tenant Brand Management System
+
+## Multi-Tenant Architecture
+
+This project implements a multi-tenant architecture using PostgreSQL schema isolation:
+
+### Key Concepts
+- **Brand**: Represents a business entity (e.g., "Geprek Bensu" - an F&B brand with multiple outlets)
+- **Schema Isolation**: Each brand has its own PostgreSQL schema (e.g., `brand_[guid]`)
+- **Dual Authentication**: 
+  - Principal users: Email/password authentication (system-wide users)
+  - Brand users: API credentials authentication (brand-specific users)
+
+### Terminology
+- **Brand** = Multi-tenant entity (formerly "Business")
+- **BrandOwner** = Role for brand owners
+- **BrandOperator** = Role for brand operators
+- **brand_** = Schema prefix for brand-specific schemas
 
 ## Environment Configuration
 
@@ -34,17 +51,17 @@ This project follows PostgreSQL naming conventions for database objects:
 
 ### Naming Rules
 1. **Database Objects**: Use snake_case for all database objects (tables, columns, indexes)
-   - Tables: `greet_logs`, `user_profiles`, `order_items`
-   - Columns: `id`, `created_at`, `user_name`, `is_active`
-   - Indexes: `ix_greet_logs_timestamp`, `pk_user_profiles`
+   - Tables: `brands`, `user_profiles`, `brand_users`
+   - Columns: `id`, `created_at`, `owner_id`, `is_active`
+   - Indexes: `ix_brands_owner_id`, `pk_user_profiles`
 
 2. **C# Properties**: Use PascalCase for C# properties (standard .NET convention)
-   - Properties: `Id`, `CreatedAt`, `UserName`, `IsActive`
+   - Properties: `Id`, `CreatedAt`, `OwnerId`, `IsActive`
    
 3. **Automatic Mapping**: EF Core is configured with `UseSnakeCaseNamingConvention()`
    - Automatically converts PascalCase properties to snake_case columns
    - No need for explicit column name mappings in entity configurations
-   - Example: C# property `UserName` → Database column `user_name`
+   - Example: C# property `OwnerId` → Database column `owner_id`
 
 ### Benefits
 - **PostgreSQL Best Practices**: Follows database conventions
@@ -63,71 +80,65 @@ This project follows a clear, organized structure for GraphQL components:
 ├── /Mutations       # All GraphQL mutation declarations  
 ├── /Subscriptions   # All GraphQL subscription declarations
 ├── /Types           # Input types, output types, and custom scalar types
-├── /Data            # Database context, repositories, data access layer
+├── /Data            # Database context, entities, configurations
+│   └── /BrandSchema # Brand-specific entities (BrandUser, BrandUserRole)
 ├── /Services        # Business logic and service layer
+│   ├── /Data        # Data-related services (UserService, BrandService, etc.)
+│   └── /System      # System services (LogService, MailerService, etc.)
 └── Program.cs       # Application entry point
 ```
+
+## Service Organization
+
+### `/Services/Data`
+Data-related services that interact with the database:
+- `UserService` - User management and authentication
+- `BrandService` - Brand creation and management
+- `BrandConnectionService` - Brand database connection management
+- `PostgreSQLManagementService` - PostgreSQL schema and user management
+- `ApiCredentialService` - API credential generation and validation
+- `DatabaseSeeder` - Database initialization and seeding
+
+### `/Services/System`
+System services that handle infrastructure concerns:
+- `LogService` - Centralized logging
+- `MailerService` - Email sending functionality
+- `MailProcessor` - Email queue processing
+- `SystemSmtpMailDriver` - SMTP implementation
+- `HangfireLogProvider` - Hangfire logging integration
 
 ## Strict Folder Rules
 
 ### `/Queries`
 - **Purpose**: Contains ONLY GraphQL query declarations
-- **Pattern**: All classes marked with `[QueryType]`
-- **Naming**: `*Queries.cs` (e.g., `UserQueries.cs`, `ProductQueries.cs`)
-- **Example**:
-  ```csharp
-  [QueryType]
-  public class UserQueries
-  {
-      public User GetUser(int id) => // ...
-  }
-  ```
+- **Pattern**: All classes extending RootQuery
+- **Naming**: `*Queries.cs` (e.g., `UserQueries.cs`, `BrandQueries.cs`)
 
 ### `/Mutations`
 - **Purpose**: Contains ONLY GraphQL mutation declarations
-- **Pattern**: All classes marked with `[MutationType]`
-- **Naming**: `*Mutations.cs` (e.g., `UserMutations.cs`, `ProductMutations.cs`)
-- **Example**:
-  ```csharp
-  [MutationType]
-  public class UserMutations
-  {
-      public User CreateUser(CreateUserInput input) => // ...
-  }
-  ```
+- **Pattern**: All classes extending RootMutation
+- **Naming**: `*Mutations.cs` (e.g., `UserMutations.cs`, `BrandMutations.cs`)
 
 ### `/Subscriptions`
 - **Purpose**: Contains ONLY GraphQL subscription declarations
-- **Pattern**: All classes marked with `[SubscriptionType]`
-- **Naming**: `*Subscriptions.cs` (e.g., `UserSubscriptions.cs`, `NotificationSubscriptions.cs`)
-- **Example**:
-  ```csharp
-  [SubscriptionType]
-  public class UserSubscriptions
-  {
-      [Subscribe]
-      public User OnUserCreated([EventMessage] User user) => user;
-  }
-  ```
+- **Pattern**: All classes marked with subscription attributes
+- **Naming**: `*Subscriptions.cs` (e.g., `UserSubscriptions.cs`)
 
 ### `/Types`
 - **Purpose**: Contains input types, output types, and custom scalar types
 - **Subfolders**:
   - `/Types/Inputs` - Input object types for mutations
   - `/Types/Outputs` - Custom output object types
-  - `/Types/Scalars` - Custom scalar types
 - **Naming**:
-  - Input types: `*Input.cs` (e.g., `CreateUserInput.cs`)
-  - Output types: `*Type.cs` or model name (e.g., `UserType.cs`, `User.cs`)
-  - Scalars: `*Scalar.cs` (e.g., `DateTimeScalar.cs`)
+  - Input types: `*Input.cs` (e.g., `CreateBrandInput.cs`)
+  - Output types: `*Payload.cs` (e.g., `CreateBrandPayload.cs`)
 
 ### `/Data`
-- **Purpose**: Data access layer, EF Core context, repositories
-- **Contents**: DbContext, entity configurations, migrations
-
-### `/Services`
-- **Purpose**: Business logic layer
-- **Contents**: Service classes that queries/mutations depend on
+- **Purpose**: Data access layer, EF Core context, entities
+- **Contents**: 
+  - `AppDbContext` - Main application database context
+  - `Brand.cs` - Brand entity
+  - `/BrandSchema/` - Brand-specific entities
 
 ## Important Rules
 
@@ -136,32 +147,22 @@ This project follows a clear, organized structure for GraphQL components:
 3. **Consistent naming**: Follow the naming conventions strictly
 4. **Use dependency injection**: Inject services into queries/mutations
 5. **Keep it thin**: Queries/Mutations should be thin - business logic goes in Services
+6. **Service organization**: Data services in `/Services/Data`, system services in `/Services/System`
 
-## File Organization Example
+## Brand Module Organization
 
 ```
-/Queries
-  - UserQueries.cs
-  - ProductQueries.cs
-  - OrderQueries.cs
+/Modules
+  - BrandModule.cs    # Contains BrandQueries and BrandMutations
 
-/Mutations  
-  - UserMutations.cs
-  - ProductMutations.cs
-  - OrderMutations.cs
+/Types/Inputs
+  - CreateBrandInput.cs
+  - BrandAuthInput.cs
 
-/Subscriptions
-  - OrderSubscriptions.cs
-  - NotificationSubscriptions.cs
-
-/Types
-  /Inputs
-    - CreateUserInput.cs
-    - UpdateProductInput.cs
-  /Outputs
-    - UserType.cs
-    - ProductType.cs
-    - OrderType.cs
+/Types/Outputs
+  - CreateBrandPayload.cs
+  - DeleteBrandPayload.cs
+  - BrandAuthPayload.cs
 ```
 
 ## Testing and Validation
@@ -171,6 +172,7 @@ When running lint or build commands, ensure:
 - No business logic in Query/Mutation classes
 - All input/output types are in `/Types`
 - Proper use of HotChocolate attributes
+- Services are properly organized in Data or System subfolders
 
 ## Commands to Remember
 
@@ -183,6 +185,12 @@ dotnet run
 
 # Export schema
 dotnet run -- schema export --output schema.graphql
+
+# Create migrations
+dotnet ef migrations add MigrationName --context AppDbContext
+
+# Apply migrations
+dotnet ef database update --context AppDbContext
 ```
 
 ## Development Philosophy
@@ -198,6 +206,7 @@ dotnet run -- schema export --output schema.graphql
 - When consolidating subscriptions: Remove individual ones, keep only unified
 - When changing patterns: Update everything to new pattern, no old code
 - When improving architecture: Full refactor, no compatibility layers
+- When renaming concepts: Update all references, no aliases
 
 ## Subscription Standards
 
@@ -214,8 +223,8 @@ type EntityEvent {
 ```
 
 ### Naming Conventions
-- **Subscription name**: `on{Entity}Changed` (e.g., `onGreetLogChanged`)
-- **Topic name**: `{Entity}Changes` (e.g., `GreetLogChanges`)
+- **Subscription name**: `on{Entity}Changed` (e.g., `onBrandChanged`)
+- **Topic name**: `{Entity}Changes` (e.g., `BrandChanges`)
 - **Event types**: `Created`, `Updated`, `Deleted` (not Added/Modified/Removed)
 - **Field names**: `event`, `document`, `time`, `_previous`
 
@@ -238,3 +247,5 @@ When working on this project:
 8. **NEVER maintain backward compatibility during development**
 9. **ALWAYS remove old code when implementing new patterns**
 10. **Optimize for clean, efficient code over compatibility**
+11. **Organize services properly**: Data services in `/Services/Data`, system services in `/Services/System`
+12. **Use Brand terminology consistently**: Not Business, not Tenant (except for technical multi-tenant context)

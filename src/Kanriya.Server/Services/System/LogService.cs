@@ -7,7 +7,7 @@ using Kanriya.Server.Constants;
 using Kanriya.Server.Program;
 using IOPath = System.IO.Path;
 
-namespace Kanriya.Server.Services;
+namespace Kanriya.Server.Services.System;
 
 /// <summary>
 /// Unified logging service using Serilog with Spectre.Console for fancy terminal output
@@ -45,7 +45,7 @@ public static class LogService
                 .MinimumLevel.Override("System", LogEventLevel.Warning)
                 .MinimumLevel.Override("Hangfire", LogEventLevel.Information)
                 .Enrich.FromLogContext()
-                .Enrich.WithProperty("ThreadId", System.Threading.Thread.CurrentThread.ManagedThreadId)
+                .Enrich.WithProperty("ThreadId", global::System.Threading.Thread.CurrentThread.ManagedThreadId)
                 .Enrich.WithProperty("MachineName", Environment.MachineName)
                 .Enrich.WithProperty("Environment", EnvironmentConfig.App.AspNetCoreEnvironment)
                 .Enrich.WithProperty("Application", ApplicationPaths.ApplicationName)

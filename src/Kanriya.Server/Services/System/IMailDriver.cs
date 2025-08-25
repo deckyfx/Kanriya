@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Kanriya.Server.Services;
+namespace Kanriya.Server.Services.System;
 
 /// <summary>
 /// Represents the result of sending an email

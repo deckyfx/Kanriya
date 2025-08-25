@@ -1,6 +1,6 @@
 using Kanriya.Server.Data;
 
-namespace Kanriya.Server.Services;
+namespace Kanriya.Server.Services.Data;
 
 /// <summary>
 /// Service interface for user authentication and management operations
@@ -25,11 +25,12 @@ public interface IUserService
         CancellationToken cancellationToken = default);
     
     /// <summary>
-    /// Sign in an existing user
+    /// Sign in an existing user (principal or brand)
     /// </summary>
-    Task<(bool Success, string Message, User? User, string? Token)> SignInAsync(
-        string email,
+    Task<(bool Success, string Message, User? User, string? Token, string? TokenType)> SignInAsync(
+        string emailOrApiSecret,
         string password,
+        string? brandId = null,
         CancellationToken cancellationToken = default);
     
     /// <summary>

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Kanriya.Server.Data;
 
-namespace Kanriya.Server.Services;
+namespace Kanriya.Server.Services.System;
 
 /// <summary>
 /// Request to send an email

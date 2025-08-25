@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Kanriya.Server.Services;
+using Kanriya.Server.Services.Data;
 
 namespace Kanriya.Server.Controllers;
 

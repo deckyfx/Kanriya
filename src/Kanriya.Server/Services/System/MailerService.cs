@@ -10,7 +10,7 @@ using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace Kanriya.Server.Services;
+namespace Kanriya.Server.Services.System;
 
 /// <summary>
 /// Service for managing email operations

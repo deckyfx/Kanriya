@@ -1,5 +1,6 @@
 using Kanriya.Server.Constants;
 using Kanriya.Server.Services;
+using Kanriya.Server.Services.System;
 
 namespace Kanriya.Server.Program;
 
@@ -25,20 +26,20 @@ public static class AuthorizationConfig
             options.AddPolicy("SuperAdminOnly", policy =>
                 policy.RequireRole(UserRoles.SuperAdmin));
             
-            // Business Owner policy - requires BusinessOwner role
-            // For operations that business owners can perform
-            options.AddPolicy("BusinessOwnerOnly", policy =>
-                policy.RequireRole(UserRoles.BusinessOwner));
+            // Brand Owner policy - requires BrandOwner role
+            // For operations that brand owners can perform
+            options.AddPolicy("BrandOwnerOnly", policy =>
+                policy.RequireRole(UserRoles.BrandOwner));
             
-            // Business Operator policy - requires BusinessOperator role
-            // For operations that business operators can perform
-            options.AddPolicy("BusinessOperatorOnly", policy =>
-                policy.RequireRole(UserRoles.BusinessOperator));
+            // Brand Operator policy - requires BrandOperator role
+            // For operations that brand operators can perform
+            options.AddPolicy("BrandOperatorOnly", policy =>
+                policy.RequireRole(UserRoles.BrandOperator));
             
-            // Business Access policy - requires either BusinessOwner or BusinessOperator role
-            // For operations that any business member can perform
-            options.AddPolicy("BusinessAccess", policy =>
-                policy.RequireRole(UserRoles.BusinessOwner, UserRoles.BusinessOperator));
+            // Brand Access policy - requires either BrandOwner or BrandOperator role
+            // For operations that any brand member can perform
+            options.AddPolicy("BrandAccess", policy =>
+                policy.RequireRole(UserRoles.BrandOwner, UserRoles.BrandOperator));
             
             // Custom policy example - requires specific claim
             // For users who have verified their email address

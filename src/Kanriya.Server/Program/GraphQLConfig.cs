@@ -1,5 +1,7 @@
 using HotChocolate.Data;
 using Kanriya.Server.Services;
+using Kanriya.Server.Services.System;
+using Kanriya.Server.Services.Data;
 using Serilog.Context;
 
 namespace Kanriya.Server.Program;
@@ -50,6 +52,10 @@ public static class GraphQLConfig
             
             // System Module - All System operations
             .AddTypeExtension<Kanriya.Server.Modules.SystemQueries>()
+            
+            // Brand Module - All Brand and Multi-Tenant operations
+            .AddTypeExtension<Kanriya.Server.Modules.BrandQueries>()
+            .AddTypeExtension<Kanriya.Server.Modules.BrandMutations>()
             
             // Add filtering and sorting capabilities
             .AddFiltering()

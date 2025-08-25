@@ -1,5 +1,6 @@
 using Kanriya.Server.HttpRoutes;
 using Kanriya.Server.Services;
+using Kanriya.Server.Services.System;
 using Microsoft.OpenApi.Models;
 
 namespace Kanriya.Server.Program;

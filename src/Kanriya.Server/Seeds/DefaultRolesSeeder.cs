@@ -1,4 +1,5 @@
 using Kanriya.Server.Services;
+using Kanriya.Server.Services.System;
 using Kanriya.Server.Constants;
 
 namespace Kanriya.Server.Seeds;

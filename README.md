@@ -1,6 +1,6 @@
-# Learn C# - GraphQL Server with HotChocolate
+# Kanriya Server - Multi-Tenant GraphQL API with HotChocolate
 
-A modern GraphQL API built with .NET 9, HotChocolate, and PostgreSQL. Features a clean architecture with service layer pattern, Entity Framework Core with snake_case naming convention, and real-time subscriptions.
+A production-ready multi-tenant GraphQL API built with .NET 9, HotChocolate, and PostgreSQL. Features schema-based tenant isolation, dual authentication (principal users and brand API credentials), real-time subscriptions, and a clean service-oriented architecture.
 
 ## Prerequisites
 
@@ -89,11 +89,27 @@ Kanriya/
 ├── src/
 │   └── Kanriya.Server/              # Main GraphQL server project
 │       ├── Data/                # Database context & entities
-│       ├── Queries/             # GraphQL queries
-│       ├── Mutations/           # GraphQL mutations
-│       ├── Subscriptions/       # GraphQL subscriptions
+│       │   ├── Brand.cs        # Multi-tenant brand entity
+│       │   ├── BrandSchema/    # Brand-specific tenant schemas
+│       │   └── EntityConfigurations/
+│       ├── Modules/             # GraphQL modules (queries, mutations, subscriptions)
+│       │   ├── BrandModule.cs  # Brand management operations
+│       │   ├── UserModule.cs   # User authentication & management
+│       │   └── SystemModule.cs # System operations
 │       ├── Services/            # Business logic layer
-│       └── Types/               # GraphQL types
+│       │   ├── Data/           # Data-related services
+│       │   │   ├── UserService.cs
+│       │   │   ├── BrandService.cs
+│       │   │   └── BrandConnectionService.cs
+│       │   └── System/         # System services
+│       │       ├── LogService.cs
+│       │       └── MailerService.cs
+│       ├── Types/               # GraphQL types
+│       │   ├── Inputs/         # Input types
+│       │   └── Payloads/       # Response payloads
+│       └── Program/            # Application configuration
+│           ├── EnvironmentConfig.cs  # Centralized env vars
+│           └── GraphQLConfig.cs      # GraphQL setup
 ├── bin/                         # Helper scripts
 │   ├── run-server              # Server runner with DB checks
 │   └── db-migrate              # Database migration helper
@@ -147,10 +163,13 @@ Kanriya/
 
 1. Create entity in `Data/` folder
 2. Add entity configuration in `Data/EntityConfigurations/`
-3. Create service interface and implementation in `Services/`
-4. Add GraphQL operations in `Queries/`, `Mutations/`, or `Subscriptions/`
-5. Create a migration: `./bin/db-migrate add FeatureName`
-6. Apply migration: `./bin/db-migrate update`
+3. Create service interface and implementation in appropriate `Services/` subfolder:
+   - `Services/Data/` for data-related services
+   - `Services/System/` for system services
+4. Add GraphQL operations in `Modules/` folder using module pattern
+5. Register services in `Program/GraphQLConfig.cs`
+6. Create a migration: `./bin/db-migrate add FeatureName`
+7. Apply migration: `./bin/db-migrate update`
 
 ### Database Conventions
 
@@ -207,6 +226,22 @@ docker-compose logs db
 POSTGRES_PORT=15432  # Different port
 ```
 
+## Key Features
+
+### Multi-Tenant Architecture
+- **Schema Isolation**: Each brand gets its own PostgreSQL schema (`brand_[guid]`)
+- **Dual Authentication**: 
+  - Principal users: Email/password authentication
+  - Brand users: API key authentication for programmatic access
+- **Role-Based Access**: BrandOwner and BrandOperator roles
+- **Dynamic Connection Management**: Automatic schema switching based on context
+
+### Service Architecture
+- **Data Services**: User management, brand management, database operations
+- **System Services**: Logging, mailing, background jobs, monitoring
+- **Centralized Configuration**: All environment variables through `EnvironmentConfig`
+- **Clean Separation**: Business logic in services, GraphQL in modules
+
 ## Testing
 
 ### Sample GraphQL Queries
@@ -231,21 +266,60 @@ query {
   }
 }
 
-# Add a greeting
+# User Registration
 mutation {
-  addGreetLog(input: { content: "Hello World!" }) {
-    id
-    timestamp
-    content
+  signUp(input: {
+    email: "user@example.com"
+    password: "SecurePassword123!"
+    name: "John Doe"
+  }) {
+    success
+    user {
+      id
+      email
+      name
+    }
   }
 }
 
-# Get all greetings
+# User Login
+mutation {
+  signIn(input: {
+    email: "user@example.com"
+    password: "SecurePassword123!"
+  }) {
+    success
+    token
+    user {
+      id
+      email
+      roles
+    }
+  }
+}
+
+# Create a Brand (requires authentication)
+mutation {
+  createBrand(input: {
+    name: "Geprek Bensu"
+    contactEmail: "admin@geprekbensu.com"
+  }) {
+    success
+    brand {
+      id
+      name
+      schemaName
+    }
+  }
+}
+
+# Get My Brands
 query {
-  greetLogs {
+  getMyBrands {
     id
-    timestamp
-    content
+    name
+    isActive
+    createdAt
   }
 }
 
@@ -270,11 +344,13 @@ subscription {
 
 ## Technology Stack
 
-- **.NET 9**: Modern C# framework
-- **HotChocolate**: GraphQL server implementation
-- **Entity Framework Core**: ORM with code-first migrations
-- **PostgreSQL**: Primary database
-- **Docker**: Container orchestration
+- **.NET 9**: Modern C# framework with minimal APIs
+- **HotChocolate**: Enterprise GraphQL server with subscriptions
+- **Entity Framework Core**: ORM with code-first migrations and snake_case convention
+- **PostgreSQL**: Primary database with schema-based multi-tenancy
+- **Hangfire**: Background job processing
+- **Serilog**: Structured logging with Spectre.Console
+- **Docker**: Container orchestration for development
 - **pgAdmin**: Database management UI
 
 ## License

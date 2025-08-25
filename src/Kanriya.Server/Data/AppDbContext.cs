@@ -53,6 +53,12 @@ public class AppDbContext : DbContext
     /// DbSet for EmailLog entities - represents the email_logs table in the database
     /// </summary>
     public DbSet<EmailLog> EmailLogs { get; set; } = null!;
+    
+    /// <summary>
+    /// DbSet for Brand entities - represents the brands table in the database
+    /// </summary>
+    public DbSet<Brand> Brands { get; set; } = null!;
+    
 
     /// <summary>
     /// Configures the model and relationships for the database

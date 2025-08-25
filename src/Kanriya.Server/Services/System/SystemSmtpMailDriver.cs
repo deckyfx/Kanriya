@@ -1,11 +1,11 @@
 using System.Net;
-using System.Net.Mail;
+using global::System.Net.Mail;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Kanriya.Server.Program;
 
-namespace Kanriya.Server.Services;
+namespace Kanriya.Server.Services.System;
 
 /// <summary>
 /// Mail driver that uses system-configured SMTP settings
@@ -81,7 +81,7 @@ public class SystemSmtpMailDriver : IMailDriver
                 Timeout = 30000 // 30 seconds
             };
 
-            using var mailMessage = new System.Net.Mail.MailMessage
+            using var mailMessage = new global::System.Net.Mail.MailMessage
             {
                 From = new MailAddress(
                     message.FromEmail ?? _settings.FromEmail, 

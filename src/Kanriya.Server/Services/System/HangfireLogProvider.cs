@@ -2,7 +2,7 @@ using Hangfire.Logging;
 using LogLevel = Hangfire.Logging.LogLevel;
 using SerilogLogger = Serilog.ILogger;
 
-namespace Kanriya.Server.Services;
+namespace Kanriya.Server.Services.System;
 
 /// <summary>
 /// Custom log provider for Hangfire to integrate with Serilog and add tags

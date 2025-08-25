@@ -3,14 +3,33 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Kanriya.Server.Data.Migrations
+namespace Kanriya.Server.Migrations
 {
     /// <inheritdoc />
-    public partial class AddEmailSystem : Migration
+    public partial class InitialBrandMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "brands",
+                columns: table => new
+                {
+                    id = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    name = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    owner_id = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    schema_name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    database_user = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    encrypted_password = table.Column<string>(type: "text", nullable: false),
+                    is_active = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_brands", x => x.id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "email_templates",
                 columns: table => new
@@ -30,6 +49,22 @@ namespace Kanriya.Server.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_email_templates", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "pending_users",
+                columns: table => new
+                {
+                    id = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    email = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    password_hash = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    verification_token = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    token_expires_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_pending_users", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -60,6 +95,24 @@ namespace Kanriya.Server.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("pk_user_mail_settings", x => x.id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "users",
+                columns: table => new
+                {
+                    id = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    email = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    password_hash = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    full_name = table.Column<string>(type: "character varying(255)", maxLength: 255, nullable: false),
+                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    profile_picture_url = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
+                    last_login_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_users", x => x.id);
                 });
 
             migrationBuilder.CreateTable(
@@ -104,6 +157,27 @@ namespace Kanriya.Server.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "user_roles",
+                columns: table => new
+                {
+                    id = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    user_id = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    role = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: false),
+                    assigned_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    assigned_by = table.Column<string>(type: "character varying(50)", maxLength: 50, nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("pk_user_roles", x => x.id);
+                    table.ForeignKey(
+                        name: "fk_user_roles_users_user_id",
+                        column: x => x.user_id,
+                        principalTable: "users",
+                        principalColumn: "id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "email_logs",
                 columns: table => new
                 {
@@ -123,6 +197,33 @@ namespace Kanriya.Server.Data.Migrations
                         principalColumn: "id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "ix_brands_created_at",
+                table: "brands",
+                column: "created_at");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_brands_database_user",
+                table: "brands",
+                column: "database_user",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_brands_is_active",
+                table: "brands",
+                column: "is_active");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_brands_owner_id",
+                table: "brands",
+                column: "owner_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_brands_schema_name",
+                table: "brands",
+                column: "schema_name",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "ix_email_logs_created_at",
@@ -166,9 +267,66 @@ namespace Kanriya.Server.Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "ix_pending_users_created_at",
+                table: "pending_users",
+                column: "created_at",
+                descending: new bool[0]);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_pending_users_email_unique",
+                table: "pending_users",
+                column: "email",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_pending_users_token_expires",
+                table: "pending_users",
+                column: "token_expires_at");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_pending_users_token_unique",
+                table: "pending_users",
+                column: "verification_token",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "ix_user_mail_settings_user_id",
                 table: "user_mail_settings",
                 column: "user_id",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_user_roles_assigned_at",
+                table: "user_roles",
+                column: "assigned_at",
+                descending: new bool[0]);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_user_roles_role",
+                table: "user_roles",
+                column: "role");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_user_roles_user_id",
+                table: "user_roles",
+                column: "user_id");
+
+            migrationBuilder.CreateIndex(
+                name: "ix_user_roles_user_id_role_unique",
+                table: "user_roles",
+                columns: new[] { "user_id", "role" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_users_created_at",
+                table: "users",
+                column: "created_at",
+                descending: new bool[0]);
+
+            migrationBuilder.CreateIndex(
+                name: "ix_users_email_unique",
+                table: "users",
+                column: "email",
                 unique: true);
         }
 
@@ -176,13 +334,25 @@ namespace Kanriya.Server.Data.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "brands");
+
+            migrationBuilder.DropTable(
                 name: "email_logs");
+
+            migrationBuilder.DropTable(
+                name: "pending_users");
 
             migrationBuilder.DropTable(
                 name: "user_mail_settings");
 
             migrationBuilder.DropTable(
+                name: "user_roles");
+
+            migrationBuilder.DropTable(
                 name: "email_outbox");
+
+            migrationBuilder.DropTable(
+                name: "users");
 
             migrationBuilder.DropTable(
                 name: "email_templates");

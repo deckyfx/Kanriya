@@ -1,4 +1,6 @@
 using Kanriya.Server.Services;
+using Kanriya.Server.Services.System;
+using Kanriya.Server.Services.Data;
 using Hangfire;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -21,6 +23,12 @@ public static class MailServiceConfig
         // Register mail services
         services.AddScoped<IMailerService, MailerService>();
         services.AddScoped<IMailProcessor, MailProcessor>();
+        
+        // Register multi-tenant services
+        services.AddSingleton<IPostgreSQLManagementService, PostgreSQLManagementService>();
+        services.AddSingleton<IBrandConnectionService, BrandConnectionService>();
+        services.AddScoped<IBrandService, BrandService>();
+        services.AddScoped<IApiCredentialService, ApiCredentialService>();
         
         // Hangfire's IBackgroundJobClient is registered by Hangfire itself
         // Don't need to register it here - removed circular dependency

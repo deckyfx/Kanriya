@@ -31,14 +31,14 @@ public class CurrentUser
     public bool IsSuperAdmin => HasRole(UserRoles.SuperAdmin);
     
     /// <summary>
-    /// Whether the user is a business owner
+    /// Whether the user is a brand owner
     /// </summary>
-    public bool IsBusinessOwner => HasRole(UserRoles.BusinessOwner);
+    public bool IsBrandOwner => HasRole(UserRoles.BrandOwner);
     
     /// <summary>
-    /// Whether the user is a business operator
+    /// Whether the user is a brand operator
     /// </summary>
-    public bool IsBusinessOperator => HasRole(UserRoles.BusinessOperator);
+    public bool IsBrandOperator => HasRole(UserRoles.BrandOperator);
     
     /// <summary>
     /// Get all roles for the current user
