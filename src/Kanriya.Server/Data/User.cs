@@ -67,4 +67,9 @@ public class User
     /// Navigation property for user roles
     /// </summary>
     public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+    
+    /// <summary>
+    /// Navigation property for brands owned by this user
+    /// </summary>
+    public ICollection<Brand> OwnedBrands { get; set; } = new List<Brand>();
 }

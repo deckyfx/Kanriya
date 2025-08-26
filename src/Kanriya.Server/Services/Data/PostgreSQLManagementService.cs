@@ -1,6 +1,6 @@
-using System.Security.Cryptography;
 using Npgsql;
 using Kanriya.Server.Program;
+using Kanriya.Shared.Utils;
 
 namespace Kanriya.Server.Services.Data;
 
@@ -49,8 +49,9 @@ public class PostgreSQLManagementService : IPostgreSQLManagementService
     /// </summary>
     public async Task<(string username, string password)> CreateDatabaseUserAsync(string brandId)
     {
-        var username = $"user_{brandId.ToLower()}";
-        var password = GenerateSecurePassword();
+        // Create safe PostgreSQL identifier
+        var username = StringUtils.CreateSafeString(brandId, "user", true);
+        var password = StringUtils.GenerateSecurePassword(32);
         
         try
         {
@@ -268,9 +269,10 @@ public class PostgreSQLManagementService : IPostgreSQLManagementService
             using var connection = new NpgsqlConnection(_masterConnectionString);
             await connection.OpenAsync();
             
-            // First, reassign owned objects to postgres user
+            // First, reassign owned objects to the current superuser (from connection string)
+            var currentUser = EnvironmentConfig.Database.Username;
             using var reassignCommand = new NpgsqlCommand(
-                $"REASSIGN OWNED BY {username} TO postgres;", connection);
+                $"REASSIGN OWNED BY {username} TO {currentUser};", connection);
             await reassignCommand.ExecuteNonQueryAsync();
             
             // Drop owned objects
@@ -339,26 +341,5 @@ public class PostgreSQLManagementService : IPostgreSQLManagementService
             _logger.LogError(ex, "Failed to check if schema {SchemaName} exists", schemaName);
             throw;
         }
-    }
-    
-    /// <summary>
-    /// Generate a secure random password
-    /// </summary>
-    private static string GenerateSecurePassword(int length = 32)
-    {
-        const string validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()_+-=[]{}|;:,.<>?";
-        var password = new char[length];
-        
-        using var rng = RandomNumberGenerator.Create();
-        var bytes = new byte[length * 4];
-        rng.GetBytes(bytes);
-        
-        for (int i = 0; i < length; i++)
-        {
-            var value = BitConverter.ToUInt32(bytes, i * 4);
-            password[i] = validChars[(int)(value % (uint)validChars.Length)];
-        }
-        
-        return new string(password);
     }
 }

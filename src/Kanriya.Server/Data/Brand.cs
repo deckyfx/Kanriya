@@ -63,6 +63,11 @@ public class Brand
     /// When the brand was last updated
     /// </summary>
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    
+    /// <summary>
+    /// Navigation property to the owner user
+    /// </summary>
+    public User? Owner { get; set; }
 }
 
 /// <summary>

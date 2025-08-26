@@ -2,6 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using Kanriya.Server.Data;
+using Kanriya.Server.Data.BrandSchema;
 using Kanriya.Server.Services;
 using Kanriya.Server.Services.Data;
 using Kanriya.Server.Types;
@@ -40,25 +41,67 @@ public class AuthenticationMiddleware
                 
                 if (principal != null)
                 {
-                    var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
+                    var currentUser = new CurrentUser();
                     
-                    if (userIdClaim != null)
+                    // Check if this is a brand-context token
+                    var brandIdClaim = principal.FindFirst("brand_id");
+                    var brandSchemaClaim = principal.FindFirst("brand_schema");
+                    var tokenTypeClaim = principal.FindFirst("token_type");
+                    
+                    if (brandIdClaim != null && brandSchemaClaim != null && tokenTypeClaim?.Value == "BRAND")
                     {
-                        var user = await userService.GetByIdAsync(userIdClaim.Value);
+                        // Brand-context token
+                        var brandUserId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                         
-                        if (user != null)
+                        if (!string.IsNullOrEmpty(brandUserId))
                         {
-                            // Create CurrentUser and add to HttpContext
-                            var currentUser = new CurrentUser { User = user };
-                            context.Items["CurrentUser"] = currentUser;
+                            // For now, create a minimal BrandUser object
+                            // In the future, you might want to load this from the brand schema
+                            var brandUser = new BrandUser
+                            {
+                                Id = brandUserId,
+                                IsActive = true
+                            };
                             
-                            // Set the ClaimsPrincipal for authorization
-                            context.User = principal;
+                            // Get roles from claims
+                            var roles = principal.FindAll(ClaimTypes.Role)
+                                .Select(c => new BrandUserRole { Role = c.Value })
+                                .ToList();
+                            brandUser.Roles = roles;
+                            
+                            currentUser.BrandUser = brandUser;
+                            currentUser.BrandId = brandIdClaim.Value;
+                            currentUser.BrandSchema = brandSchemaClaim.Value;
+                            
+                            _logger.LogDebug("Authenticated brand user {UserId} for brand {BrandId}", brandUserId, brandIdClaim.Value);
                         }
-                        else
+                    }
+                    else
+                    {
+                        // Principal token
+                        var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
+                        
+                        if (userIdClaim != null)
                         {
-                            _logger.LogWarning("User not found in database for ID: {UserId}", userIdClaim.Value);
+                            var user = await userService.GetByIdAsync(userIdClaim.Value);
+                            
+                            if (user != null)
+                            {
+                                currentUser.User = user;
+                                _logger.LogDebug("Authenticated principal user {UserId}", user.Id);
+                            }
+                            else
+                            {
+                                _logger.LogWarning("User not found in database for ID: {UserId}", userIdClaim.Value);
+                            }
                         }
+                    }
+                    
+                    // Add to HttpContext if authenticated
+                    if (currentUser.IsAuthenticated)
+                    {
+                        context.Items["CurrentUser"] = currentUser;
+                        context.User = principal;
                     }
                 }
             }

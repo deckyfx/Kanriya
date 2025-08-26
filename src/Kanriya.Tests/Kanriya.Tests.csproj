@@ -10,6 +10,11 @@
   <ItemGroup>
     <PackageReference Include="Npgsql" Version="9.0.2" />
     <PackageReference Include="Spectre.Console" Version="0.50.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.3.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Kanriya.Shared\Kanriya.Shared.csproj" />
   </ItemGroup>
 
 </Project>

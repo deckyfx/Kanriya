@@ -17,6 +17,10 @@ public class BrandConfiguration : IEntityTypeConfiguration<Brand>
         builder.HasKey(b => b.Id);
         
         // Indexes
+        builder.HasIndex(b => b.Name)
+            .IsUnique()
+            .HasDatabaseName("ix_brands_name");
+            
         builder.HasIndex(b => b.SchemaName)
             .IsUnique()
             .HasDatabaseName("ix_brands_schema_name");
@@ -67,5 +71,11 @@ public class BrandConfiguration : IEntityTypeConfiguration<Brand>
             
         builder.Property(b => b.UpdatedAt)
             .IsRequired();
+            
+        // Relationships
+        builder.HasOne(b => b.Owner)
+            .WithMany(u => u.OwnedBrands)
+            .HasForeignKey(b => b.OwnerId)
+            .OnDelete(DeleteBehavior.Cascade); // When user is deleted, delete all their brands
     }
 }

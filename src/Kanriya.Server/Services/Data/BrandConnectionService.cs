@@ -65,12 +65,17 @@ public class BrandConnectionService : IBrandConnectionService
         // Decrypt the password
         var password = DecryptPassword(brand.EncryptedPassword);
         
+        // Escape password for connection string - wrap in single quotes if it contains special chars
+        var escapedPassword = password.Contains(';') || password.Contains(' ') || password.Contains('=') 
+            ? $"'{password.Replace("'", "''")}'" 
+            : password;
+        
         // Build connection string with brand-specific user and schema
         var connectionString = $"Host={EnvironmentConfig.Database.Host};" +
                               $"Port={EnvironmentConfig.Database.Port};" +
                               $"Database={EnvironmentConfig.Database.DatabaseName};" +
                               $"Username={brand.DatabaseUser};" +
-                              $"Password={password};" +
+                              $"Password={escapedPassword};" +
                               $"Search Path={brand.SchemaName},public;" +
                               "Include Error Detail=true";
         
@@ -105,12 +110,17 @@ public class BrandConnectionService : IBrandConnectionService
         // Decrypt the password
         var password = DecryptPassword(brand.EncryptedPassword);
         
+        // Escape password for connection string - wrap in single quotes if it contains special chars
+        var escapedPassword = password.Contains(';') || password.Contains(' ') || password.Contains('=') 
+            ? $"'{password.Replace("'", "''")}'" 
+            : password;
+        
         // Build connection string with brand-specific user and schema
         var connectionString = $"Host={EnvironmentConfig.Database.Host};" +
                               $"Port={EnvironmentConfig.Database.Port};" +
                               $"Database={EnvironmentConfig.Database.DatabaseName};" +
                               $"Username={brand.DatabaseUser};" +
-                              $"Password={password};" +
+                              $"Password={escapedPassword};" +
                               $"Search Path={brand.SchemaName},public;" +
                               "Include Error Detail=true";
         

@@ -710,19 +710,50 @@ public class UserService : IUserService
         using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         
-        var user = await dbContext.Users
-            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+        using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
         
-        if (user == null)
-            return false;
-        
-        // Cascade delete will handle UserRoles
-        dbContext.Users.Remove(user);
-        await dbContext.SaveChangesAsync(cancellationToken);
-        
-        _logger.LogInformation("Deleted user {UserId}", userId);
-        
-        return true;
+        try
+        {
+            var user = await dbContext.Users
+                .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+            
+            if (user == null)
+                return false;
+            
+            // First, delete all brands owned by this user
+            var brandService = scope.ServiceProvider.GetRequiredService<IBrandService>();
+            var userBrands = await brandService.GetUserBrandsAsync(userId);
+            
+            foreach (var brand in userBrands)
+            {
+                try
+                {
+                    await brandService.DeleteBrandAsync(brand.Id);
+                    _logger.LogInformation("Deleted brand {BrandId} owned by user {UserId}", brand.Id, userId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to delete brand {BrandId} during user deletion", brand.Id);
+                    // Continue with other brands even if one fails
+                }
+            }
+            
+            // Cascade delete will handle UserRoles
+            dbContext.Users.Remove(user);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            
+            await transaction.CommitAsync(cancellationToken);
+            
+            _logger.LogInformation("Deleted user {UserId} and all associated brands", userId);
+            
+            return true;
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            _logger.LogError(ex, "Failed to delete user {UserId} with cascade", userId);
+            throw;
+        }
     }
     
     public async Task<(bool Success, string Message, User? User)> ForceVerifyUserAsync(

@@ -64,23 +64,19 @@ public class UserAccountModule
         
         try
         {
-            // Delete all brands owned by the user
+            // First, get all brands to clean up their PostgreSQL schemas
             var userBrands = await dbContext.Brands
                 .Where(b => b.OwnerId == user.Id)
                 .ToListAsync();
-                
+            
+            // Clean up PostgreSQL schemas and users for each brand
+            // (The brand records themselves will be deleted by cascade)
             foreach (var brand in userBrands)
             {
-                await brandService.DeleteBrandAsync(brand.Id);
+                await brandService.CleanupBrandPostgreSQLResourcesAsync(brand);
             }
             
-            // Delete user roles
-            var userRoles = await dbContext.UserRoles
-                .Where(ur => ur.UserId == user.Id)
-                .ToListAsync();
-            dbContext.UserRoles.RemoveRange(userRoles);
-            
-            // Delete the user
+            // Now delete the user (this will cascade delete all brand records)
             dbContext.Users.Remove(user);
             
             await dbContext.SaveChangesAsync();

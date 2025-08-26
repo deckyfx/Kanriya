@@ -1,3 +1,5 @@
+using Kanriya.Shared.Utils;
+
 namespace Kanriya.Tests.Helpers;
 
 /// <summary>
@@ -19,7 +21,7 @@ public class TestUser
     {
         return new TestUser
         {
-            Email = $"{prefix}_{Guid.NewGuid().ToString("N")}@test.com",
+            Email = $"{prefix}_{StringUtils.GenerateRandomAlphaNumeric(16)}@test.com",
             Password = "TestPassword123!",
             FullName = $"Test User {DateTime.Now.Ticks}"
         };

@@ -1,4 +1,5 @@
 using Kanriya.Tests.Helpers;
+using Kanriya.Shared.Utils;
 using Spectre.Console;
 
 namespace Kanriya.Tests.Actions;
@@ -53,7 +54,7 @@ public static class AuthActions
     {
         var user = new TestUser
         {
-            Email = $"test_{Guid.NewGuid():N}@test.com",
+            Email = $"test_{StringUtils.GenerateRandomAlphaNumeric(16)}@test.com",
             Password = weakPassword
         };
         

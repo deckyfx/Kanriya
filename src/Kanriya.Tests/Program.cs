@@ -1,6 +1,5 @@
 using Kanriya.Tests.Helpers;
 using Kanriya.Tests.Suites;
-using Kanriya.Tests.Tests;
 using Spectre.Console;
 
 namespace Kanriya.Tests;
@@ -57,15 +56,16 @@ class Program
                 break;
                 
             case "auth-simple":
-                // Run simple auth test (old version for quick testing)
-                var (authPassed, authFailed) = await UserAuthorizationTest.RunAsync(userHelper, dbHelper, graphQLClient);
+                // Run simple auth test (kept for backwards compatibility)
+                AnsiConsole.MarkupLine("[red]Simple auth test is deprecated. Running full auth suite instead.[/]");
+                var (authPassed, authFailed) = await AuthTestSuite.RunAsync(userHelper, dbHelper, graphQLClient);
                 totalPassed += authPassed;
                 totalFailed += authFailed;
                 break;
                 
             case "brand":
                 // Run brand management tests
-                var (brandPassed, brandFailed) = await BrandManagementTest.RunAsync(userHelper, dbHelper, graphQLClient);
+                var (brandPassed, brandFailed) = await BrandTestSuite.RunAsync(userHelper, dbHelper, graphQLClient);
                 totalPassed += brandPassed;
                 totalFailed += brandFailed;
                 break;
@@ -81,7 +81,7 @@ class Program
                 totalFailed += authF;
                 
                 // Brand suite (uses actions from auth for setup)
-                var (brandP, brandF) = await BrandManagementTest.RunAsync(userHelper, dbHelper, graphQLClient);
+                var (brandP, brandF) = await BrandTestSuite.RunAsync(userHelper, dbHelper, graphQLClient);
                 totalPassed += brandP;
                 totalFailed += brandF;
                 break;

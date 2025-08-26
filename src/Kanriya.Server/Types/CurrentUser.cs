@@ -1,29 +1,62 @@
 using Kanriya.Server.Constants;
 using Kanriya.Server.Data;
+using Kanriya.Server.Data.BrandSchema;
 using System.Linq;
 
 namespace Kanriya.Server.Types;
 
 /// <summary>
 /// Represents the current authenticated user in the GraphQL context
+/// Can be either a principal user or a brand-context user
 /// </summary>
 public class CurrentUser
 {
     /// <summary>
-    /// The authenticated user
+    /// The authenticated principal user (when using email/password authentication)
     /// </summary>
     public User? User { get; set; }
     
     /// <summary>
-    /// Whether the user is authenticated
+    /// The authenticated brand user (when using brand API credentials)
     /// </summary>
-    public bool IsAuthenticated => User != null;
+    public BrandUser? BrandUser { get; set; }
     
     /// <summary>
-    /// Whether the user has a specific role
+    /// The brand ID when in brand context
+    /// </summary>
+    public string? BrandId { get; set; }
+    
+    /// <summary>
+    /// The brand schema name when in brand context
+    /// </summary>
+    public string? BrandSchema { get; set; }
+    
+    /// <summary>
+    /// Whether the user is authenticated (either principal or brand context)
+    /// </summary>
+    public bool IsAuthenticated => User != null || BrandUser != null;
+    
+    /// <summary>
+    /// Whether the user is in brand context (using brand API credentials)
+    /// </summary>
+    public bool IsBrandContext => BrandUser != null && !string.IsNullOrEmpty(BrandId);
+    
+    /// <summary>
+    /// Whether the user is in principal context (using email/password)
+    /// </summary>
+    public bool IsPrincipalContext => User != null && !IsBrandContext;
+    
+    /// <summary>
+    /// Whether the user has a specific role (for principal users)
     /// </summary>
     public bool HasRole(string role) => 
         User?.UserRoles?.Any(ur => ur.Role == role) ?? false;
+    
+    /// <summary>
+    /// Whether the brand user has a specific role (for brand-context users)
+    /// </summary>
+    public bool HasBrandRole(string role) => 
+        BrandUser?.Roles?.Any(ur => ur.Role == role) ?? false;
     
     /// <summary>
     /// Whether the user is a super admin
@@ -31,12 +64,12 @@ public class CurrentUser
     public bool IsSuperAdmin => HasRole(UserRoles.SuperAdmin);
     
     /// <summary>
-    /// Whether the user is a brand owner
+    /// Whether the user is a brand owner (principal context)
     /// </summary>
     public bool IsBrandOwner => HasRole(UserRoles.BrandOwner);
     
     /// <summary>
-    /// Whether the user is a brand operator
+    /// Whether the user is a brand operator (principal context)
     /// </summary>
     public bool IsBrandOperator => HasRole(UserRoles.BrandOperator);
     
@@ -45,4 +78,10 @@ public class CurrentUser
     /// </summary>
     public string[] GetRoles() => 
         User?.UserRoles?.Select(ur => ur.Role).ToArray() ?? Array.Empty<string>();
+    
+    /// <summary>
+    /// Get all brand roles for the current brand user
+    /// </summary>
+    public string[] GetBrandRoles() => 
+        BrandUser?.Roles?.Select(ur => ur.Role).ToArray() ?? Array.Empty<string>();
 }

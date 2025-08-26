@@ -57,6 +57,11 @@ public static class BrandRoles
     /// </summary>
     public const string BrandOwner = "BrandOwner";
     
+    /// <summary>
+    /// Brand operator - can manage brand info and settings
+    /// </summary>
+    public const string BrandOperator = "BrandOperator";
+    
     // Future roles can be added here
     // public const string BrandAdmin = "BrandAdmin";
     // public const string BrandMember = "BrandMember";
@@ -64,7 +69,7 @@ public static class BrandRoles
     /// <summary>
     /// All available brand roles
     /// </summary>
-    public static readonly string[] AllRoles = [BrandOwner];
+    public static readonly string[] AllRoles = [BrandOwner, BrandOperator];
     
     /// <summary>
     /// Check if a role is valid

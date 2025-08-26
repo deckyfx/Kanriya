@@ -88,8 +88,8 @@ public static class AuthTestSuite
 
         if (success3)
         {
-            // Verify in database
-            var inPending = await dbHelper.UserIsPendingAsync(validUser.Email);
+            // Verify in database (emails are stored in lowercase)
+            var inPending = await dbHelper.UserIsPendingAsync(validUser.Email.ToLower());
             TestReporter.ReportPositiveTest("User added to pending_users", inPending);
             if (inPending) _positivePass++; else _positiveFail++;
             
@@ -172,11 +172,11 @@ public static class AuthTestSuite
 
         if (verifySuccess)
         {
-            var isActive = await dbHelper.UserIsActiveAsync(testUser.Email);
+            var isActive = await dbHelper.UserIsActiveAsync(testUser.Email.ToLower());
             TestReporter.ReportPositiveTest("User moved to active users", isActive);
             if (isActive) _positivePass++; else _positiveFail++;
 
-            var notPending = !await dbHelper.UserIsPendingAsync(testUser.Email);
+            var notPending = !await dbHelper.UserIsPendingAsync(testUser.Email.ToLower());
             TestReporter.ReportPositiveTest("User removed from pending", notPending);
             if (notPending) _positivePass++; else _positiveFail++;
         }
@@ -465,7 +465,7 @@ public static class AuthTestSuite
 
         if (deleteSuccess)
         {
-            var notInDb = !await dbHelper.UserIsActiveAsync(testUser.Email);
+            var notInDb = !await dbHelper.UserIsActiveAsync(testUser.Email.ToLower());
             TestReporter.ReportPositiveTest("User removed from database", notInDb);
             if (notInDb) _positivePass++; else _positiveFail++;
 
