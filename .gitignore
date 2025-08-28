@@ -8,3 +8,4 @@ src/**/data
 data/seq/
 cache/
 publish/
+.DS_Store

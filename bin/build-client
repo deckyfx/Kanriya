@@ -57,6 +57,31 @@ build_windows() {
     else
         print_success "Windows build complete: $OUTPUT_DIR/win-x64/"
     fi
+    
+    # Offer to run if on Windows (WSL or native Windows with wine)
+    if [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "cygwin"* ]] || command -v wine &> /dev/null; then
+        echo ""
+        echo -n "Launch the Windows app now? (y/N): "
+        read -r launch_choice
+        if [[ "$launch_choice" =~ ^[Yy]$ ]]; then
+            print_info "Launching Kanriya Windows app..."
+            if [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "cygwin"* ]]; then
+                # Native Windows
+                if start "$OUTPUT_DIR/win-x64/Kanriya.Client.Avalonia.Desktop.exe" >/dev/null 2>&1; then
+                    print_success "Windows app launched successfully!"
+                else
+                    print_warning "Could not auto-launch. Try running: $OUTPUT_DIR/win-x64/Kanriya.Client.Avalonia.Desktop.exe"
+                fi
+            elif command -v wine &> /dev/null; then
+                # Wine on Linux/macOS
+                if wine "$OUTPUT_DIR/win-x64/Kanriya.Client.Avalonia.Desktop.exe" >/dev/null 2>&1; then
+                    print_success "Windows app launched via Wine!"
+                else
+                    print_warning "Could not launch via Wine. Ensure Wine is properly configured."
+                fi
+            fi
+        fi
+    fi
 }
 
 # Function to build Linux
@@ -68,6 +93,52 @@ build_linux() {
         --self-contained \
         -o "$OUTPUT_DIR/linux-x64"
     
+    # Make executable runnable
+    print_info "Making executable runnable..."
+    chmod +x "$OUTPUT_DIR/linux-x64/Kanriya.Client.Avalonia.Desktop"
+    
+    # Create launcher script
+    print_info "Creating launcher script..."
+    cat > "$OUTPUT_DIR/linux-x64/run-kanriya.sh" << 'EOF'
+#!/bin/bash
+# Kanriya Linux Launcher Script
+# This script can be run from file manager or terminal
+
+# Get script directory
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Run the application
+cd "$SCRIPT_DIR"
+./Kanriya.Client.Avalonia.Desktop
+
+# Keep terminal open if there's an error
+if [ $? -ne 0 ]; then
+    echo ""
+    echo "Application exited with error. Press any key to close..."
+    read -n 1
+fi
+EOF
+    
+    chmod +x "$OUTPUT_DIR/linux-x64/run-kanriya.sh"
+    
+    # Create .desktop file for Linux desktop integration
+    print_info "Creating desktop entry..."
+    cat > "$OUTPUT_DIR/linux-x64/kanriya.desktop" << EOF
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Kanriya
+Comment=Kanriya Desktop Application
+Exec=$OUTPUT_DIR/linux-x64/Kanriya.Client.Avalonia.Desktop
+Path=$OUTPUT_DIR/linux-x64
+Icon=$OUTPUT_DIR/linux-x64/kanriya.png
+Terminal=false
+Categories=Office;Utility;
+StartupNotify=true
+EOF
+    
+    chmod +x "$OUTPUT_DIR/linux-x64/kanriya.desktop"
+    
     # Create zip
     if command -v zip &> /dev/null; then
         print_info "Creating linux-x64.zip..."
@@ -77,6 +148,24 @@ build_linux() {
         print_success "Linux build complete: $OUTPUT_DIR/linux-x64.zip"
     else
         print_success "Linux build complete: $OUTPUT_DIR/linux-x64/"
+    fi
+    
+    print_info "Run options:"
+    print_info "  1. Launcher script: $OUTPUT_DIR/linux-x64/run-kanriya.sh"
+    print_info "  2. Desktop entry: Copy kanriya.desktop to ~/.local/share/applications/"
+    print_info "  3. Direct: cd $OUTPUT_DIR/linux-x64 && ./Kanriya.Client.Avalonia.Desktop"
+    
+    echo ""
+    echo -n "Launch the desktop app now? (y/N): "
+    read -r launch_choice
+    if [[ "$launch_choice" =~ ^[Yy]$ ]]; then
+        print_info "Launching Kanriya desktop app..."
+        "$OUTPUT_DIR/linux-x64/Kanriya.Client.Avalonia.Desktop" >/dev/null 2>&1 &
+        if [ $? -eq 0 ]; then
+            print_success "Desktop app launched successfully!"
+        else
+            print_warning "Could not auto-launch. Try running: $OUTPUT_DIR/linux-x64/run-kanriya.sh"
+        fi
     fi
 }
 
@@ -89,6 +178,73 @@ build_macos() {
         --self-contained \
         -o "$OUTPUT_DIR/osx-arm64"
     
+    # Make executable runnable
+    print_info "Making executable runnable..."
+    chmod +x "$OUTPUT_DIR/osx-arm64/Kanriya.Client.Avalonia.Desktop"
+    
+    # Create Finder-friendly runner script
+    print_info "Creating Finder runner script..."
+    cat > "$OUTPUT_DIR/osx-arm64/Run Kanriya.command" << 'EOF'
+#!/bin/bash
+# Kanriya macOS Runner Script
+# This script can be double-clicked from Finder
+
+# Get script directory
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Run the application
+cd "$SCRIPT_DIR"
+./Kanriya.Client.Avalonia.Desktop
+
+# Keep terminal open if there's an error
+if [ $? -ne 0 ]; then
+    echo ""
+    echo "Application exited with error. Press any key to close..."
+    read -n 1
+fi
+EOF
+    
+    chmod +x "$OUTPUT_DIR/osx-arm64/Run Kanriya.command"
+    
+    # Create .app bundle structure (optional, more Mac-like)
+    print_info "Creating .app bundle..."
+    APP_NAME="Kanriya.app"
+    APP_DIR="$OUTPUT_DIR/osx-arm64/$APP_NAME"
+    mkdir -p "$APP_DIR/Contents/MacOS"
+    mkdir -p "$APP_DIR/Contents/Resources"
+    
+    # Copy all files to .app bundle
+    cp -r "$OUTPUT_DIR/osx-arm64"/*.dll "$APP_DIR/Contents/MacOS/"
+    cp -r "$OUTPUT_DIR/osx-arm64"/*.dylib "$APP_DIR/Contents/MacOS/" 2>/dev/null || true
+    cp "$OUTPUT_DIR/osx-arm64/Kanriya.Client.Avalonia.Desktop" "$APP_DIR/Contents/MacOS/"
+    cp "$OUTPUT_DIR/osx-arm64"/*.json "$APP_DIR/Contents/MacOS/" 2>/dev/null || true
+    cp "$OUTPUT_DIR/osx-arm64"/*.pdb "$APP_DIR/Contents/MacOS/" 2>/dev/null || true
+    cp "$OUTPUT_DIR/osx-arm64/createdump" "$APP_DIR/Contents/MacOS/" 2>/dev/null || true
+    
+    # Create Info.plist
+    cat > "$APP_DIR/Contents/Info.plist" << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>Kanriya</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.kanriya.desktop</string>
+    <key>CFBundleVersion</key>
+    <string>1.0.0</string>
+    <key>CFBundleExecutable</key>
+    <string>Kanriya.Client.Avalonia.Desktop</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>11.0</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+</dict>
+</plist>
+EOF
+    
     # Create zip
     if command -v zip &> /dev/null; then
         print_info "Creating osx-arm64.zip..."
@@ -98,6 +254,28 @@ build_macos() {
         print_success "macOS ARM64 build complete: $OUTPUT_DIR/osx-arm64.zip"
     else
         print_success "macOS ARM64 build complete: $OUTPUT_DIR/osx-arm64/"
+    fi
+    
+    print_info "Run options:"
+    print_info "  1. Double-click: $OUTPUT_DIR/osx-arm64/Run Kanriya.command"
+    print_info "  2. .app bundle: $OUTPUT_DIR/osx-arm64/$APP_NAME"
+    print_info "  3. Terminal: cd $OUTPUT_DIR/osx-arm64 && ./Kanriya.Client.Avalonia.Desktop"
+    
+    echo ""
+    echo -n "Launch the desktop app now? (y/N): "
+    read -r launch_choice
+    if [[ "$launch_choice" =~ ^[Yy]$ ]]; then
+        print_info "Launching Kanriya desktop app..."
+        if open "$OUTPUT_DIR/osx-arm64/$APP_NAME" 2>/dev/null; then
+            print_success "Desktop app launched successfully!"
+        else
+            "$OUTPUT_DIR/osx-arm64/Kanriya.Client.Avalonia.Desktop" >/dev/null 2>&1 &
+            if [ $? -eq 0 ]; then
+                print_success "Desktop app launched successfully!"
+            else
+                print_warning "Could not auto-launch. Try double-clicking: $OUTPUT_DIR/osx-arm64/$APP_NAME"
+            fi
+        fi
     fi
 }
 
@@ -119,6 +297,210 @@ build_web() {
     else
         print_success "Web build complete: $OUTPUT_DIR/web/"
     fi
+    
+    # Find the main HTML file
+    local html_file=""
+    if [ -f "$OUTPUT_DIR/web/wwwroot/index.html" ]; then
+        html_file="$OUTPUT_DIR/web/wwwroot/index.html"
+    elif [ -f "$OUTPUT_DIR/web/index.html" ]; then
+        html_file="$OUTPUT_DIR/web/index.html"
+    else
+        html_file=$(find "$OUTPUT_DIR/web" -name "*.html" | head -1)
+    fi
+    
+    if [ -n "$html_file" ]; then
+        echo ""
+        echo -n "Open the web app in browser now? (y/N): "
+        read -r launch_choice
+        if [[ "$launch_choice" =~ ^[Yy]$ ]]; then
+            print_info "Opening web app in browser..."
+            local full_path="file://$(realpath "$html_file")"
+            
+            # Try different ways to open browser based on OS
+            if [[ "$OSTYPE" == "darwin"* ]]; then
+                # macOS
+                if open "$full_path" 2>/dev/null; then
+                    print_success "Web app opened in default browser!"
+                else
+                    print_warning "Could not auto-open. Navigate to: $full_path"
+                fi
+            elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+                # Linux
+                if command -v xdg-open &> /dev/null && xdg-open "$full_path" 2>/dev/null; then
+                    print_success "Web app opened in default browser!"
+                elif command -v firefox &> /dev/null; then
+                    firefox "$full_path" >/dev/null 2>&1 &
+                    print_success "Web app opened in Firefox!"
+                elif command -v chromium-browser &> /dev/null; then
+                    chromium-browser "$full_path" >/dev/null 2>&1 &
+                    print_success "Web app opened in Chromium!"
+                elif command -v google-chrome &> /dev/null; then
+                    google-chrome "$full_path" >/dev/null 2>&1 &
+                    print_success "Web app opened in Chrome!"
+                else
+                    print_warning "Could not auto-open. Navigate to: $full_path"
+                fi
+            elif [[ "$OSTYPE" == "msys"* ]] || [[ "$OSTYPE" == "cygwin"* ]]; then
+                # Windows
+                if start "$full_path" >/dev/null 2>&1; then
+                    print_success "Web app opened in default browser!"
+                else
+                    print_warning "Could not auto-open. Navigate to: $full_path"
+                fi
+            else
+                print_warning "Could not auto-open. Navigate to: $full_path"
+            fi
+        fi
+        
+        print_info ""
+        print_info "For development with live reload, consider serving with:"
+        print_info "  python3 -m http.server 8000 --directory $OUTPUT_DIR/web/wwwroot"
+        print_info "  Then visit: http://localhost:8000"
+    else
+        print_warning "Could not find HTML file in web build"
+    fi
+}
+
+# Function to list and select Android AVDs (emulators)
+list_android_avds() {
+    local emulator_cmd=""
+    
+    # Try to find emulator command
+    if command -v emulator &> /dev/null; then
+        emulator_cmd="emulator"
+    elif [ -n "$ANDROID_HOME" ] && [ -f "$ANDROID_HOME/emulator/emulator" ]; then
+        emulator_cmd="$ANDROID_HOME/emulator/emulator"
+    elif [ -n "$ANDROID_SDK_ROOT" ] && [ -f "$ANDROID_SDK_ROOT/emulator/emulator" ]; then
+        emulator_cmd="$ANDROID_SDK_ROOT/emulator/emulator"
+    else
+        print_warning "Android emulator not found. Install Android SDK and set ANDROID_HOME"
+        return 1
+    fi
+    
+    print_info "Checking for Android Virtual Devices (AVDs)..."
+    
+    # Create a temporary file to capture output reliably
+    local temp_file=$(mktemp)
+    $emulator_cmd -list-avds > "$temp_file" 2>/dev/null
+    local avds=$(cat "$temp_file")
+    rm -f "$temp_file"
+    
+    if [ -z "$avds" ]; then
+        print_warning "No Android AVDs found. Create an AVD using Android Studio or avdmanager."
+        print_info "Example: avdmanager create avd -n MyAVD -k \"system-images;android-33;google_apis;x86_64\""
+        return 1
+    fi
+    
+    echo ""
+    print_info "Available Android Virtual Devices:"
+    local avd_array=()
+    local i=1
+    
+    while IFS= read -r avd; do
+        if [ -n "$avd" ]; then
+            echo "  $i) $avd"
+            avd_array+=("$avd")
+            ((i++))
+        fi
+    done <<< "$avds"
+    
+    echo ""
+    echo -n "Select AVD to start (1-$((i-1))) or Enter to skip: "
+    read -r selection
+    
+    if [[ "$selection" =~ ^[0-9]+$ ]] && [ "$selection" -ge 1 ] && [ "$selection" -lt "$i" ]; then
+        selected_avd="${avd_array[$((selection-1))]}"
+        
+        print_info "Starting emulator: $selected_avd"
+        print_info "This may take 30-60 seconds..."
+        
+        # Start emulator in background
+        nohup $emulator_cmd -avd "$selected_avd" -no-audio -no-boot-anim > /dev/null 2>&1 &
+        local emulator_pid=$!
+        
+        # Wait for emulator to boot
+        print_info "Waiting for emulator to boot..."
+        local timeout=120  # 2 minutes timeout
+        local elapsed=0
+        
+        while [ $elapsed -lt $timeout ]; do
+            if adb devices | grep -q "emulator.*device$"; then
+                print_success "Emulator started successfully!"
+                
+                # Get emulator device ID
+                selected_device=$(adb devices | grep "emulator.*device$" | head -1 | awk '{print $1}')
+                return 0
+            fi
+            
+            sleep 2
+            elapsed=$((elapsed + 2))
+            
+            # Show progress dots
+            if [ $((elapsed % 6)) -eq 0 ]; then
+                echo -n "."
+            fi
+        done
+        
+        print_error "Emulator failed to start within $timeout seconds"
+        return 1
+    fi
+    
+    return 1
+}
+
+# Function to list and select Android devices
+list_android_devices() {
+    if ! command -v adb &> /dev/null; then
+        print_warning "ADB not found. Install Android SDK Platform-Tools"
+        return 1
+    fi
+    
+    print_info "Checking for Android devices..."
+    local devices=$(adb devices | grep -v "List of devices" | grep "device$" | awk '{print $1}')
+    
+    if [ -z "$devices" ]; then
+        print_warning "No Android devices connected."
+        echo ""
+        echo -n "Would you like to start an Android emulator? (y/N): "
+        read -r start_emulator
+        
+        if [[ "$start_emulator" =~ ^[Yy]$ ]]; then
+            list_android_avds
+            return $?
+        else
+            print_info "Connect a physical device or start an emulator manually."
+            return 1
+        fi
+    fi
+    
+    echo ""
+    print_info "Available Android devices:"
+    local device_array=()
+    local i=1
+    
+    while IFS= read -r device; do
+        if [ -n "$device" ]; then
+            local device_info=$(adb -s "$device" shell getprop ro.product.model 2>/dev/null || echo "Unknown Device")
+            local device_type="Physical Device"
+            if [[ "$device" == emulator-* ]]; then
+                device_type="Emulator"
+            fi
+            echo "  $i) $device ($device_info - $device_type)"
+            device_array+=("$device")
+            ((i++))
+        fi
+    done <<< "$devices"
+    
+    echo ""
+    echo -n "Select device (1-$((i-1))) or Enter to skip: "
+    read -r selection
+    
+    if [[ "$selection" =~ ^[0-9]+$ ]] && [ "$selection" -ge 1 ] && [ "$selection" -lt "$i" ]; then
+        selected_device="${device_array[$((selection-1))]}"
+        return 0
+    fi
+    
+    return 1
 }
 
 # Function to build Android
@@ -141,16 +523,174 @@ build_android() {
         cp "$APK_PATH" "$OUTPUT_DIR/Kanriya.apk"
         print_success "Android build complete: $OUTPUT_DIR/Kanriya.apk"
         
-        # Check if adb is available and device connected
-        if command -v adb &> /dev/null; then
-            if adb devices | grep -q "device$"; then
-                print_info "Android device detected. Install with: adb install $OUTPUT_DIR/Kanriya.apk"
+        # List devices and offer installation
+        if list_android_devices; then
+            echo ""
+            echo -n "Install APK to selected device? (y/N): "
+            read -r install_choice
+            if [[ "$install_choice" =~ ^[Yy]$ ]]; then
+                print_info "Installing APK to device $selected_device..."
+                if adb -s "$selected_device" install -r "$OUTPUT_DIR/Kanriya.apk"; then
+                    print_success "APK installed successfully!"
+                    
+                    echo ""
+                    echo -n "Launch the app now? (y/N): "
+                    read -r launch_choice
+                    if [[ "$launch_choice" =~ ^[Yy]$ ]]; then
+                        print_info "Launching Kanriya..."
+                        
+                        # First, try to get the actual package name from the APK
+                        local package_name=""
+                        if command -v aapt &> /dev/null; then
+                            package_name=$(aapt dump badging "$OUTPUT_DIR/Kanriya.apk" 2>/dev/null | grep "package:" | head -1 | sed "s/.*name='\([^']*\)'.*/\1/")
+                        fi
+                        
+                        # Fallback to common package names if aapt not available
+                        if [ -z "$package_name" ]; then
+                            package_name="com.kanriya.client.avalonia.android"
+                        fi
+                        
+                        print_info "Using package name: $package_name"
+                        
+                        # Try multiple launch methods
+                        if adb -s "$selected_device" shell monkey -p "$package_name" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1; then
+                            print_success "App launched successfully!"
+                        elif adb -s "$selected_device" shell am start -n "$package_name/.MainActivity" >/dev/null 2>&1; then
+                            print_success "App launched successfully!"
+                        elif adb -s "$selected_device" shell pm list packages | grep -q "$package_name" && adb -s "$selected_device" shell cmd package resolve-activity --brief "$package_name" | grep -q "/"; then
+                            local activity=$(adb -s "$selected_device" shell cmd package resolve-activity --brief "$package_name" | head -1)
+                            if adb -s "$selected_device" shell am start -n "$activity" >/dev/null 2>&1; then
+                                print_success "App launched successfully!"
+                            else
+                                print_warning "Could not auto-launch app. Please launch manually from app drawer."
+                            fi
+                        else
+                            print_warning "Could not auto-launch app. Please launch manually from app drawer."
+                            print_info "Look for 'Kanriya' or search for it in your app drawer"
+                        fi
+                    else
+                        print_info "You can launch Kanriya from your device's app drawer"
+                    fi
+                else
+                    print_error "Failed to install APK"
+                fi
             fi
         fi
     else
         print_warning "APK built but signed version not found in expected location"
         print_success "Android build complete: $OUTPUT_DIR/android/"
     fi
+}
+
+# Function to list and select iOS simulators
+list_ios_simulators() {
+    if ! command -v xcrun &> /dev/null; then
+        print_warning "Xcode command line tools not found"
+        return 1
+    fi
+    
+    print_info "Checking for iOS Simulators..."
+    
+    # Get available iOS devices and parse them properly
+    local temp_file=$(mktemp)
+    xcrun simctl list devices available > "$temp_file" 2>/dev/null
+    
+    # Parse simulators more reliably
+    local simulator_ids=()
+    local simulator_names=()
+    local i=1
+    local current_runtime=""
+    
+    while IFS= read -r line; do
+        # Check if this is a runtime line (e.g., "-- iOS 17.5 --")
+        if [[ "$line" =~ ^--[[:space:]]*iOS[[:space:]]+([0-9]+\.[0-9]+)[[:space:]]*--$ ]]; then
+            current_runtime="iOS ${BASH_REMATCH[1]}"
+        # Check if this is a device line
+        elif [[ "$line" =~ ^[[:space:]]*([^(]+)[[:space:]]+\(([A-F0-9\-]+)\)[[:space:]]*\(([^)]+)\) ]]; then
+            local device_name="${BASH_REMATCH[1]// /}"  # Remove trailing spaces
+            local device_id="${BASH_REMATCH[2]}"
+            local device_state="${BASH_REMATCH[3]}"
+            
+            # Only include available devices
+            if [[ "$device_state" == "Shutdown" || "$device_state" == "Booted" ]]; then
+                # Only include iPhone and iPad
+                if [[ "$device_name" == iPhone* || "$device_name" == iPad* ]]; then
+                    local display_name="$device_name"
+                    if [ -n "$current_runtime" ]; then
+                        display_name="$device_name ($current_runtime)"
+                    fi
+                    if [[ "$device_state" == "Booted" ]]; then
+                        display_name="$display_name [Running]"
+                    fi
+                    
+                    echo "  $i) $display_name"
+                    simulator_ids+=("$device_id")
+                    simulator_names+=("$display_name")
+                    ((i++))
+                fi
+            fi
+        fi
+    done < "$temp_file"
+    
+    rm -f "$temp_file"
+    
+    if [ ${#simulator_ids[@]} -eq 0 ]; then
+        print_warning "No iOS simulators found. Install Xcode and create simulators."
+        print_info "Open Xcode → Window → Devices and Simulators to create simulators"
+        return 1
+    fi
+    
+    echo ""
+    print_info "Available iOS Simulators:"
+    
+    echo ""
+    echo -n "Select simulator (1-$((i-1))) or Enter to skip: "
+    read -r selection
+    
+    if [[ "$selection" =~ ^[0-9]+$ ]] && [ "$selection" -ge 1 ] && [ "$selection" -lt "$i" ]; then
+        selected_simulator="${simulator_ids[$((selection-1))]}"
+        selected_simulator_name="${simulator_names[$((selection-1))]}"
+        
+        # Boot simulator if not already booted
+        if ! xcrun simctl list devices | grep "$selected_simulator" | grep -q "Booted"; then
+            print_info "Booting simulator: $selected_simulator_name"
+            print_info "This may take 30-60 seconds..."
+            
+            xcrun simctl boot "$selected_simulator" 2>/dev/null
+            
+            # Wait for simulator to boot
+            print_info "Waiting for simulator to boot..."
+            local timeout=60  # 1 minute timeout
+            local elapsed=0
+            
+            while [ $elapsed -lt $timeout ]; do
+                if xcrun simctl list devices | grep "$selected_simulator" | grep -q "Booted"; then
+                    print_success "Simulator booted successfully!"
+                    sleep 2  # Give it a moment to fully initialize
+                    break
+                fi
+                
+                sleep 2
+                elapsed=$((elapsed + 2))
+                
+                # Show progress dots
+                if [ $((elapsed % 6)) -eq 0 ]; then
+                    echo -n "."
+                fi
+            done
+            
+            if [ $elapsed -ge $timeout ]; then
+                print_error "Simulator failed to boot within $timeout seconds"
+                return 1
+            fi
+        else
+            print_info "Simulator is already running"
+        fi
+        
+        return 0
+    fi
+    
+    return 1
 }
 
 # Function to build iOS (requires Mac)
@@ -160,13 +700,131 @@ build_ios() {
         exit 1
     fi
     
-    print_info "Building iOS..."
-    dotnet publish "$CLIENT_PROJECT/Kanriya.Client.Avalonia.iOS/Kanriya.Client.Avalonia.iOS.csproj" \
-        -c Release \
-        -o "$OUTPUT_DIR/ios"
+    # Check for --publish flag
+    local PUBLISH_MODE=false
+    for arg in "$@"; do
+        if [[ "$arg" == "--publish" ]]; then
+            PUBLISH_MODE=true
+            break
+        fi
+    done
     
-    print_success "iOS build complete: $OUTPUT_DIR/ios/"
-    print_warning "iOS app requires signing with Apple Developer certificate for device installation"
+    if [[ "$PUBLISH_MODE" == true ]]; then
+        print_info "Building iOS for device (requires code signing)..."
+        print_warning "This requires Apple Developer Program membership and valid certificates"
+        
+        # Build for device with code signing
+        dotnet publish "$CLIENT_PROJECT/Kanriya.Client.Avalonia.iOS/Kanriya.Client.Avalonia.iOS.csproj" \
+            -c Release \
+            -r ios-arm64 \
+            -p:RuntimeIdentifier=ios-arm64 \
+            -p:CodesignKey="iPhone Developer" \
+            -p:CodesignProvision="Automatic" \
+            -o "$OUTPUT_DIR/ios-device"
+        
+        print_success "iOS device build complete: $OUTPUT_DIR/ios-device/"
+        print_info "Deploy to device via Xcode or: xcrun devicectl device install app --device <device-id> $OUTPUT_DIR/ios-device/Kanriya.Client.Avalonia.iOS.app"
+        
+    else
+        print_info "Building iOS for Simulator (no code signing required)..."
+        
+        # Build for simulator - no code signing needed
+        dotnet build "$CLIENT_PROJECT/Kanriya.Client.Avalonia.iOS/Kanriya.Client.Avalonia.iOS.csproj" \
+            -c Debug \
+            -f net9.0-ios \
+            -p:RuntimeIdentifier=iossimulator-x64 \
+            -o "$OUTPUT_DIR/ios-simulator"
+        
+        print_success "iOS Simulator build complete: $OUTPUT_DIR/ios-simulator/"
+        
+        # List available simulators and offer installation
+        if list_ios_simulators; then
+            echo ""
+            echo -n "Install to selected simulator? (y/N): "
+            read -r install_choice
+            if [[ "$install_choice" =~ ^[Yy]$ ]]; then
+                print_info "Installing app to simulator: ${simulator_names[$((selection-1))]}"
+                
+                # Find the .app bundle
+                local app_path=""
+                if [ -d "$OUTPUT_DIR/ios-simulator/Kanriya.Client.Avalonia.iOS.app" ]; then
+                    app_path="$OUTPUT_DIR/ios-simulator/Kanriya.Client.Avalonia.iOS.app"
+                else
+                    # Look for any .app bundle
+                    app_path=$(find "$OUTPUT_DIR/ios-simulator" -name "*.app" -type d | head -1)
+                fi
+                
+                if [ -z "$app_path" ]; then
+                    print_error "Could not find .app bundle in $OUTPUT_DIR/ios-simulator"
+                    return 1
+                fi
+                
+                print_info "Using app bundle: $app_path"
+                
+                # Open Simulator app so user can see it
+                if ! pgrep -f "Simulator" > /dev/null; then
+                    print_info "Opening Simulator app..."
+                    open -a Simulator 2>/dev/null
+                    sleep 2
+                fi
+                
+                if xcrun simctl install "$selected_simulator" "$app_path" 2>/dev/null; then
+                    print_success "App installed to simulator!"
+                    
+                    echo ""
+                    echo -n "Launch the app now? (y/N): "
+                    read -r launch_choice
+                    if [[ "$launch_choice" =~ ^[Yy]$ ]]; then
+                        print_info "Launching Kanriya in simulator..."
+                        
+                        # Make sure simulator is fully ready and give iOS app time to initialize
+                        print_info "Waiting for app to fully initialize..."
+                        sleep 5
+                        
+                        # Try to get the bundle identifier from Info.plist
+                        local bundle_id=""
+                        local info_plist="$app_path/Info.plist"
+                        
+                        if [ -f "$info_plist" ]; then
+                            bundle_id=$(plutil -extract CFBundleIdentifier xml1 -o - "$info_plist" 2>/dev/null | grep -A1 "<string>" | tail -1 | sed 's/<[^>]*>//g' | xargs)
+                        fi
+                        
+                        print_info "Detected bundle ID: $bundle_id"
+                        
+                        # Fallback bundle IDs to try
+                        local bundle_ids=("$bundle_id" "com.kanriya.ios" "com.kanriya.client.avalonia.ios" "Kanriya.Client.Avalonia.iOS")
+                        
+                        local launched=false
+                        for bid in "${bundle_ids[@]}"; do
+                            if [ -n "$bid" ]; then
+                                print_info "Trying to launch with bundle ID: $bid"
+                                if xcrun simctl launch "$selected_simulator" "$bid" 2>&1 | grep -v "error"; then
+                                    print_success "App launched successfully! (Bundle ID: $bid)"
+                                    launched=true
+                                    break
+                                fi
+                            fi
+                        done
+                        
+                        if [ "$launched" = false ]; then
+                            print_warning "Auto-launch failed, but app is installed."
+                            print_info "Look for 'Kanriya' on the simulator home screen and tap it"
+                            print_info "Or try running: xcrun simctl launch $selected_simulator $bundle_id"
+                        fi
+                    fi
+                else
+                    print_error "Failed to install app to simulator"
+                fi
+            fi
+        fi
+        
+        print_info ""
+        print_info "Alternative run methods:"
+        print_info "  1. Terminal: dotnet run --project $CLIENT_PROJECT/Kanriya.Client.Avalonia.iOS --framework net9.0-ios"
+        print_info "  2. Xcode: Drag .app bundle to simulator"
+        print_info ""
+        print_info "To build for real device, use: $0 ios --publish"
+    fi
 }
 
 # Function to build all platforms
@@ -214,15 +872,18 @@ show_help() {
     echo "  linux      - Build for Linux (x64)"
     echo "  macos      - Build for macOS ARM64 (Apple Silicon)"
     echo "  web        - Build for Web (WASM)"
-    echo "  android    - Build for Android (APK)"
-    echo "  ios        - Build for iOS (requires Mac)"
+    echo "  android    - Build for Android (APK + auto emulator/install)"
+    echo "  ios        - Build for iOS Simulator (requires Mac)
+  ios --publish - Build for iOS device (requires Apple Developer cert)"
     echo "  all        - Build for all platforms"
     echo "  clean      - Remove all build outputs"
     echo ""
     echo "Examples:"
     echo "  $0 windows         # Build Windows x64"
     echo "  $0 macos           # Build macOS ARM64 (Apple Silicon)"
-    echo "  $0 android         # Build Android APK"
+    echo "  $0 android         # Build Android APK + auto emulator setup"
+    echo "  $0 ios             # Build iOS Simulator (free)"
+    echo "  $0 ios --publish   # Build iOS device (requires paid cert)"
     echo "  $0 all             # Build all platforms"
     echo ""
     echo "Output directory: $OUTPUT_DIR"
@@ -246,7 +907,7 @@ case $PLATFORM in
         build_android
         ;;
     ios|iphone|ipad)
-        build_ios
+        build_ios "$@"
         ;;
     all)
         build_all

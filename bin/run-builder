@@ -1,0 +1,89 @@
+#!/bin/bash
+
+# Kanriya Builder Runner Script
+# Builds and executes the Kanriya.Client.Builder .NET application
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+BUILDER_PROJECT="$PROJECT_ROOT/src/Kanriya.Client.Builder"
+BUILDER_OUTPUT="$PROJECT_ROOT/cache/kanriya-client-builder"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+echo -e "${BLUE}🔧 Kanriya Builder Runner${NC}"
+echo
+
+# Check if .NET is installed
+if ! command -v dotnet &> /dev/null; then
+    echo -e "${RED}❌ .NET SDK not found. Please install .NET 9 SDK.${NC}"
+    exit 1
+fi
+
+# Create cache directory
+mkdir -p "$(dirname "$BUILDER_OUTPUT")"
+
+# Check if we need to build/rebuild
+NEEDS_BUILD=false
+
+if [ ! -f "$BUILDER_OUTPUT" ]; then
+    echo -e "${YELLOW}📦 Builder not found, building...${NC}"
+    NEEDS_BUILD=true
+else
+    # Check if source files are newer than executable
+    if find "$BUILDER_PROJECT" -name "*.cs" -newer "$BUILDER_OUTPUT" | grep -q .; then
+        echo -e "${YELLOW}🔄 Source files changed, rebuilding...${NC}"
+        NEEDS_BUILD=true
+    fi
+fi
+
+# Build the builder if needed
+if [ "$NEEDS_BUILD" = true ]; then
+    echo -e "${BLUE}🛠️ Building Kanriya.Client.Builder...${NC}"
+    
+    cd "$BUILDER_PROJECT"
+    
+    # Build as single-file executable
+    if dotnet publish \
+        --configuration Release \
+        --self-contained true \
+        --output "$(dirname "$BUILDER_OUTPUT")" \
+        --property:PublishSingleFile=true \
+        --property:PublishTrimmed=true \
+        --verbosity quiet; then
+        
+        # Move the executable to expected location
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            mv "$(dirname "$BUILDER_OUTPUT")/kanriya-client-builder" "$BUILDER_OUTPUT"
+        elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+            mv "$(dirname "$BUILDER_OUTPUT")/kanriya-client-builder" "$BUILDER_OUTPUT"
+        elif [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
+            mv "$(dirname "$BUILDER_OUTPUT")/kanriya-client-builder.exe" "$BUILDER_OUTPUT.exe"
+            BUILDER_OUTPUT="$BUILDER_OUTPUT.exe"
+        fi
+        
+        chmod +x "$BUILDER_OUTPUT"
+        echo -e "${GREEN}✅ Build successful!${NC}"
+    else
+        echo -e "${RED}❌ Build failed!${NC}"
+        exit 1
+    fi
+    
+    cd "$PROJECT_ROOT"
+fi
+
+# Run the builder with all passed arguments
+echo -e "${BLUE}🚀 Starting Kanriya Builder...${NC}"
+echo
+
+if [[ "$OSTYPE" == "msys" ]] || [[ "$OSTYPE" == "cygwin" ]]; then
+    exec "$BUILDER_OUTPUT.exe" "$@"
+else
+    exec "$BUILDER_OUTPUT" "$@"
+fi

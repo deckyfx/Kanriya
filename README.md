@@ -23,11 +23,11 @@
 
 ## 📦 Building Client
 
-**Run** `./bin/build-client`
+1. **Run** `./bin/run-builder`
 
 ## 🧪 Testing
 
-**Run** `./bin/test`
+1. **Run** `./bin/test`
 
 ## 🔧 Tech Stack
 
