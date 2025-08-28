@@ -58,6 +58,11 @@ public static class GraphQLConfig
             .AddTypeExtension<Kanriya.Server.Modules.BrandQueries>()
             .AddTypeExtension<Kanriya.Server.Modules.BrandMutations>()
             
+            // Outlet Module - Outlet management within brands
+            .AddTypeExtension<Kanriya.Server.Modules.OutletQueries>()
+            .AddTypeExtension<Kanriya.Server.Modules.OutletMutations>()
+            .AddTypeExtension<Kanriya.Server.Subscriptions.OutletSubscriptions>()
+            
             // Add filtering and sorting capabilities
             .AddFiltering()
             .AddSorting()

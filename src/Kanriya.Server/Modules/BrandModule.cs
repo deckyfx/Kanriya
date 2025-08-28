@@ -121,7 +121,7 @@ public class BrandMutations
     [Authorize]
     [GraphQLName("createBrand")]
     [GraphQLDescription("Create a new brand/tenant with API credentials")]
-    public async Task<CreateBrandPayload> CreateBrand(
+    public async Task<CreateBrandOutput> CreateBrand(
         CreateBrandInput input,
         [Service] IBrandService brandService,
         [Service] ILogger<BrandMutations> logger,
@@ -130,7 +130,7 @@ public class BrandMutations
     {
         if (currentUser?.User == null)
         {
-            return new CreateBrandPayload
+            return new CreateBrandOutput
             {
                 Success = false,
                 Message = "User not authenticated"
@@ -147,7 +147,7 @@ public class BrandMutations
                 input.Name,
                 currentUser.User.Id);
 
-            return new CreateBrandPayload
+            return new CreateBrandOutput
             {
                 Success = true,
                 Message = "Brand created successfully. Save your API credentials - they won't be shown again.",
@@ -159,7 +159,7 @@ public class BrandMutations
         catch (InvalidOperationException ex)
         {
             logger.LogDebug("CreateBrand validation failed: {Message}", ex.Message);
-            return new CreateBrandPayload
+            return new CreateBrandOutput
             {
                 Success = false,
                 Message = ex.Message
@@ -168,7 +168,7 @@ public class BrandMutations
         catch (Exception ex)
         {
             logger.LogError(ex, "Unexpected error creating brand");
-            return new CreateBrandPayload
+            return new CreateBrandOutput
             {
                 Success = false,
                 Message = "Failed to create brand: " + ex.Message
@@ -189,7 +189,7 @@ public class BrandMutations
     [Authorize] // SuperAdmin or brand owner can delete
     [GraphQLName("deleteBrand")]
     [GraphQLDescription("Permanently delete a brand and all its data (SuperAdmin or brand owner only)")]
-    public async Task<DeleteBrandPayload> DeleteBrand(
+    public async Task<DeleteBrandOutput> DeleteBrand(
         string brandId,
         string confirmationText,
         [Service] IBrandService brandService,
@@ -198,7 +198,7 @@ public class BrandMutations
     {
         if (currentUser?.User == null)
         {
-            return new DeleteBrandPayload
+            return new DeleteBrandOutput
             {
                 Success = false,
                 Message = "User not authenticated"
@@ -207,7 +207,7 @@ public class BrandMutations
 
         if (confirmationText != $"DELETE {brandId}")
         {
-            return new DeleteBrandPayload
+            return new DeleteBrandOutput
             {
                 Success = false,
                 Message = $"Please confirm by typing 'DELETE {brandId}'"
@@ -223,7 +223,7 @@ public class BrandMutations
             var brand = await brandService.GetBrandAsync(brandId);
             if (brand == null)
             {
-                return new DeleteBrandPayload
+                return new DeleteBrandOutput
                 {
                     Success = false,
                     Message = "Brand not found"
@@ -235,7 +235,7 @@ public class BrandMutations
             
             if (!isSuperAdmin && !isOwner)
             {
-                return new DeleteBrandPayload
+                return new DeleteBrandOutput
                 {
                     Success = false,
                     Message = "Only the brand owner or SuperAdmin can delete this brand"
@@ -244,7 +244,7 @@ public class BrandMutations
 
             var success = await brandService.DeleteBrandAsync(brandId);
 
-            return new DeleteBrandPayload
+            return new DeleteBrandOutput
             {
                 Success = success,
                 Message = success 
@@ -254,7 +254,7 @@ public class BrandMutations
         }
         catch (Exception ex)
         {
-            return new DeleteBrandPayload
+            return new DeleteBrandOutput
             {
                 Success = false,
                 Message = "Failed to delete brand: " + ex.Message
@@ -275,7 +275,7 @@ public class BrandMutations
     [Authorize]
     [GraphQLName("updateBrandInfo")]
     [GraphQLDescription("Update a key-value pair in brand's infoes table (requires brand-context token)")]
-    public async Task<UpdateBrandInfoPayload> UpdateBrandInfo(
+    public async Task<UpdateBrandInfoOutput> UpdateBrandInfo(
         UpdateBrandInfoInput input,
         [Service] IBrandService brandService,
         [Service] ILogger<BrandMutations> logger,
@@ -285,7 +285,7 @@ public class BrandMutations
         // Check if user has brand context
         if (currentUser?.BrandUser == null || string.IsNullOrEmpty(currentUser.BrandId))
         {
-            return new UpdateBrandInfoPayload
+            return new UpdateBrandInfoOutput
             {
                 Success = false,
                 Message = "Brand-context authentication required. Please sign in with brand API credentials."
@@ -296,7 +296,7 @@ public class BrandMutations
         var userRoles = currentUser.BrandUser?.Roles?.Select(r => r.Role).ToList() ?? new List<string>();
         if (!userRoles.Contains(BrandRoles.BrandOwner) && !userRoles.Contains(BrandRoles.BrandOperator))
         {
-            return new UpdateBrandInfoPayload
+            return new UpdateBrandInfoOutput
             {
                 Success = false,
                 Message = "Insufficient permissions. BrandOwner or BrandOperator role required."
@@ -314,7 +314,7 @@ public class BrandMutations
             logger.LogInformation("Brand {BrandId} info update: {Key} = {Value} - {Success}",
                 currentUser.BrandId, input.Key, input.Value, result.Success);
             
-            return new UpdateBrandInfoPayload
+            return new UpdateBrandInfoOutput
             {
                 Success = result.Success,
                 Message = result.Message,
@@ -325,7 +325,7 @@ public class BrandMutations
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to update brand info for brand {BrandId}", currentUser.BrandId);
-            return new UpdateBrandInfoPayload
+            return new UpdateBrandInfoOutput
             {
                 Success = false,
                 Message = "Failed to update brand info: " + ex.Message

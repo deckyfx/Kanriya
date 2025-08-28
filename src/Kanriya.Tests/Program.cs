@@ -70,6 +70,13 @@ class Program
                 totalFailed += brandFailed;
                 break;
                 
+            case "outlet":
+                // Run outlet management tests
+                var (outletPassed, outletFailed) = await OutletTestSuite.RunAsync(userHelper, dbHelper, graphQLClient);
+                totalPassed += outletPassed;
+                totalFailed += outletFailed;
+                break;
+                
             default:
                 // Run all test suites
                 AnsiConsole.MarkupLine("[yellow]Running all test suites...[/]");
@@ -84,6 +91,11 @@ class Program
                 var (brandP, brandF) = await BrandTestSuite.RunAsync(userHelper, dbHelper, graphQLClient);
                 totalPassed += brandP;
                 totalFailed += brandF;
+                
+                // Outlet suite (tests outlet management within brands)
+                var (outletP, outletF) = await OutletTestSuite.RunAsync(userHelper, dbHelper, graphQLClient);
+                totalPassed += outletP;
+                totalFailed += outletF;
                 break;
         }
 

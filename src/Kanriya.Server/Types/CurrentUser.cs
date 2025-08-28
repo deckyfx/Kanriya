@@ -32,6 +32,17 @@ public class CurrentUser
     public string? BrandSchema { get; set; }
     
     /// <summary>
+    /// List of outlet IDs the user has access to (in brand context)
+    /// Empty for BrandOwner (who has access to all outlets)
+    /// </summary>
+    public List<string> OutletIds { get; set; } = new List<string>();
+    
+    /// <summary>
+    /// Whether the user has access to all outlets (BrandOwner role)
+    /// </summary>
+    public bool HasAllOutletAccess { get; set; }
+    
+    /// <summary>
     /// Whether the user is authenticated (either principal or brand context)
     /// </summary>
     public bool IsAuthenticated => User != null || BrandUser != null;
@@ -84,4 +95,20 @@ public class CurrentUser
     /// </summary>
     public string[] GetBrandRoles() => 
         BrandUser?.Roles?.Select(ur => ur.Role).ToArray() ?? Array.Empty<string>();
+    
+    /// <summary>
+    /// Check if the user has access to a specific outlet
+    /// </summary>
+    public bool HasOutletAccess(string outletId)
+    {
+        if (!IsBrandContext)
+            return false;
+            
+        // BrandOwner has access to all outlets
+        if (HasAllOutletAccess || HasBrandRole(BrandRoles.BrandOwner))
+            return true;
+            
+        // Check if outlet ID is in user's outlet list
+        return OutletIds.Contains(outletId);
+    }
 }

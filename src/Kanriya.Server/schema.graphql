@@ -4,8 +4,8 @@ schema {
   subscription: Subscription
 }
 
-"Standard authentication response payload"
-type AuthPayload {
+"Standard authentication response output"
+type AuthOutput {
   "Whether the operation was successful"
   success: Boolean!
   "Message describing the result"
@@ -16,6 +16,143 @@ type AuthPayload {
   token: String
   "Verification token (only for sign up, dev mode only)"
   verificationToken: String
+}
+
+"""
+Represents a brand in the multi-tenant system
+Stores only essential information and PostgreSQL credentials
+All brand details are stored in the brand's own schema
+"""
+type Brand {
+  "Unique identifier for the brand (UUID)"
+  id: String!
+  "Display name of the brand"
+  name: String!
+  "ID of the principal user who owns this brand"
+  ownerId: String!
+  "PostgreSQL schema name (e.g., \"brand_acme\")"
+  schemaName: String!
+  "PostgreSQL database user that has full access to this schema"
+  databaseUser: String!
+  "Encrypted PostgreSQL password for the database user"
+  encryptedPassword: String!
+  "Whether the brand is active"
+  isActive: Boolean!
+  "When the brand was created"
+  createdAt: DateTime!
+  "When the brand was last updated"
+  updatedAt: DateTime!
+  "Navigation property to the owner user"
+  owner: User
+}
+
+"Represents a key-value pair from the brand's infoes table"
+type BrandInfo {
+  "The key"
+  key: String!
+  "The value"
+  value: String!
+  "When this info was created"
+  createdAt: DateTime!
+  "When this info was last updated"
+  updatedAt: DateTime!
+}
+
+"""
+User entity for brand schema
+Uses API credentials instead of email/password
+"""
+type BrandUser {
+  "Unique identifier (UUID)"
+  id: String!
+  """
+  API Secret - 16 character randomized string
+  Used as username for API authentication
+  """
+  apiSecret: String!
+  """
+  API Password - 32 character randomized string (hashed)
+  Used as password for API authentication
+  """
+  apiPasswordHash: String!
+  "Brand schema name this user belongs to"
+  brandSchema: String!
+  "Display name for the user"
+  displayName: String
+  "Whether the user is active"
+  isActive: Boolean!
+  "When the user was created"
+  createdAt: DateTime!
+  "When the user was last updated"
+  updatedAt: DateTime!
+  "Last login timestamp"
+  lastLoginAt: DateTime
+  "Navigation property for user roles"
+  roles: [BrandUserRole!]!
+}
+
+"User role entity for brand schema"
+type BrandUserRole {
+  "Unique identifier (UUID)"
+  id: String!
+  "User ID reference"
+  userId: String!
+  "Role name (e.g., \"BrandOwner\")"
+  role: String!
+  "Whether the role is active"
+  isActive: Boolean!
+  "When the role was assigned"
+  createdAt: DateTime!
+  "When the role was last updated"
+  updatedAt: DateTime!
+  "Navigation property to user"
+  user: BrandUser!
+}
+
+"Output for create brand mutation"
+type CreateBrandOutput {
+  success: Boolean!
+  message: String
+  brand: Brand
+  apiSecret: String
+  apiPassword: String
+}
+
+"Response output for outlet creation"
+type CreateOutletOutput {
+  "Indicates if the operation was successful"
+  success: Boolean!
+  "Message providing details about the operation result"
+  message: String
+  "The created outlet"
+  outlet: Outlet
+}
+
+type DeleteAccountOutput {
+  success: Boolean!
+  message: String
+}
+
+"Output for delete brand mutation"
+type DeleteBrandOutput {
+  success: Boolean!
+  message: String
+}
+
+"Response output for outlet deletion"
+type DeleteOutletOutput {
+  "Indicates if the operation was successful"
+  success: Boolean!
+  "Message providing details about the operation result"
+  message: String
+}
+
+"Response output for granting outlet access"
+type GrantOutletAccessOutput {
+  "Indicates if the operation was successful"
+  success: Boolean!
+  "Message providing details about the operation result"
+  message: String
 }
 
 "Health status of the GraphQL server"
@@ -30,18 +167,24 @@ type HealthStatus {
 
 "Root mutation type that combines all mutation operations"
 type Mutation {
+  "Delete the current user's account and all associated data"
+  deleteMyAccount(input: DeleteMyAccountInput!): DeleteAccountOutput! @authorize @cost(weight: "10")
   "Sign up a new user"
-  signUp(input: SignUpInput!): AuthPayload! @cost(weight: "10")
+  signUp(input: SignUpInput!): AuthOutput! @cost(weight: "10")
   "Verify email address with token"
-  verifyEmail(verificationToken: String!): AuthPayload! @cost(weight: "10")
+  verifyEmail(verificationToken: String!): AuthOutput! @cost(weight: "10")
   "Sign in an existing user"
-  signIn(input: SignInInput!): AuthPayload! @cost(weight: "10")
+  signIn(input: SignInInput!): AuthOutput! @cost(weight: "10")
   "Resend verification email"
-  resendVerification(email: String!): AuthPayload! @cost(weight: "10")
+  resendVerification(email: String!): AuthOutput! @cost(weight: "10")
   "Change password for authenticated user"
-  changePassword(currentPassword: String! newPassword: String!): AuthPayload! @authorize @cost(weight: "10")
+  changePassword(currentPassword: String! newPassword: String!): AuthOutput! @authorize @cost(weight: "10")
+  "Request a password reset link to be sent to your email. Use this when you've forgotten your password and cannot sign in."
+  requestPasswordReset("The email address associated with your account" email: String!): AuthOutput! @cost(weight: "10")
+  "Reset your password using the token sent to your email. This is the second step after requesting a password reset."
+  resetPassword("The reset token received via email" resetToken: String! "Your new password (min 8 chars, must include uppercase, lowercase, and number)" newPassword: String!): AuthOutput! @cost(weight: "10")
   "Update user profile"
-  updateProfile(fullName: String profilePictureUrl: String): AuthPayload! @authorize @cost(weight: "10")
+  updateProfile(fullName: String profilePictureUrl: String): AuthOutput! @authorize @cost(weight: "10")
   "Grant a role to a user (SuperAdmin only)"
   grantRole(userId: String! role: String!): UserManagementResult! @authorize(policy: "SuperAdminOnly") @cost(weight: "10")
   "Revoke a role from a user (SuperAdmin only)"
@@ -50,6 +193,44 @@ type Mutation {
   deleteUser(userId: String!): UserManagementResult! @authorize @cost(weight: "10")
   "Force verify a pending user (SuperAdmin only)"
   forceVerifyUser(pendingUserId: String!): UserManagementResult! @authorize(policy: "SuperAdminOnly") @cost(weight: "10")
+  "Create a new brand\/tenant with API credentials"
+  createBrand(input: CreateBrandInput!): CreateBrandOutput! @authorize @cost(weight: "10")
+  "Permanently delete a brand and all its data (SuperAdmin or brand owner only)"
+  deleteBrand(brandId: String! confirmationText: String!): DeleteBrandOutput! @authorize @cost(weight: "10")
+  "Update a key-value pair in brand's infoes table (requires brand-context token)"
+  updateBrandInfo(input: UpdateBrandInfoInput!): UpdateBrandInfoOutput! @authorize @cost(weight: "10")
+  "Create a new outlet (BrandOwner only)"
+  createOutlet(input: CreateOutletInput!): CreateOutletOutput! @authorize(roles: [ "BrandOwner" ]) @cost(weight: "10")
+  "Update an outlet's information (BrandOwner only)"
+  updateOutlet(input: UpdateOutletInput!): UpdateOutletOutput! @authorize(roles: [ "BrandOwner" ]) @cost(weight: "10")
+  "Delete an outlet (BrandOwner only)"
+  deleteOutlet(input: DeleteOutletInput!): DeleteOutletOutput! @authorize(roles: [ "BrandOwner" ]) @cost(weight: "10")
+  "Grant a user access to an outlet (BrandOwner only)"
+  grantUserOutletAccess(input: GrantOutletAccessInput!): GrantOutletAccessOutput! @authorize(roles: [ "BrandOwner" ]) @cost(weight: "10")
+  "Revoke a user's access to an outlet (BrandOwner only)"
+  revokeUserOutletAccess(input: RevokeOutletAccessInput!): RevokeOutletAccessOutput! @authorize(roles: [ "BrandOwner" ]) @cost(weight: "10")
+  "Update a user's complete outlet access list (BrandOwner only)"
+  updateUserOutlets(userId: String! outletIds: [String!]!): UpdateUserOutletsOutput! @authorize(roles: [ "BrandOwner" ]) @cost(weight: "10")
+}
+
+"Outlet entity representing a physical or logical business location within a brand"
+type Outlet {
+  "Unique identifier (UUID)"
+  id: String!
+  "Unique outlet code within the brand (e.g., \"OUTLET001\", \"MALL-A\")"
+  code: String!
+  "Display name of the outlet (e.g., \"Geprek Bensu - Mall A\")"
+  name: String!
+  "Physical address of the outlet"
+  address: String
+  "Whether the outlet is active"
+  isActive: Boolean!
+  "When the outlet was created"
+  createdAt: DateTime!
+  "When the outlet was last updated"
+  updatedAt: DateTime!
+  "Navigation property for user-outlet permissions"
+  userOutlets: [UserOutlet!]!
 }
 
 """
@@ -89,6 +270,30 @@ type Query {
   version: VersionInfo!
   "Get the current health status of the server"
   health: HealthStatus!
+  "Get all brands accessible to the current user"
+  myBrands: [Brand!]! @authorize @cost(weight: "10")
+  "Get a specific brand by ID if the user has access"
+  brand(brandId: String!): Brand @authorize @cost(weight: "10")
+  "Get all key-value pairs from brand's infoes table (requires brand-context token)"
+  brandInfo: [BrandInfo!]! @authorize @cost(weight: "10")
+  "Get all outlets in the current brand"
+  outlets: [Outlet!]! @authorize @cost(weight: "10")
+  "Get a specific outlet by ID"
+  outlet(id: String!): Outlet @authorize @cost(weight: "10")
+  "Get outlets accessible to the current user based on permissions"
+  myOutlets: [Outlet!]! @authorize @cost(weight: "10")
+  "Get outlets assigned to a specific user (BrandOwner only)"
+  userOutletAccess(userId: String!): [Outlet!]! @authorize(roles: [ "BrandOwner" ]) @cost(weight: "10")
+  "Get users who have access to a specific outlet"
+  outletUsers(outletId: String!): [BrandUser!]! @authorize @cost(weight: "10")
+}
+
+"Response output for revoking outlet access"
+type RevokeOutletAccessOutput {
+  "Indicates if the operation was successful"
+  success: Boolean!
+  "Message providing details about the operation result"
+  message: String
 }
 
 "Root subscription type that combines all subscription operations"
@@ -97,6 +302,15 @@ type Subscription {
   onUserChanged: SubscriptionEventOfUser!
   "Subscribe to pending user changes"
   onPendingUserChanged: SubscriptionEventOfPendingUser!
+  "Subscribe to all outlet changes (created, updated, deleted)"
+  onOutletChanged: SubscriptionEventOfOutlet!
+}
+
+type SubscriptionEventOfOutlet {
+  event: EventType!
+  document: Outlet
+  time: DateTime!
+  _previous: Outlet
 }
 
 type SubscriptionEventOfPendingUser {
@@ -111,6 +325,38 @@ type SubscriptionEventOfUser {
   document: User
   time: DateTime!
   _previous: User
+}
+
+"Response output for brand info update operations"
+type UpdateBrandInfoOutput {
+  "Indicates if the operation was successful"
+  success: Boolean!
+  "Message providing details about the operation result"
+  message: String
+  "The updated key"
+  key: String
+  "The updated value"
+  value: String
+}
+
+"Response output for outlet update operations"
+type UpdateOutletOutput {
+  "Indicates if the operation was successful"
+  success: Boolean!
+  "Message providing details about the operation result"
+  message: String
+  "The updated outlet"
+  outlet: Outlet
+}
+
+"Response output for updating a user's outlet access list"
+type UpdateUserOutletsOutput {
+  "Indicates if the operation was successful"
+  success: Boolean!
+  "Message providing details about the operation result"
+  message: String
+  "Number of outlets the user now has access to"
+  outletCount: Int!
 }
 
 """
@@ -134,8 +380,14 @@ type User {
   profilePictureUrl: String
   "Last login timestamp"
   lastLoginAt: DateTime
+  "Password reset token (null when not resetting)"
+  passwordResetToken: String
+  "When the password reset token expires"
+  passwordResetTokenExpiry: DateTime
   "Navigation property for user roles"
   userRoles: [UserRole!]!
+  "Navigation property for brands owned by this user"
+  ownedBrands: [Brand!]!
 }
 
 "Result type for user management operations"
@@ -143,6 +395,25 @@ type UserManagementResult {
   success: Boolean!
   message: String!
   user: User
+}
+
+"""
+User-Outlet permission mapping entity
+Determines which outlets a brand user can access
+"""
+type UserOutlet {
+  "Unique identifier (UUID)"
+  id: String!
+  "Foreign key to BrandUser"
+  userId: String!
+  "Foreign key to Outlet"
+  outletId: String!
+  "When the permission was granted"
+  createdAt: DateTime!
+  "Navigation property to BrandUser"
+  user: BrandUser!
+  "Navigation property to Outlet"
+  outlet: Outlet!
 }
 
 """
@@ -176,12 +447,58 @@ type VersionInfo {
   fullVersion: String!
 }
 
-"Input type for user sign in mutation"
-input SignInInput {
-  "User's email address"
-  email: String!
-  "User's password"
+"Input for creating a new brand"
+input CreateBrandInput {
+  "Display name of the brand"
+  name: String!
+}
+
+"Input for creating a new outlet"
+input CreateOutletInput {
+  "Unique code for the outlet within the brand (e.g., \"OUTLET001\", \"MALL-A\")"
+  code: String!
+  "Display name of the outlet (e.g., \"Geprek Bensu - Mall A\")"
+  name: String!
+  "Physical address of the outlet (optional)"
+  address: String
+}
+
+input DeleteMyAccountInput {
   password: String!
+}
+
+"Input for deleting an outlet"
+input DeleteOutletInput {
+  "ID of the outlet to delete (required)"
+  id: String!
+  "Optional reason for deletion (for audit logs)"
+  reason: String
+}
+
+"Input for granting a user access to an outlet"
+input GrantOutletAccessInput {
+  "ID of the user to grant access to"
+  userId: String!
+  "ID of the outlet to grant access to"
+  outletId: String!
+}
+
+"Input for revoking outlet access from a user"
+input RevokeOutletAccessInput {
+  "ID of the user to revoke access from (required)"
+  userId: String!
+  "ID of the outlet to revoke access to (required)"
+  outletId: String!
+}
+
+"Input type for sign in mutation - supports both principal and brand authentication"
+input SignInInput {
+  "Email address for principal auth OR API Secret for brand auth"
+  email: String!
+  "Password for principal auth OR API Password for brand auth"
+  password: String!
+  "Optional: Brand ID for brand authentication. If provided, email\/password are treated as API credentials"
+  brandId: String
 }
 
 "Input type for user sign up mutation"
@@ -190,6 +507,28 @@ input SignUpInput {
   email: String!
   "User's password (will be hashed)"
   password: String!
+}
+
+"Input for updating brand info (key-value pairs in brand_xxx.infoes table)"
+input UpdateBrandInfoInput {
+  "The key to update in the brand's infoes table"
+  key: String!
+  "The value to set for this key"
+  value: String!
+}
+
+"Input for updating an outlet's information"
+input UpdateOutletInput {
+  "ID of the outlet to update (required)"
+  id: String!
+  "Updated code for the outlet (optional)"
+  code: String
+  "Updated display name of the outlet (optional)"
+  name: String
+  "Updated physical address of the outlet (optional)"
+  address: String
+  "Whether the outlet is active (optional)"
+  isActive: Boolean
 }
 
 "Defines when a policy shall be executed."

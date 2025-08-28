@@ -73,7 +73,24 @@ public class AuthenticationMiddleware
                             currentUser.BrandId = brandIdClaim.Value;
                             currentUser.BrandSchema = brandSchemaClaim.Value;
                             
-                            _logger.LogDebug("Authenticated brand user {UserId} for brand {BrandId}", brandUserId, brandIdClaim.Value);
+                            // Extract outlet access information
+                            var outletAccessClaim = principal.FindFirst("outlet_access");
+                            if (outletAccessClaim != null && outletAccessClaim.Value == "all")
+                            {
+                                currentUser.HasAllOutletAccess = true;
+                            }
+                            else
+                            {
+                                // Get specific outlet IDs from claims
+                                var outletIds = principal.FindAll("outlet_id")
+                                    .Select(c => c.Value)
+                                    .ToList();
+                                currentUser.OutletIds = outletIds;
+                            }
+                            
+                            _logger.LogDebug("Authenticated brand user {UserId} for brand {BrandId} with {OutletCount} outlet(s) access", 
+                                brandUserId, brandIdClaim.Value, 
+                                currentUser.HasAllOutletAccess ? "all" : currentUser.OutletIds.Count.ToString());
                         }
                     }
                     else

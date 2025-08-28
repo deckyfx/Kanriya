@@ -22,7 +22,7 @@ public class UserAccountModule
     /// Delete the current user's account and all associated data
     /// </summary>
     [Authorize]
-    public async Task<DeleteAccountPayload> DeleteMyAccount(
+    public async Task<DeleteAccountOutput> DeleteMyAccount(
         DeleteMyAccountInput input,
         [Service] AppDbContext dbContext,
         [Service] IUserService userService,
@@ -31,7 +31,7 @@ public class UserAccountModule
     {
         if (currentUser.User == null)
         {
-            return new DeleteAccountPayload
+            return new DeleteAccountOutput
             {
                 Success = false,
                 Message = "User not authenticated"
@@ -44,7 +44,7 @@ public class UserAccountModule
             
         if (user == null)
         {
-            return new DeleteAccountPayload
+            return new DeleteAccountOutput
             {
                 Success = false,
                 Message = "User not found"
@@ -53,7 +53,7 @@ public class UserAccountModule
 
         if (!BCrypt.Net.BCrypt.Verify(input.Password, user.PasswordHash))
         {
-            return new DeleteAccountPayload
+            return new DeleteAccountOutput
             {
                 Success = false,
                 Message = "Invalid password"
@@ -82,7 +82,7 @@ public class UserAccountModule
             await dbContext.SaveChangesAsync();
             await transaction.CommitAsync();
             
-            return new DeleteAccountPayload
+            return new DeleteAccountOutput
             {
                 Success = true,
                 Message = "Account deleted successfully"
@@ -92,7 +92,7 @@ public class UserAccountModule
         {
             await transaction.RollbackAsync();
             
-            return new DeleteAccountPayload
+            return new DeleteAccountOutput
             {
                 Success = false,
                 Message = $"Failed to delete account: {ex.Message}"

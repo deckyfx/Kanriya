@@ -3,9 +3,9 @@ using Kanriya.Server.Data;
 namespace Kanriya.Server.Types.Outputs;
 
 /// <summary>
-/// Payload for create brand mutation
+/// Output for create brand mutation
 /// </summary>
-public class CreateBrandPayload
+public class CreateBrandOutput
 {
     public bool Success { get; set; }
     public string? Message { get; set; }
@@ -15,9 +15,9 @@ public class CreateBrandPayload
 }
 
 /// <summary>
-/// Payload for delete brand mutation
+/// Output for delete brand mutation
 /// </summary>
-public class DeleteBrandPayload
+public class DeleteBrandOutput
 {
     public bool Success { get; set; }
     public string? Message { get; set; }

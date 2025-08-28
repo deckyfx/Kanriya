@@ -3,9 +3,9 @@ using Kanriya.Server.Data;
 namespace Kanriya.Server.Types.Outputs;
 
 /// <summary>
-/// Payload for UpdateBrandName mutation
+/// Output for UpdateBrandName mutation
 /// </summary>
-public class UpdateBrandNamePayload
+public class UpdateBrandNameOutput
 {
     /// <summary>
     /// Whether the operation was successful

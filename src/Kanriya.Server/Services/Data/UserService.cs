@@ -21,17 +21,20 @@ public class UserService : IUserService
     private readonly ILogger<UserService> _logger;
     private readonly IConfiguration _configuration;
     private readonly IMailerService _mailerService;
+    private readonly IOutletService _outletService;
     
     public UserService(
         IServiceProvider serviceProvider,
         ILogger<UserService> logger,
         IConfiguration configuration,
-        IMailerService mailerService)
+        IMailerService mailerService,
+        IOutletService outletService)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
         _configuration = configuration;
         _mailerService = mailerService;
+        _outletService = outletService;
     }
     
     private IServiceScope CreateScope() => _serviceProvider.CreateScope();
@@ -320,8 +323,8 @@ public class UserService : IUserService
         updateLoginCommand.Parameters.AddWithValue("userId", Guid.Parse(brandUserId));
         await updateLoginCommand.ExecuteNonQueryAsync(cancellationToken);
         
-        // Generate brand token
-        var token = GenerateBrandJwtToken(brandUserId, brandId, brand.SchemaName, roles.ToArray());
+        // Generate brand token with outlet access
+        var token = await GenerateBrandJwtTokenAsync(brandUserId, brandId, brand.SchemaName, roles.ToArray());
         
         _logger.LogInformation("Brand user {UserId} signed in successfully for brand {BrandId}", 
             brandUserId, brandId);
@@ -891,9 +894,9 @@ public class UserService : IUserService
     }
     
     /// <summary>
-    /// Generate JWT token for brand authentication
+    /// Generate JWT token for brand authentication with outlet access
     /// </summary>
-    private string GenerateBrandJwtToken(string userId, string brandId, string schemaName, string[] roles)
+    private async Task<string> GenerateBrandJwtTokenAsync(string userId, string brandId, string schemaName, string[] roles)
     {
         var secretKey = EnvironmentConfig.Jwt.Secret;
         var issuer = EnvironmentConfig.Jwt.Issuer;
@@ -915,6 +918,23 @@ public class UserService : IUserService
         foreach (var role in roles)
         {
             claims.Add(new Claim(ClaimTypes.Role, role));
+        }
+        
+        // Add outlet access claims
+        // BrandOwner gets all outlets, BrandOperator gets only assigned outlets
+        if (roles.Contains("BrandOwner"))
+        {
+            // BrandOwner has implicit access to all outlets - no need to specify outlet_ids
+            claims.Add(new Claim("outlet_access", "all"));
+        }
+        else
+        {
+            // Get user's assigned outlets
+            var userOutlets = await _outletService.GetUserOutletsAsync(brandId, schemaName, userId);
+            foreach (var outlet in userOutlets)
+            {
+                claims.Add(new Claim("outlet_id", outlet.Id));
+            }
         }
         
         var token = new JwtSecurityToken(

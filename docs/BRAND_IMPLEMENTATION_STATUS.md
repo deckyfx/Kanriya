@@ -44,7 +44,7 @@
 #### 5. **GraphQL Types**
 - **BrandType**: Basic type exists in Shared project
 - **BrandInputs**: CreateBrandInput, BrandAuthInput
-- **BrandPayloads**: CreateBrandPayload, DeleteBrandPayload, BrandAuthPayload
+- **BrandOutputs**: CreateBrandOutput, DeleteBrandOutput, BrandAuthOutput
 
 ---
 

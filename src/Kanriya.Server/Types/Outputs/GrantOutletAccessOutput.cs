@@ -1,9 +1,9 @@
 namespace Kanriya.Server.Types.Outputs;
 
 /// <summary>
-/// Response payload for brand info update operations
+/// Response output for granting outlet access
 /// </summary>
-public class UpdateBrandInfoPayload
+public class GrantOutletAccessOutput
 {
     /// <summary>
     /// Indicates if the operation was successful
@@ -14,14 +14,4 @@ public class UpdateBrandInfoPayload
     /// Message providing details about the operation result
     /// </summary>
     public string? Message { get; set; }
-    
-    /// <summary>
-    /// The updated key
-    /// </summary>
-    public string? Key { get; set; }
-    
-    /// <summary>
-    /// The updated value
-    /// </summary>
-    public string? Value { get; set; }
 }

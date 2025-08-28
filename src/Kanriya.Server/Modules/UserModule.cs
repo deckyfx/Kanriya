@@ -111,7 +111,7 @@ public class UserAuthMutations
     /// Sign up a new user
     /// </summary>
     [GraphQLName("signUp")]
-    public async Task<AuthPayload> SignUp(
+    public async Task<AuthOutput> SignUp(
         SignUpInput input,
         [Service] IUserService userService,
         [Service] ITopicEventSender sender,
@@ -122,7 +122,7 @@ public class UserAuthMutations
         // Note: PendingUser creation event could be published here if we had access to the PendingUser
         // For now, we rely on the service to handle this internally
         
-        return new AuthPayload
+        return new AuthOutput
         {
             Success = result.Success,
             Message = result.Message,
@@ -134,7 +134,7 @@ public class UserAuthMutations
     /// Verify email address with token
     /// </summary>
     [GraphQLName("verifyEmail")]
-    public async Task<AuthPayload> VerifyEmail(
+    public async Task<AuthOutput> VerifyEmail(
         string verificationToken,
         [Service] IUserService userService,
         [Service] ITopicEventSender sender,
@@ -161,7 +161,7 @@ public class UserAuthMutations
             // Note: PendingUser deletion event is handled by the service
         }
         
-        return new AuthPayload
+        return new AuthOutput
         {
             Success = result.Success,
             Message = result.Message,
@@ -174,14 +174,14 @@ public class UserAuthMutations
     /// Sign in an existing user
     /// </summary>
     [GraphQLName("signIn")]
-    public async Task<AuthPayload> SignIn(
+    public async Task<AuthOutput> SignIn(
         SignInInput input,
         [Service] IUserService userService,
         CancellationToken cancellationToken = default)
     {
         var result = await userService.SignInAsync(input.Email, input.Password, input.BrandId, cancellationToken);
         
-        return new AuthPayload
+        return new AuthOutput
         {
             Success = result.Success,
             Message = result.Message,
@@ -194,14 +194,14 @@ public class UserAuthMutations
     /// Resend verification email
     /// </summary>
     [GraphQLName("resendVerification")]
-    public async Task<AuthPayload> ResendVerification(
+    public async Task<AuthOutput> ResendVerification(
         string email,
         [Service] IUserService userService,
         CancellationToken cancellationToken = default)
     {
         var result = await userService.ResendVerificationAsync(email, cancellationToken);
         
-        return new AuthPayload
+        return new AuthOutput
         {
             Success = result.Success,
             Message = result.Message,
@@ -214,7 +214,7 @@ public class UserAuthMutations
     /// </summary>
     [Authorize]
     [GraphQLName("changePassword")]
-    public async Task<AuthPayload> ChangePassword(
+    public async Task<AuthOutput> ChangePassword(
         string currentPassword,
         string newPassword,
         [Service] IUserService userService,
@@ -223,7 +223,7 @@ public class UserAuthMutations
     {
         if (currentUser?.User == null)
         {
-            return new AuthPayload
+            return new AuthOutput
             {
                 Success = false,
                 Message = "User not authenticated"
@@ -236,7 +236,7 @@ public class UserAuthMutations
             newPassword, 
             cancellationToken);
         
-        return new AuthPayload
+        return new AuthOutput
         {
             Success = result.Success,
             Message = result.Message
@@ -251,7 +251,7 @@ public class UserAuthMutations
     /// </summary>
     [GraphQLName("requestPasswordReset")]
     [GraphQLDescription("Request a password reset link to be sent to your email. Use this when you've forgotten your password and cannot sign in.")]
-    public async Task<AuthPayload> RequestPasswordReset(
+    public async Task<AuthOutput> RequestPasswordReset(
         [GraphQLDescription("The email address associated with your account")]
         string email,
         [Service] IUserService userService,
@@ -259,7 +259,7 @@ public class UserAuthMutations
     {
         var result = await userService.RequestPasswordResetAsync(email, cancellationToken);
         
-        return new AuthPayload
+        return new AuthOutput
         {
             Success = result.Success,
             Message = result.Message,
@@ -276,7 +276,7 @@ public class UserAuthMutations
     /// </summary>
     [GraphQLName("resetPassword")]
     [GraphQLDescription("Reset your password using the token sent to your email. This is the second step after requesting a password reset.")]
-    public async Task<AuthPayload> ResetPassword(
+    public async Task<AuthOutput> ResetPassword(
         [GraphQLDescription("The reset token received via email")]
         string resetToken,
         [GraphQLDescription("Your new password (min 8 chars, must include uppercase, lowercase, and number)")]
@@ -286,7 +286,7 @@ public class UserAuthMutations
     {
         var result = await userService.ResetPasswordAsync(resetToken, newPassword, cancellationToken);
         
-        return new AuthPayload
+        return new AuthOutput
         {
             Success = result.Success,
             Message = result.Message
@@ -298,7 +298,7 @@ public class UserAuthMutations
     /// </summary>
     [Authorize]
     [GraphQLName("updateProfile")]
-    public async Task<AuthPayload> UpdateProfile(
+    public async Task<AuthOutput> UpdateProfile(
         string? fullName,
         string? profilePictureUrl,
         [Service] IUserService userService,
@@ -308,7 +308,7 @@ public class UserAuthMutations
     {
         if (currentUser?.User == null)
         {
-            return new AuthPayload
+            return new AuthOutput
             {
                 Success = false,
                 Message = "User not authenticated"
@@ -335,7 +335,7 @@ public class UserAuthMutations
             await sender.SendAsync("UserChanges", evt, cancellationToken);
         }
         
-        return new AuthPayload
+        return new AuthOutput
         {
             Success = updatedUser != null,
             Message = updatedUser != null ? "Profile updated successfully" : "Failed to update profile",

@@ -3,9 +3,9 @@ using Kanriya.Server.Data;
 namespace Kanriya.Server.Types.Outputs;
 
 /// <summary>
-/// Standard authentication response payload
+/// Standard authentication response output
 /// </summary>
-public class AuthPayload
+public class AuthOutput
 {
     /// <summary>
     /// Whether the operation was successful

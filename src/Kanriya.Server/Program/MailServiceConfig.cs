@@ -29,6 +29,7 @@ public static class MailServiceConfig
         services.AddSingleton<IBrandConnectionService, BrandConnectionService>();
         services.AddScoped<IBrandService, BrandService>();
         services.AddScoped<IApiCredentialService, ApiCredentialService>();
+        services.AddScoped<IOutletService, OutletService>();
         
         // Hangfire's IBackgroundJobClient is registered by Hangfire itself
         // Don't need to register it here - removed circular dependency

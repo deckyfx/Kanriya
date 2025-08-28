@@ -228,17 +228,38 @@ POSTGRES_PORT=15432  # Different port
 
 ## Key Features
 
-### Multi-Tenant Architecture
-- **Schema Isolation**: Each brand gets its own PostgreSQL schema (`brand_[guid]`)
-- **Dual Authentication**: 
-  - Principal users: Email/password authentication
-  - Brand users: API key authentication for programmatic access
-- **Role-Based Access**: BrandOwner and BrandOperator roles
-- **Dynamic Connection Management**: Automatic schema switching based on context
+### Multi-Tenant Architecture with Dual Contexts
+- **Complete Schema Isolation**: Each brand gets its own PostgreSQL schema (`brand_[guid]`)
+- **Dual Authentication Contexts**: 
+  - **Principal Context**: Email/password authentication for system administration
+  - **Brand Context**: API key/password authentication for brand-specific operations
+- **Immutable Brand Registry**: Brand names in registry cannot be changed (security feature)
+- **Brand Info Management**: Mutable brand configuration stored in `brand_xxx.infoes` table
+- **Role-Based Access**: 
+  - Principal: SuperAdmin, BrandOwner, BrandOperator roles
+  - Brand: BrandOwner, BrandOperator roles within brand context
+- **Cross-Brand Security**: Brand tokens are scoped to specific brands, preventing cross-access
+- **Dynamic Connection Management**: Automatic schema switching based on authentication context
+
+### Authentication & Authorization Architecture
+- **JWT Token Types**: 
+  - Principal tokens: `token_type: null` (system-wide access)
+  - Brand tokens: `token_type: BRAND` with `brand_id` and `brand_schema` claims
+- **Context Detection**: Middleware automatically detects token type and populates `CurrentUser`
+- **GraphQL Integration**: `CurrentUserGlobalState` makes auth context available to all resolvers
+- **Authorization Boundaries**: Brand operations require brand-context authentication
 
 ### Service Architecture
-- **Data Services**: User management, brand management, database operations
-- **System Services**: Logging, mailing, background jobs, monitoring
+- **Data Services** (`/Services/Data/`): 
+  - `UserService`: User authentication and management
+  - `BrandService`: Brand creation and schema management
+  - `BrandConnectionService`: Dynamic database connections per brand
+  - `PostgreSQLManagementService`: Schema and user management
+  - `ApiCredentialService`: Secure API credential generation
+- **System Services** (`/Services/System/`): 
+  - `LogService`: Centralized logging with Serilog
+  - `MailerService`: Email queue and template management
+  - `MailProcessor`: Background email processing with Hangfire
 - **Centralized Configuration**: All environment variables through `EnvironmentConfig`
 - **Clean Separation**: Business logic in services, GraphQL in modules
 
@@ -298,24 +319,60 @@ mutation {
   }
 }
 
-# Create a Brand (requires authentication)
+# Create a Brand (requires principal authentication)
 mutation {
   createBrand(input: {
     name: "Geprek Bensu"
-    contactEmail: "admin@geprekbensu.com"
   }) {
     success
+    message
     brand {
       id
       name
       schemaName
     }
+    apiSecret    # Save this - shown only once!
+    apiPassword  # Save this - shown only once!
   }
 }
 
-# Get My Brands
+# Sign in with Brand API Credentials
+mutation {
+  signIn(input: {
+    email: "YOUR_API_SECRET"      # Use apiSecret as email
+    password: "YOUR_API_PASSWORD"  # Use apiPassword as password
+    brandId: "YOUR_BRAND_ID"      # Brand ID from creation
+  }) {
+    success
+    token     # Brand-context JWT token
+    message
+  }
+}
+
+# Get Brand Info (requires brand-context token)
 query {
-  getMyBrands {
+  brandInfo {
+    key
+    value
+    createdAt
+    updatedAt
+  }
+}
+
+# Update Brand Info (requires brand-context token)
+mutation {
+  updateBrandInfo(input: {
+    key: "Brand Name"
+    value: "New Display Name"
+  }) {
+    success
+    message
+  }
+}
+
+# Get My Brands (requires principal authentication)
+query {
+  myBrands {
     id
     name
     isActive

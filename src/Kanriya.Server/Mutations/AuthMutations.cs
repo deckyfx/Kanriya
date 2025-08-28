@@ -18,7 +18,7 @@ public class AuthMutations
     /// Sign up a new user
     /// Creates a pending user that requires email verification
     /// </summary>
-    public async Task<AuthPayload> SignUp(
+    public async Task<AuthOutput> SignUp(
         SignUpInput input,
         [Service] IUserService userService,
         [Service] IHttpContextAccessor httpContextAccessor,
@@ -29,7 +29,7 @@ public class AuthMutations
             input.Password,
             cancellationToken);
         
-        return new AuthPayload
+        return new AuthOutput
         {
             Success = result.Success,
             Message = result.Message,
@@ -46,7 +46,7 @@ public class AuthMutations
     /// Moves user from pending to active
     /// Note: Does not return JWT token - user must sign in after activation
     /// </summary>
-    public async Task<AuthPayload> VerifyEmail(
+    public async Task<AuthOutput> VerifyEmail(
         string verificationToken,
         [Service] IUserService userService,
         CancellationToken cancellationToken = default)
@@ -55,7 +55,7 @@ public class AuthMutations
         
         // Don't generate token here - user must sign in after email verification
         
-        return new AuthPayload
+        return new AuthOutput
         {
             Success = result.Success,
             Message = result.Success 
@@ -70,7 +70,7 @@ public class AuthMutations
     /// Sign in an existing user
     /// Returns JWT token on success
     /// </summary>
-    public async Task<AuthPayload> SignIn(
+    public async Task<AuthOutput> SignIn(
         SignInInput input,
         [Service] IUserService userService,
         CancellationToken cancellationToken = default)
@@ -81,7 +81,7 @@ public class AuthMutations
             input.BrandId,
             cancellationToken);
         
-        return new AuthPayload
+        return new AuthOutput
         {
             Success = result.Success,
             Message = result.Message,
@@ -94,14 +94,14 @@ public class AuthMutations
     /// Resend verification email
     /// Generates new token for pending users
     /// </summary>
-    public async Task<AuthPayload> ResendVerification(
+    public async Task<AuthOutput> ResendVerification(
         string email,
         [Service] IUserService userService,
         CancellationToken cancellationToken = default)
     {
         var result = await userService.ResendVerificationAsync(email, cancellationToken);
         
-        return new AuthPayload
+        return new AuthOutput
         {
             Success = result.Success,
             Message = result.Message,
@@ -115,7 +115,7 @@ public class AuthMutations
     /// Change user password (requires authentication)
     /// </summary>
     [Authorize]
-    public async Task<AuthPayload> ChangePassword(
+    public async Task<AuthOutput> ChangePassword(
         string currentPassword,
         string newPassword,
         [Service] IUserService userService,
@@ -124,7 +124,7 @@ public class AuthMutations
     {
         if (currentUser?.User == null)
         {
-            return new AuthPayload
+            return new AuthOutput
             {
                 Success = false,
                 Message = "User not authenticated"
@@ -137,7 +137,7 @@ public class AuthMutations
             newPassword,
             cancellationToken);
         
-        return new AuthPayload
+        return new AuthOutput
         {
             Success = result.Success,
             Message = result.Message
@@ -148,7 +148,7 @@ public class AuthMutations
     /// Update user profile (requires authentication)
     /// </summary>
     [Authorize]
-    public async Task<AuthPayload> UpdateProfile(
+    public async Task<AuthOutput> UpdateProfile(
         string? fullName,
         string? profilePictureUrl,
         [Service] IUserService userService,
@@ -157,7 +157,7 @@ public class AuthMutations
     {
         if (currentUser?.User == null)
         {
-            return new AuthPayload
+            return new AuthOutput
             {
                 Success = false,
                 Message = "User not authenticated"
@@ -170,7 +170,7 @@ public class AuthMutations
             profilePictureUrl,
             cancellationToken);
         
-        return new AuthPayload
+        return new AuthOutput
         {
             Success = user != null,
             Message = user != null ? "Profile updated successfully" : "Failed to update profile",

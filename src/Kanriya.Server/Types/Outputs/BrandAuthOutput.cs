@@ -3,9 +3,9 @@ using Kanriya.Server.Data;
 namespace Kanriya.Server.Types.Outputs;
 
 /// <summary>
-/// Payload for brand authentication response
+/// Output for brand authentication response
 /// </summary>
-public class BrandAuthPayload
+public class BrandAuthOutput
 {
     public bool Success { get; set; }
     public string? Message { get; set; }

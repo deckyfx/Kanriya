@@ -80,8 +80,8 @@
 - /Mutations/BusinessMutations.cs → BrandMutations.cs (if separate)
 
 ### Type Files (Pending)
-- /Types/Outputs/BusinessPayloads.cs → BrandPayloads.cs
-- /Types/Outputs/BusinessAuthPayload.cs → BrandAuthPayload.cs
+- /Types/Outputs/BusinessOutputs.cs → BrandOutputs.cs
+- /Types/Outputs/BusinessAuthOutput.cs → BrandAuthOutput.cs
 - /Types/Inputs/CreateBusinessInput.cs → CreateBrandInput.cs
 - /Types/Inputs/UpdateBusinessInput.cs → UpdateBrandInput.cs
 - /Types/Inputs/SignInInput.cs (update BusinessId → BrandId)

@@ -214,6 +214,43 @@ public class BrandService : IBrandService
         ", connection);
         await createInfoesTable.ExecuteNonQueryAsync();
         
+        // Create outlets table
+        using var createOutletsTable = new NpgsqlCommand(@$"
+            CREATE TABLE IF NOT EXISTS {brand.SchemaName}.outlets (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                code VARCHAR(50) NOT NULL,
+                name VARCHAR(255) NOT NULL,
+                address TEXT,
+                is_active BOOLEAN DEFAULT true,
+                created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(code)
+            );
+            
+            CREATE INDEX IF NOT EXISTS ix_{brand.SchemaName}_outlets_code 
+                ON {brand.SchemaName}.outlets(code);
+            CREATE INDEX IF NOT EXISTS ix_{brand.SchemaName}_outlets_is_active 
+                ON {brand.SchemaName}.outlets(is_active);
+        ", connection);
+        await createOutletsTable.ExecuteNonQueryAsync();
+        
+        // Create user_outlets table (user-outlet permissions)
+        using var createUserOutletsTable = new NpgsqlCommand(@$"
+            CREATE TABLE IF NOT EXISTS {brand.SchemaName}.user_outlets (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                user_id UUID NOT NULL REFERENCES {brand.SchemaName}.users(id) ON DELETE CASCADE,
+                outlet_id UUID NOT NULL REFERENCES {brand.SchemaName}.outlets(id) ON DELETE CASCADE,
+                created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(user_id, outlet_id)
+            );
+            
+            CREATE INDEX IF NOT EXISTS ix_{brand.SchemaName}_user_outlets_user_id 
+                ON {brand.SchemaName}.user_outlets(user_id);
+            CREATE INDEX IF NOT EXISTS ix_{brand.SchemaName}_user_outlets_outlet_id 
+                ON {brand.SchemaName}.user_outlets(outlet_id);
+        ", connection);
+        await createUserOutletsTable.ExecuteNonQueryAsync();
+        
         // Insert initial brand name info
         using var insertBrandName = new NpgsqlCommand(@$"
             INSERT INTO {brand.SchemaName}.infoes (key, value)
@@ -223,7 +260,7 @@ public class BrandService : IBrandService
         insertBrandName.Parameters.AddWithValue("brandName", brand.Name);
         await insertBrandName.ExecuteNonQueryAsync();
         
-        _logger.LogInformation("Created brand schema tables (users, user_roles, infoes) for brand {BrandId} with name '{BrandName}'", 
+        _logger.LogInformation("Created brand schema tables (users, user_roles, infoes, outlets, user_outlets) for brand {BrandId} with name '{BrandName}'", 
             brand.Id, brand.Name);
     }
     

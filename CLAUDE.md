@@ -1,19 +1,42 @@
 # Project Structure Guidelines - Multi-Tenant Brand Management System
 
-## Multi-Tenant Architecture
+## Multi-Tenant Architecture with Dual Contexts
 
-This project implements a multi-tenant architecture using PostgreSQL schema isolation:
+This project implements a sophisticated multi-tenant architecture using PostgreSQL schema isolation with dual authentication contexts:
 
-### Key Concepts
-- **Brand**: Represents a business entity (e.g., "Geprek Bensu" - an F&B brand with multiple outlets)
-- **Schema Isolation**: Each brand has its own PostgreSQL schema (e.g., `brand_[guid]`)
-- **Dual Authentication**: 
-  - Principal users: Email/password authentication (system-wide users)
-  - Brand users: API credentials authentication (brand-specific users)
+### Core Architectural Concepts
+
+#### 1. Brand (Multi-Tenant Entity)
+- Represents a business entity (e.g., "Geprek Bensu" - an F&B brand with multiple outlets)
+- Each brand is completely isolated from others
+- Has its own PostgreSQL schema, users, and data
+
+#### 2. Schema Isolation Strategy
+- **Pattern**: `brand_[guid]` (e.g., `brand_4b523a33_dade_4f9c_9be6_66ff2221ab0c`)
+- **Tables per schema**:
+  - `users`: Brand-specific users with API credentials
+  - `user_roles`: Role assignments for brand users
+  - `infoes`: Key-value configuration store (includes display name)
+- **Security**: Each schema has its own database user with restricted permissions
+
+#### 3. Dual Authentication Contexts
+**Principal Context** (System Administration):
+- Email/password authentication
+- System-wide operations (create brands, manage system users)
+- Cannot access brand-specific data directly
+- JWT token with `token_type: null`
+
+**Brand Context** (Business Operations - 90% of all operations):
+- API key/password authentication
+- Brand-specific operations
+- Scoped to single brand, cannot access other brands
+- JWT token with `token_type: BRAND`, includes `brand_id` and `brand_schema` claims
 
 ### Terminology
-- **Brand** = Multi-tenant entity (formerly "Business")
-- **BrandOwner** = Role for brand owners
+- **Brand** = Multi-tenant entity (never "Business" or "Tenant")
+- **Principal** = System-level user account
+- **BrandUser** = Brand-specific user with API credentials
+- **BrandOwner** = Role for brand administrators
 - **BrandOperator** = Role for brand operators
 - **brand_** = Schema prefix for brand-specific schemas
 
@@ -131,7 +154,7 @@ System services that handle infrastructure concerns:
   - `/Types/Outputs` - Custom output object types
 - **Naming**:
   - Input types: `*Input.cs` (e.g., `CreateBrandInput.cs`)
-  - Output types: `*Payload.cs` (e.g., `CreateBrandPayload.cs`)
+  - Output types: `*Output.cs` (e.g., `CreateBrandOutput.cs`)
 
 ### `/Data`
 - **Purpose**: Data access layer, EF Core context, entities
@@ -153,16 +176,72 @@ System services that handle infrastructure concerns:
 
 ```
 /Modules
-  - BrandModule.cs    # Contains BrandQueries and BrandMutations
+  - BrandModule.cs         # Contains BrandQueries and BrandMutations
 
 /Types/Inputs
-  - CreateBrandInput.cs
-  - BrandAuthInput.cs
+  - CreateBrandInput.cs    # Name only (simplified)
+  - UpdateBrandInfoInput.cs # Key-value for infoes table
 
-/Types/Outputs
-  - CreateBrandPayload.cs
-  - DeleteBrandPayload.cs
-  - BrandAuthPayload.cs
+/Types/Outputs  
+  - CreateBrandOutput.cs   # Includes apiSecret and apiPassword
+  - DeleteBrandOutput.cs   # Success/message response
+  - UpdateBrandInfoOutput.cs # Update confirmation
+  - BrandInfo.cs            # Key-value from infoes table
+```
+
+## Authentication Flow Architecture
+
+### Token Generation and Validation
+
+```csharp
+// Principal Token Claims
+{
+  "nameid": "user-guid",
+  "email": "user@example.com",
+  "roles": ["BrandOwner"],
+  "token_type": null  // Missing or null indicates principal
+}
+
+// Brand Token Claims  
+{
+  "nameid": "brand-user-guid",
+  "brand_id": "brand-guid",
+  "brand_schema": "brand_xxx",
+  "token_type": "BRAND",
+  "roles": ["BrandOwner"]
+}
+```
+
+### CurrentUser Population
+
+```csharp
+// AuthenticationMiddleware.cs
+if (tokenTypeClaim?.Value == "BRAND")
+{
+    currentUser.BrandUser = brandUser;
+    currentUser.BrandId = brandIdClaim.Value;
+    currentUser.BrandSchema = brandSchemaClaim.Value;
+}
+else
+{
+    currentUser.User = await userService.GetByIdAsync(userIdClaim.Value);
+}
+```
+
+### Authorization in GraphQL
+
+```csharp
+// Brand Context Required
+if (currentUser?.BrandUser == null || string.IsNullOrEmpty(currentUser.BrandId))
+{
+    throw new GraphQLException("Brand-context authentication required");
+}
+
+// Principal Context Required  
+if (currentUser?.User == null)
+{
+    throw new GraphQLException("Principal authentication required");
+}
 ```
 
 ## Testing and Validation
@@ -234,18 +313,42 @@ type EntityEvent {
 3. **Consistent field names** - Never use custom names like eventType, timestamp, etc.
 4. **Use generic base class** - Inherit from `SubscriptionEvent<T>` when possible
 
+## Critical Implementation Patterns
+
+### Brand Schema Creation
+When creating a new brand:
+1. Create PostgreSQL schema `brand_[guid]`
+2. Create database user `user_[guid]` with schema permissions
+3. Create tables: `users`, `user_roles`, `infoes`
+4. Insert initial brand owner in `users` table
+5. Insert BrandOwner role in `user_roles`
+6. Insert "Brand Name" in `infoes` table
+7. Log all created tables and data for verification
+
+### Brand Context Operations
+- **MUST** check `currentUser.BrandUser != null`
+- **MUST** verify `currentUser.BrandId` matches requested resource
+- **MUST** use brand-specific database connection
+- **NEVER** allow cross-brand data access
+
+### Immutability Rules
+- Brand names in registry are **IMMUTABLE**
+- Display names can only change in `brand_xxx.infoes` table
+- API credentials are shown **ONLY ONCE** at creation
+- Schema names never change after creation
+
 ## Notes for AI Assistant
 
 When working on this project:
-1. ALWAYS place queries in `/Queries` folder
-2. ALWAYS place mutations in `/Mutations` folder
-3. ALWAYS place subscriptions in `/Subscriptions` folder
-4. ALWAYS place types (input/output) in `/Types` folder
-5. Use partial classes when needed to split large files
-6. Follow the naming conventions strictly
-7. Keep business logic in Services, not in GraphQL operation classes
+1. **Module Pattern**: Use `/Modules` folder for combined Query/Mutation classes
+2. **Authorization First**: Always check context before operations
+3. **Brand Context is Primary**: 90% of operations are brand-scoped
+4. **Immutable Registry**: Never allow brand name updates in registry
+5. **Schema Isolation**: Each brand is completely isolated
+6. **Token Claims**: Use claims to determine authentication context
+7. **Service Layer**: All business logic in Services, not GraphQL resolvers
 8. **NEVER maintain backward compatibility during development**
 9. **ALWAYS remove old code when implementing new patterns**
 10. **Optimize for clean, efficient code over compatibility**
-11. **Organize services properly**: Data services in `/Services/Data`, system services in `/Services/System`
-12. **Use Brand terminology consistently**: Not Business, not Tenant (except for technical multi-tenant context)
+11. **Use Brand terminology consistently**: Not Business, not Tenant
+12. **Test Both Contexts**: Always test principal AND brand authentication paths
