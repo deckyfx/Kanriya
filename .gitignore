@@ -7,3 +7,4 @@ src/**/obj
 src/**/data
 data/seq/
 cache/
+publish/

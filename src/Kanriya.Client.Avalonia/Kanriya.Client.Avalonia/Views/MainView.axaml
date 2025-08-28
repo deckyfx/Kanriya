@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Kanriya.Client.Avalonia.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Kanriya.Client.Avalonia.Views.MainView"
+             x:DataType="vm:MainViewModel">
+  <Design.DataContext>
+    <!-- This only sets the DataContext for the previewer in an IDE,
+         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+    <vm:MainViewModel />
+  </Design.DataContext>
+
+  <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="20">
+    <TextBlock Text="Hello World Avalonia!" 
+               FontSize="32" 
+               FontWeight="Bold"
+               Foreground="#007ACC"
+               HorizontalAlignment="Center"/>
+    <TextBlock Text="Cross-Platform App Running on:" 
+               FontSize="18"
+               HorizontalAlignment="Center"/>
+    <TextBlock Text="{Binding Platform}" 
+               FontSize="24"
+               FontWeight="SemiBold"
+               Foreground="#4CAF50"
+               HorizontalAlignment="Center"/>
+    <TextBlock Text="{Binding Greeting}" 
+               FontSize="16"
+               Opacity="0.7"
+               HorizontalAlignment="Center"/>
+  </StackPanel>
+</UserControl>
