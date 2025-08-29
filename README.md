@@ -1,6 +1,12 @@
 # 🏢 Kanriya
 
+<div align="center">
+
+![Kanriya Logo](icons/web/icon-192.png)
+
 **Kanriya is All In One Business Management tools written in .NET 9**
+
+</div>
 
 ---
 
@@ -27,18 +33,24 @@
 
 ## 🧪 Testing
 
-1. **Run** `./bin/test`
+1. **Run** `./bin/test`y
 
 ## 🔧 Tech Stack
 
-- **Docker** - Containerization
-- **PostgreSQL** - Primary database
-- **ASP.NET Core** - Web framework
+### Backend
+- **Docker** - Containerization and deployment
+- **PostgreSQL** - Primary database with multi-tenant support
+- **ASP.NET Core** - Web framework and API server
 - **Entity Framework Core** - ORM and data access
 - **HotChocolate** - GraphQL server for .NET
 - **Serilog** - Structured logging
-- **Avalonia** - Cross-platform UI framework
 - **Hangfire** - Background job processing
+
+### Frontend  
+- **Avalonia** - Cross-platform UI framework (.NET 9)
+- **MVVM** - Clean separation with CommunityToolkit.Mvvm
+- **Responsive Design** - Adaptive layouts for all screen sizes
+- **Embedded Resources** - Fonts, icons, media embedded for offline use
 
 ## 📄 License
 

@@ -43,6 +43,7 @@
 
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>..\Kanriya.Client.Avalonia\Assets\kanriya-icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
