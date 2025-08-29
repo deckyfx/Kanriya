@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Kanriya.Server.Program;
+using Kanriya.Shared;
 
 namespace Kanriya.Server.Data;
 

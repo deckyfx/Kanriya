@@ -27,6 +27,7 @@ public class BuilderManager
     
     private void RegisterDefaultHooks()
     {
+        _hookManager.RegisterPreBuildHook(new ClientConfigPatchHook());
         _hookManager.RegisterPreBuildHook(new ValidateEnvironmentHook());
         _hookManager.RegisterPreBuildHook(new CleanOutputHook());
         _hookManager.RegisterPostBuildHook(new BuildSummaryHook());

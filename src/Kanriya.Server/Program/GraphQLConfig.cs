@@ -2,7 +2,9 @@ using HotChocolate.Data;
 using Kanriya.Server.Services;
 using Kanriya.Server.Services.System;
 using Kanriya.Server.Services.Data;
+using Kanriya.Shared;
 using Serilog.Context;
+using System.Reflection;
 
 namespace Kanriya.Server.Program;
 
@@ -110,7 +112,8 @@ public static class GraphQLConfig
                 return error;
             });
 
-        LogService.LogSuccess($"GraphQL server configured ({AppVersion.GetShortVersion()})");
+        var assembly = Assembly.GetExecutingAssembly();
+        LogService.LogSuccess($"GraphQL server configured ({BuildInfo.GetShortVersion(assembly)})");
     }
     
     /// <summary>

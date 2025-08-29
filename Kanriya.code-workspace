@@ -1,0 +1,460 @@
+{
+	"folders": [
+		{
+			"name": "🏠 Root",
+			"path": "."
+		},
+		{
+			"name": "🖥️ Server (GraphQL API)",
+			"path": "./src/Kanriya.Server"
+		},
+		{
+			"name": "📱 Client - Core",
+			"path": "./src/Kanriya.Client.Avalonia/Kanriya.Client.Avalonia"
+		},
+		{
+			"name": "🖥️ Client - Desktop",
+			"path": "./src/Kanriya.Client.Avalonia/Kanriya.Client.Avalonia.Desktop"
+		},
+		{
+			"name": "🌐 Client - Browser",
+			"path": "./src/Kanriya.Client.Avalonia/Kanriya.Client.Avalonia.Browser"
+		},
+		{
+			"name": "🤖 Client - Android",
+			"path": "./src/Kanriya.Client.Avalonia/Kanriya.Client.Avalonia.Android"
+		},
+		{
+			"name": "🍎 Client - iOS",
+			"path": "./src/Kanriya.Client.Avalonia/Kanriya.Client.Avalonia.iOS"
+		},
+		{
+			"name": "🔧 Client Builder",
+			"path": "./src/Kanriya.Client.Builder"
+		},
+		{
+			"name": "🔗 Shared Libraries",
+			"path": "./src/Kanriya.Shared"
+		},
+		{
+			"name": "🧪 Tests",
+			"path": "./src/Kanriya.Tests"
+		},
+		{
+			"name": "📚 Documentation",
+			"path": "./docs"
+		}
+	],
+	"settings": {
+		"files.exclude": {
+			"**/bin/": true,
+			"**/obj/": true,
+			"**/node_modules/": true,
+			"**/cache/": true,
+			"**/publish/": true,
+			"**/.vs/": true,
+			"**/*.user": true,
+			"**/*.log": true,
+			"**/Thumbs.db": true,
+			"**/.DS_Store": true
+		},
+		"search.exclude": {
+			"**/bin": true,
+			"**/obj": true,
+			"**/node_modules": true,
+			"**/cache": true,
+			"**/publish": true,
+			"**/.vs": true
+		},
+		"files.watcherExclude": {
+			"**/bin/**": true,
+			"**/obj/**": true,
+			"**/node_modules/**": true,
+			"**/cache/**": true,
+			"**/publish/**": true,
+			"**/.vs/**": true
+		},
+		"files.associations": {
+			"*.axaml": "xml",
+			"*.csproj": "xml",
+			"*.sln": "text",
+			"CLAUDE.md": "markdown",
+			"GEMINI.md": "markdown",
+			"*.graphql": "graphql"
+		},
+		"dotnet.defaultSolution": "Kanriya.sln",
+		"dotnet.preferCSharpExtension": true,
+		"omnisharp.enableEditorConfigSupport": true,
+		"omnisharp.enableRoslynAnalyzers": true,
+		"typescript.preferences.includePackageJsonAutoImports": "on",
+		"editor.formatOnSave": true,
+		"editor.codeActionsOnSave": {
+			"source.organizeImports": "explicit",
+			"source.fixAll": "explicit"
+		},
+		"csharp.format.enable": true,
+		"csharp.semanticHighlighting.enabled": true,
+		"graphql-config.load.legacy": true,
+		"markdown.preview.breaks": true,
+		"markdown.extension.toc.levels": "2..6",
+		"git.ignoreLimitWarning": true,
+		"explorer.fileNesting.enabled": true,
+		"explorer.fileNesting.expand": false,
+		"explorer.fileNesting.patterns": {
+			"*.cs": "$(capture).*.cs",
+			"*.csproj": "$(capture).csproj.user, Directory.Build.props, Directory.Packages.props",
+			"appsettings.json": "appsettings.*.json",
+			"package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, tsconfig.json, tailwind.config.js, postcss.config.js, webpack.config.js",
+			"*.axaml": "$(capture).axaml.cs",
+			"*.xaml": "$(capture).xaml.cs"
+		},
+		"dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true
+	},
+	"extensions": {
+		"recommendations": [
+			"ms-dotnettools.csharp",
+			"ms-dotnettools.csdevkit",
+			"ms-dotnettools.vscode-dotnet-runtime",
+			"avaloniateam.vscode-avalonia",
+			"formulahendry.dotnet-test-explorer",
+			"graphql.vscode-graphql",
+			"graphql.vscode-graphql-syntax",
+			"bradlc.vscode-tailwindcss",
+			"esbenp.prettier-vscode",
+			"ms-vscode.vscode-json",
+			"redhat.vscode-yaml",
+			"davidanson.vscode-markdownlint",
+			"yzhang.markdown-all-in-one",
+			"docsmsft.docs-markdown",
+			"ms-vscode.vscode-typescript-next",
+			"christian-kohler.path-intellisense",
+			"visualstudioexptteam.vscodeintellicode",
+			"ms-vscode.powershell",
+			"formulahendry.auto-rename-tag",
+			"streetsidesoftware.code-spell-checker",
+			"editorconfig.editorconfig",
+			"gruntfuggly.todo-tree",
+			"aaron-bond.better-comments"
+		],
+		"unwantedRecommendations": [
+			"ms-vscode.vscode-xml"
+		]
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"name": "🖥️ Launch Server",
+				"type": "coreclr",
+				"request": "launch",
+				"preLaunchTask": "build-server",
+				"program": "${workspaceFolder}/src/Kanriya.Server/bin/Debug/net9.0/Kanriya.Server.dll",
+				"args": [],
+				"cwd": "${workspaceFolder}/src/Kanriya.Server",
+				"stopAtEntry": false,
+				"serverReadyAction": {
+					"action": "openExternally",
+					"pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+				},
+				"env": {
+					"ASPNETCORE_ENVIRONMENT": "Development",
+					"ASPNETCORE_URLS": "http://localhost:5000"
+				},
+				"sourceFileMap": {
+					"/Views": "${workspaceFolder}/src/Kanriya.Server/Views"
+				}
+			},
+			{
+				"name": "🖥️ Launch Desktop Client",
+				"type": "coreclr",
+				"request": "launch",
+				"preLaunchTask": "build-client-desktop",
+				"program": "${workspaceFolder}/src/Kanriya.Client.Avalonia/Kanriya.Client.Avalonia.Desktop/bin/Debug/net9.0/Kanriya.Client.Avalonia.Desktop.dll",
+				"args": [],
+				"cwd": "${workspaceFolder}/src/Kanriya.Client.Avalonia/Kanriya.Client.Avalonia.Desktop",
+				"stopAtEntry": false
+			},
+			{
+				"name": "🌐 Launch Browser Client",
+				"type": "coreclr",
+				"request": "launch",
+				"preLaunchTask": "build-client-browser",
+				"program": "${workspaceFolder}/src/Kanriya.Client.Avalonia/Kanriya.Client.Avalonia.Browser/bin/Debug/net9.0/Kanriya.Client.Avalonia.Browser.dll",
+				"args": [],
+				"cwd": "${workspaceFolder}/src/Kanriya.Client.Avalonia/Kanriya.Client.Avalonia.Browser",
+				"stopAtEntry": false,
+				"serverReadyAction": {
+					"action": "openExternally",
+					"pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+				}
+			},
+			{
+				"name": "🤖 Debug Android Client",
+				"type": "coreclr",
+				"request": "launch",
+				"preLaunchTask": "build-client-android",
+				"program": "${workspaceFolder}/src/Kanriya.Client.Avalonia/Kanriya.Client.Avalonia.Android/bin/Debug/net9.0-android/Kanriya.Client.Avalonia.Android.dll",
+				"args": [],
+				"cwd": "${workspaceFolder}/src/Kanriya.Client.Avalonia/Kanriya.Client.Avalonia.Android",
+				"stopAtEntry": false
+			},
+			{
+				"name": "🔧 Launch Client Builder",
+				"type": "coreclr",
+				"request": "launch",
+				"preLaunchTask": "build-client-builder",
+				"program": "${workspaceFolder}/src/Kanriya.Client.Builder/bin/Debug/net9.0/Kanriya.Client.Builder.dll",
+				"args": [],
+				"cwd": "${workspaceFolder}/src/Kanriya.Client.Builder",
+				"stopAtEntry": false,
+				"console": "integratedTerminal"
+			},
+			{
+				"name": "🧪 Run Tests",
+				"type": "coreclr",
+				"request": "launch",
+				"preLaunchTask": "build-tests",
+				"program": "${workspaceFolder}/src/Kanriya.Tests/bin/Debug/net9.0/Kanriya.Tests.dll",
+				"args": [],
+				"cwd": "${workspaceFolder}/src/Kanriya.Tests",
+				"stopAtEntry": false,
+				"console": "integratedTerminal"
+			}
+		],
+		"compounds": [
+			{
+				"name": "🚀 Launch Server + Desktop Client",
+				"configurations": ["🖥️ Launch Server", "🖥️ Launch Desktop Client"],
+				"stopAll": true
+			},
+			{
+				"name": "🌐 Launch Server + Browser Client",
+				"configurations": ["🖥️ Launch Server", "🌐 Launch Browser Client"],
+				"stopAll": true
+			}
+		]
+	},
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "build-server",
+				"command": "dotnet",
+				"type": "process",
+				"args": ["build", "${workspaceFolder}/src/Kanriya.Server/Kanriya.Server.csproj", "/property:GenerateFullPaths=true", "/consoleloggerparameters:NoSummary"],
+				"problemMatcher": "$msCompile",
+				"group": "build"
+			},
+			{
+				"label": "build-client-desktop",
+				"command": "dotnet",
+				"type": "process",
+				"args": ["build", "${workspaceFolder}/src/Kanriya.Client.Avalonia/Kanriya.Client.Avalonia.Desktop/Kanriya.Client.Avalonia.Desktop.csproj", "/property:GenerateFullPaths=true", "/consoleloggerparameters:NoSummary"],
+				"problemMatcher": "$msCompile",
+				"group": "build"
+			},
+			{
+				"label": "build-client-browser",
+				"command": "dotnet",
+				"type": "process",
+				"args": ["build", "${workspaceFolder}/src/Kanriya.Client.Avalonia/Kanriya.Client.Avalonia.Browser/Kanriya.Client.Avalonia.Browser.csproj", "/property:GenerateFullPaths=true", "/consoleloggerparameters:NoSummary"],
+				"problemMatcher": "$msCompile",
+				"group": "build"
+			},
+			{
+				"label": "build-client-android",
+				"command": "dotnet",
+				"type": "process",
+				"args": ["build", "${workspaceFolder}/src/Kanriya.Client.Avalonia/Kanriya.Client.Avalonia.Android/Kanriya.Client.Avalonia.Android.csproj", "/property:GenerateFullPaths=true", "/consoleloggerparameters:NoSummary"],
+				"problemMatcher": "$msCompile",
+				"group": "build"
+			},
+			{
+				"label": "build-client-ios",
+				"command": "dotnet",
+				"type": "process",
+				"args": ["build", "${workspaceFolder}/src/Kanriya.Client.Avalonia/Kanriya.Client.Avalonia.iOS/Kanriya.Client.Avalonia.iOS.csproj", "/property:GenerateFullPaths=true", "/consoleloggerparameters:NoSummary"],
+				"problemMatcher": "$msCompile",
+				"group": "build"
+			},
+			{
+				"label": "build-client-core",
+				"command": "dotnet",
+				"type": "process",
+				"args": ["build", "${workspaceFolder}/src/Kanriya.Client.Avalonia/Kanriya.Client.Avalonia/Kanriya.Client.Avalonia.csproj", "/property:GenerateFullPaths=true", "/consoleloggerparameters:NoSummary"],
+				"problemMatcher": "$msCompile",
+				"group": "build"
+			},
+			{
+				"label": "build-client-builder",
+				"command": "dotnet",
+				"type": "process",
+				"args": ["build", "${workspaceFolder}/src/Kanriya.Client.Builder/Kanriya.Client.Builder.csproj", "/property:GenerateFullPaths=true", "/consoleloggerparameters:NoSummary"],
+				"problemMatcher": "$msCompile",
+				"group": "build"
+			},
+			{
+				"label": "build-tests",
+				"command": "dotnet",
+				"type": "process",
+				"args": ["build", "${workspaceFolder}/src/Kanriya.Tests/Kanriya.Tests.csproj", "/property:GenerateFullPaths=true", "/consoleloggerparameters:NoSummary"],
+				"problemMatcher": "$msCompile",
+				"group": "build"
+			},
+			{
+				"label": "build-all",
+				"command": "dotnet",
+				"type": "process",
+				"args": ["build", "${workspaceFolder}/Kanriya.sln", "/property:GenerateFullPaths=true", "/consoleloggerparameters:NoSummary"],
+				"problemMatcher": "$msCompile",
+				"group": {
+					"kind": "build",
+					"isDefault": true
+				}
+			},
+			{
+				"label": "clean-all",
+				"command": "dotnet",
+				"type": "process",
+				"args": ["clean", "${workspaceFolder}/Kanriya.sln"],
+				"problemMatcher": "$msCompile",
+				"group": "build"
+			},
+			{
+				"label": "restore",
+				"command": "dotnet",
+				"type": "process",
+				"args": ["restore", "${workspaceFolder}/Kanriya.sln"],
+				"problemMatcher": "$msCompile",
+				"group": "build"
+			},
+			{
+				"label": "run-server",
+				"command": "dotnet",
+				"type": "process",
+				"args": ["run", "--project", "${workspaceFolder}/src/Kanriya.Server/Kanriya.Server.csproj"],
+				"group": "test",
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"focus": false,
+					"panel": "new"
+				}
+			},
+			{
+				"label": "run-tests",
+				"command": "dotnet",
+				"type": "process",
+				"args": ["run", "--project", "${workspaceFolder}/src/Kanriya.Tests/Kanriya.Tests.csproj"],
+				"group": "test",
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"focus": false,
+					"panel": "new"
+				}
+			},
+			{
+				"label": "export-graphql-schema",
+				"command": "dotnet",
+				"type": "process",
+				"args": ["run", "--project", "${workspaceFolder}/src/Kanriya.Server/Kanriya.Server.csproj", "--", "schema", "export", "--output", "schema.graphql"],
+				"group": "build",
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"focus": false,
+					"panel": "new"
+				}
+			},
+			{
+				"label": "database-update",
+				"command": "dotnet",
+				"type": "process",
+				"args": ["ef", "database", "update", "--project", "${workspaceFolder}/src/Kanriya.Server/Kanriya.Server.csproj", "--context", "AppDbContext"],
+				"group": "build",
+				"options": {
+					"cwd": "${workspaceFolder}/src/Kanriya.Server"
+				}
+			},
+			{
+				"label": "build-client-all-platforms",
+				"command": "dotnet",
+				"type": "shell",
+				"args": ["run", "--project", "${workspaceFolder}/src/Kanriya.Client.Builder/Kanriya.Client.Builder.csproj"],
+				"group": "build",
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"focus": false,
+					"panel": "new"
+				}
+			},
+			{
+				"label": "npm-install-server",
+				"command": "npm",
+				"type": "shell",
+				"args": ["install"],
+				"options": {
+					"cwd": "${workspaceFolder}/src/Kanriya.Server"
+				},
+				"group": "build"
+			},
+			{
+				"label": "tailwind-build",
+				"command": "npm",
+				"type": "shell",
+				"args": ["run", "build"],
+				"options": {
+					"cwd": "${workspaceFolder}/src/Kanriya.Server"
+				},
+				"group": "build"
+			},
+			{
+				"label": "run-client-desktop",
+				"command": "dotnet",
+				"type": "process",
+				"args": ["run", "--project", "${workspaceFolder}/src/Kanriya.Client.Avalonia/Kanriya.Client.Avalonia.Desktop/Kanriya.Client.Avalonia.Desktop.csproj"],
+				"group": "test",
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"focus": false,
+					"panel": "new"
+				}
+			},
+			{
+				"label": "run-client-browser",
+				"command": "dotnet",
+				"type": "process",
+				"args": ["run", "--project", "${workspaceFolder}/src/Kanriya.Client.Avalonia/Kanriya.Client.Avalonia.Browser/Kanriya.Client.Avalonia.Browser.csproj"],
+				"group": "test",
+				"presentation": {
+					"echo": true,
+					"reveal": "always",
+					"focus": false,
+					"panel": "new"
+				}
+			},
+			{
+				"label": "build-all-clients",
+				"dependsOrder": "parallel",
+				"dependsOn": [
+					"build-client-core",
+					"build-client-desktop", 
+					"build-client-browser",
+					"build-client-android",
+					"build-client-ios"
+				],
+				"group": "build"
+			},
+			{
+				"label": "clean-all-clients",
+				"command": "dotnet",
+				"type": "shell",
+				"args": ["clean", "${workspaceFolder}/src/Kanriya.Client.Avalonia/Kanriya.Client.Avalonia.sln"],
+				"group": "build"
+			}
+		]
+	}
+}

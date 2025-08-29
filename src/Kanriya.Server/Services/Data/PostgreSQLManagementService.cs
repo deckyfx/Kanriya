@@ -1,5 +1,6 @@
 using Npgsql;
 using Kanriya.Server.Program;
+using Kanriya.Shared;
 using Kanriya.Shared.Utils;
 
 namespace Kanriya.Server.Services.Data;
@@ -36,11 +37,11 @@ public class PostgreSQLManagementService : IPostgreSQLManagementService
     
     private string BuildMasterConnectionString()
     {
-        return $"Host={EnvironmentConfig.Database.Host};" +
-               $"Port={EnvironmentConfig.Database.Port};" +
-               $"Database={EnvironmentConfig.Database.DatabaseName};" +
-               $"Username={EnvironmentConfig.Database.Username};" +
-               $"Password={EnvironmentConfig.Database.Password};" +
+        return $"Host={Shared.EnvironmentConfig.Database.Host};" +
+               $"Port={Shared.EnvironmentConfig.Database.Port};" +
+               $"Database={Shared.EnvironmentConfig.Database.DatabaseName};" +
+               $"Username={Shared.EnvironmentConfig.Database.Username};" +
+               $"Password={Shared.EnvironmentConfig.Database.Password};" +
                "Include Error Detail=true";
     }
     
@@ -270,7 +271,7 @@ public class PostgreSQLManagementService : IPostgreSQLManagementService
             await connection.OpenAsync();
             
             // First, reassign owned objects to the current superuser (from connection string)
-            var currentUser = EnvironmentConfig.Database.Username;
+            var currentUser = Shared.EnvironmentConfig.Database.Username;
             using var reassignCommand = new NpgsqlCommand(
                 $"REASSIGN OWNED BY {username} TO {currentUser};", connection);
             await reassignCommand.ExecuteNonQueryAsync();

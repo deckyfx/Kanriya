@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Kanriya.Server.Data;
 using Kanriya.Server.Program;
+using Kanriya.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -41,7 +42,7 @@ public class MailProcessor : IMailProcessor
                            e.Attempts < e.MaxAttempts)
                 .OrderBy(e => e.Priority)
                 .ThenBy(e => e.CreatedAt)
-                .Take(EnvironmentConfig.Mail.BatchSize) // Process batch of emails at a time
+                .Take(Shared.EnvironmentConfig.Mail.BatchSize) // Process batch of emails at a time
                 .ToListAsync();
 
             if (!pendingEmails.Any())
@@ -51,7 +52,7 @@ public class MailProcessor : IMailProcessor
             }
 
             _logger.LogInformation("Processing {Count} pending emails (batch size: {BatchSize})", 
-                pendingEmails.Count, EnvironmentConfig.Mail.BatchSize);
+                pendingEmails.Count, Shared.EnvironmentConfig.Mail.BatchSize);
 
             foreach (var email in pendingEmails)
             {

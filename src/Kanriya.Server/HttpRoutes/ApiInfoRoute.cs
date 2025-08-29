@@ -1,6 +1,7 @@
-using Kanriya.Server.Program;
+using Kanriya.Shared;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OpenApi;
+using System.Reflection;
 
 namespace Kanriya.Server.HttpRoutes;
 
@@ -15,22 +16,27 @@ public static class ApiInfoRoute
     public static void MapApiInfoRoutes(this WebApplication app)
     {
         // Health check endpoint (simple HTTP)
-        app.MapGet("/health", () => Results.Ok(new
-        {
-            status = "healthy",
-            timestamp = DateTime.UtcNow,
-            version = AppVersion.GetFullVersion(),
-            environment = app.Environment.EnvironmentName
-        }))
+        app.MapGet("/health", () => {
+            var assembly = Assembly.GetExecutingAssembly();
+            return Results.Ok(new
+            {
+                status = "healthy",
+                timestamp = DateTime.UtcNow,
+                version = BuildInfo.GetFullVersion(assembly),
+                environment = app.Environment.EnvironmentName
+            });
+        })
         .WithName("HealthCheck")
         .WithOpenApi()
         .WithTags("Health");
         
         // API info endpoint
-        app.MapGet("/api", () => Results.Json(new
-        {
-            name = "GQLServer",
-            version = AppVersion.GetFullVersion(),
+        app.MapGet("/api", () => {
+            var assembly = Assembly.GetExecutingAssembly();
+            return Results.Json(new
+            {
+                name = "GQLServer",
+                version = BuildInfo.GetFullVersion(assembly),
             description = "GraphQL API Server with Authentication and Real-time Subscriptions",
             documentation = new
             {
@@ -76,7 +82,8 @@ public static class ApiInfoRoute
                 "Email Verification",
                 "Swagger Documentation"
             }
-        }))
+            });
+        })
         .WithName("ApiInfo")
         .WithOpenApi()
         .WithTags("Info");

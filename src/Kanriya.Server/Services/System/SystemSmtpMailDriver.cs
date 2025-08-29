@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Kanriya.Server.Program;
+using Kanriya.Shared;
 
 namespace Kanriya.Server.Services.System;
 
@@ -25,12 +26,12 @@ public class SystemSmtpMailDriver : IMailDriver
         _logger.LogDebug("Initializing SystemSmtpMailDriver...");
         _settings = LoadSmtpSettings();
         _logger.LogInformation("SystemSmtpMailDriver initialized with {Provider} provider", 
-            EnvironmentConfig.Mail.Provider);
+            Shared.EnvironmentConfig.Mail.Provider);
     }
 
     private SmtpSettings LoadSmtpSettings()
     {
-        var provider = EnvironmentConfig.Mail.Provider;
+        var provider = Shared.EnvironmentConfig.Mail.Provider;
         var settings = new SmtpSettings();
 
         if (provider.Equals("gmail", StringComparison.OrdinalIgnoreCase))
@@ -39,11 +40,11 @@ public class SystemSmtpMailDriver : IMailDriver
             settings.Host = "smtp.gmail.com";
             settings.Port = 587;
             settings.EnableSsl = true;
-            settings.Username = EnvironmentConfig.Mail.GmailUsername;
-            settings.Password = EnvironmentConfig.Mail.GmailAppPassword;
+            settings.Username = Shared.EnvironmentConfig.Mail.GmailUsername;
+            settings.Password = Shared.EnvironmentConfig.Mail.GmailAppPassword;
             // Gmail REQUIRES the FROM address to match the authenticated account
-            settings.FromEmail = EnvironmentConfig.Mail.GmailUsername; // Use Gmail account as FROM
-            settings.FromName = EnvironmentConfig.Mail.FromName;
+            settings.FromEmail = Shared.EnvironmentConfig.Mail.GmailUsername; // Use Gmail account as FROM
+            settings.FromName = Shared.EnvironmentConfig.Mail.FromName;
             
             _logger.LogInformation("Using Gmail SMTP configuration for {Username}", settings.Username);
             _logger.LogDebug("Gmail FROM address set to: {FromEmail}", settings.FromEmail);
@@ -55,16 +56,16 @@ public class SystemSmtpMailDriver : IMailDriver
             settings.Port = int.Parse(_configuration["Smtp:Port"] ?? "587");
             settings.Username = _configuration["Smtp:Username"] ?? "";
             settings.Password = _configuration["Smtp:Password"] ?? "";
-            settings.FromEmail = EnvironmentConfig.Mail.FromAddress;
-            settings.FromName = EnvironmentConfig.Mail.FromName;
+            settings.FromEmail = Shared.EnvironmentConfig.Mail.FromAddress;
+            settings.FromName = Shared.EnvironmentConfig.Mail.FromName;
             settings.EnableSsl = bool.Parse(_configuration["Smtp:EnableSsl"] ?? "true");
             
             _logger.LogInformation("Using generic SMTP configuration for host {Host}", settings.Host);
         }
 
         // Rate limiting configuration
-        settings.RateLimit = EnvironmentConfig.Mail.RateLimit;
-        settings.BatchSize = EnvironmentConfig.Mail.BatchSize;
+        settings.RateLimit = Shared.EnvironmentConfig.Mail.RateLimit;
+        settings.BatchSize = Shared.EnvironmentConfig.Mail.BatchSize;
 
         return settings;
     }

@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Kanriya.Server.Data;
 using Kanriya.Server.Data.BrandSchema;
 using Kanriya.Server.Program;
+using Kanriya.Shared;
 
 namespace Kanriya.Server.Services.Data;
 
@@ -71,9 +72,9 @@ public class BrandConnectionService : IBrandConnectionService
             : password;
         
         // Build connection string with brand-specific user and schema
-        var connectionString = $"Host={EnvironmentConfig.Database.Host};" +
-                              $"Port={EnvironmentConfig.Database.Port};" +
-                              $"Database={EnvironmentConfig.Database.DatabaseName};" +
+        var connectionString = $"Host={Shared.EnvironmentConfig.Database.Host};" +
+                              $"Port={Shared.EnvironmentConfig.Database.Port};" +
+                              $"Database={Shared.EnvironmentConfig.Database.DatabaseName};" +
                               $"Username={brand.DatabaseUser};" +
                               $"Password={escapedPassword};" +
                               $"Search Path={brand.SchemaName},public;" +
@@ -116,9 +117,9 @@ public class BrandConnectionService : IBrandConnectionService
             : password;
         
         // Build connection string with brand-specific user and schema
-        var connectionString = $"Host={EnvironmentConfig.Database.Host};" +
-                              $"Port={EnvironmentConfig.Database.Port};" +
-                              $"Database={EnvironmentConfig.Database.DatabaseName};" +
+        var connectionString = $"Host={Shared.EnvironmentConfig.Database.Host};" +
+                              $"Port={Shared.EnvironmentConfig.Database.Port};" +
+                              $"Database={Shared.EnvironmentConfig.Database.DatabaseName};" +
                               $"Username={brand.DatabaseUser};" +
                               $"Password={escapedPassword};" +
                               $"Search Path={brand.SchemaName},public;" +

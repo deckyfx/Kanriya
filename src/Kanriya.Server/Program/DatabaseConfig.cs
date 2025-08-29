@@ -16,7 +16,7 @@ public static class DatabaseConfig
     /// </summary>
     public static void ConfigureDatabase(IServiceCollection services)
     {
-        var connectionString = EnvironmentConfig.Database.GetConnectionString();
+        var connectionString = Shared.EnvironmentConfig.Database.GetConnectionString();
         
         services.AddDbContext<AppDbContext>(options =>
         {
@@ -47,7 +47,7 @@ public static class DatabaseConfig
         
         LogService.LogSuccess($"Database configured with PostgreSQL");
         LogService.LogInfo($"Connection: {GetSafeConnectionString(connectionString)}");
-        LogService.LogInfo($"Using {EnvironmentConfig.Database.Host}:{EnvironmentConfig.Database.Port} (set POSTGRES_HOST and POSTGRES_PORT in .env to change)");
+        LogService.LogInfo($"Using {Shared.EnvironmentConfig.Database.Host}:{Shared.EnvironmentConfig.Database.Port} (set POSTGRES_HOST and POSTGRES_PORT in .env to change)");
     }
     
     /// <summary>

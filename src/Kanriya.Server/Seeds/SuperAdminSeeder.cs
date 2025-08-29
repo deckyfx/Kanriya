@@ -1,5 +1,5 @@
 using Kanriya.Server.Data;
-using Kanriya.Server.Program;
+using Kanriya.Shared;
 using Kanriya.Server.Services;
 using Kanriya.Server.Services.System;
 using Microsoft.EntityFrameworkCore;
@@ -18,7 +18,7 @@ public class SuperAdminSeeder : ISeeder
     public async Task SeedAsync(IServiceProvider serviceProvider)
     {
         // Check if admin credentials are configured
-        if (!EnvironmentConfig.Admin.HasAdminConfig)
+        if (!Shared.EnvironmentConfig.Admin.HasAdminConfig)
         {
             LogService.LogInfo($"[{Name}] No admin credentials configured in environment. Skipping.");
             return;
@@ -27,8 +27,8 @@ public class SuperAdminSeeder : ISeeder
         var contextFactory = serviceProvider.GetRequiredService<IDbContextFactory<AppDbContext>>();
         using var context = await contextFactory.CreateDbContextAsync();
         
-        var adminEmail = EnvironmentConfig.Admin.Username!;
-        var adminPassword = EnvironmentConfig.Admin.Password!;
+        var adminEmail = Shared.EnvironmentConfig.Admin.Username!;
+        var adminPassword = Shared.EnvironmentConfig.Admin.Password!;
         
         // Check if user already exists
         var existingUser = await context.Users

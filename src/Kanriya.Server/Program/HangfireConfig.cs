@@ -15,7 +15,7 @@ public static class HangfireConfig
     /// </summary>
     public static void ConfigureHangfireServices(IServiceCollection services, IConfiguration configuration)
     {
-        var connectionString = EnvironmentConfig.Database.GetConnectionString();
+        var connectionString = Shared.EnvironmentConfig.Database.GetConnectionString();
         
         // Add Hangfire services
         services.AddHangfire(config => config

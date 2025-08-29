@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Kanriya.Server.Data;
 using Kanriya.Server.Program;
+using Kanriya.Shared;
 using Kanriya.Server.Types.Outputs;
 using HotChocolate.Subscriptions;
 using Microsoft.EntityFrameworkCore;
@@ -534,7 +535,7 @@ public class UserService : IUserService
         await dbContext.SaveChangesAsync(cancellationToken);
         
         // Send email with reset token
-        var resetLink = $"{EnvironmentConfig.App.BaseUrl}/reset-password?token={resetToken}";
+        var resetLink = $"{Shared.EnvironmentConfig.Server.BaseUrl}/reset-password?token={resetToken}";
         await _mailerService.SendPasswordResetEmailAsync(email, resetToken, resetLink);
         
         _logger.LogInformation("Password reset requested for user {Email}", email);
@@ -857,10 +858,10 @@ public class UserService : IUserService
     
     public string GenerateJwtToken(User user)
     {
-        var secretKey = EnvironmentConfig.Jwt.Secret;
-        var issuer = EnvironmentConfig.Jwt.Issuer;
-        var audience = EnvironmentConfig.Jwt.Audience;
-        var expirationMinutes = EnvironmentConfig.Jwt.ExpirationMinutes;
+        var secretKey = Shared.EnvironmentConfig.Jwt.Secret;
+        var issuer = Shared.EnvironmentConfig.Jwt.Issuer;
+        var audience = Shared.EnvironmentConfig.Jwt.Audience;
+        var expirationMinutes = Shared.EnvironmentConfig.Jwt.ExpirationMinutes;
         
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -898,10 +899,10 @@ public class UserService : IUserService
     /// </summary>
     private async Task<string> GenerateBrandJwtTokenAsync(string userId, string brandId, string schemaName, string[] roles)
     {
-        var secretKey = EnvironmentConfig.Jwt.Secret;
-        var issuer = EnvironmentConfig.Jwt.Issuer;
-        var audience = EnvironmentConfig.Jwt.Audience;
-        var expirationMinutes = EnvironmentConfig.Jwt.ExpirationMinutes;
+        var secretKey = Shared.EnvironmentConfig.Jwt.Secret;
+        var issuer = Shared.EnvironmentConfig.Jwt.Issuer;
+        var audience = Shared.EnvironmentConfig.Jwt.Audience;
+        var expirationMinutes = Shared.EnvironmentConfig.Jwt.ExpirationMinutes;
         
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -985,7 +986,7 @@ public class UserService : IUserService
         try
         {
             // Generate activation URL using public-facing URL
-            var baseUrl = EnvironmentConfig.App.PublicUrl;
+            var baseUrl = Shared.EnvironmentConfig.Server.PublicUrl;
             var activationUrl = $"{baseUrl}/api/auth/activate?token={pendingUser.VerificationToken}";
             
             // Prepare template data
@@ -1029,7 +1030,7 @@ public class UserService : IUserService
         try
         {
             // Generate login URL
-            var baseUrl = EnvironmentConfig.App.PublicUrl;
+            var baseUrl = Shared.EnvironmentConfig.Server.PublicUrl;
             var loginUrl = $"{baseUrl}/login";
             
             // Prepare template data
@@ -1073,7 +1074,7 @@ public class UserService : IUserService
     {
         try
         {
-            var baseUrl = EnvironmentConfig.App.PublicUrl;
+            var baseUrl = Shared.EnvironmentConfig.Server.PublicUrl;
             var resetUrl = $"{baseUrl}/api/auth/reset-password?token={resetToken}";
             
             var emailRequest = new SendEmailRequest

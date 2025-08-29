@@ -1,4 +1,5 @@
-using Kanriya.Server.Program;
+using Kanriya.Shared;
+using System.Reflection;
 
 namespace Kanriya.Server.Queries;
 
@@ -14,12 +15,13 @@ public class SystemQueries
     /// <returns>Version information object</returns>
     public VersionInfo GetVersion()
     {
+        var assembly = Assembly.GetExecutingAssembly();
         return new VersionInfo
         {
-            Version = AppVersion.Version,
-            Codename = AppVersion.Codename,
-            BuildDate = AppVersion.BuildDate,
-            FullVersion = AppVersion.GetFullVersion()
+            Version = BuildInfo.GetVersion(assembly),
+            Codename = BuildInfo.GetCodename(assembly),
+            BuildDate = BuildInfo.GetBuildDate(assembly),
+            FullVersion = BuildInfo.GetFullVersion(assembly)
         };
     }
     
@@ -29,11 +31,12 @@ public class SystemQueries
     /// <returns>Server status</returns>
     public HealthStatus GetHealth()
     {
+        var assembly = Assembly.GetExecutingAssembly();
         return new HealthStatus
         {
             Status = "healthy",
             Timestamp = DateTime.UtcNow,
-            Version = AppVersion.GetShortVersion()
+            Version = BuildInfo.GetShortVersion(assembly)
         };
     }
 }

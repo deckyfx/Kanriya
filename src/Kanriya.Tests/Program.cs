@@ -1,5 +1,6 @@
 using Kanriya.Tests.Helpers;
 using Kanriya.Tests.Suites;
+using Kanriya.Shared;
 using Spectre.Console;
 
 namespace Kanriya.Tests;
@@ -13,31 +14,23 @@ class Program
 
     static async Task Main(string[] args)
     {
-        // Load environment variables
-        LoadEnvironment();
+        // Load environment variables using Shared EnvironmentConfig
+        EnvironmentConfig.LoadEnvironment(debug: false);
         
-        // Setup
-        var port = Environment.GetEnvironmentVariable("SERVER_LISTEN_PORT") ?? "10000";
-        baseUrl = $"http://localhost:{port}";
+        // Setup using EnvironmentConfig
+        baseUrl = $"http://localhost:{EnvironmentConfig.Server.Port}";
         var serverUrl = $"{baseUrl}/graphql";
         
-        var dbHost = Environment.GetEnvironmentVariable("POSTGRES_HOST") ?? "localhost";
-        var dbPort = Environment.GetEnvironmentVariable("POSTGRES_PORT") ?? "10005";
-        var dbName = Environment.GetEnvironmentVariable("POSTGRES_DB") ?? "kanriya";
-        var dbUser = Environment.GetEnvironmentVariable("POSTGRES_USER") ?? "kanriya";
-        var dbPassword = Environment.GetEnvironmentVariable("POSTGRES_PASSWORD") ?? "kanriya";
-        var connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPassword}";
+        var connectionString = EnvironmentConfig.Database.GetConnectionString();
         
         // Initialize helpers
         graphQLClient = new GraphQLClient(serverUrl);
         userHelper = new UserTestHelper(graphQLClient, baseUrl);
         dbHelper = new DatabaseHelper(connectionString);
 
-        AnsiConsole.Clear();
-        AnsiConsole.Write(new FigletText("Kanriya Tests")
-            .Centered()
-            .Color(Color.Blue));
-        AnsiConsole.WriteLine();
+        // Display fancy banner
+        var assembly = System.Reflection.Assembly.GetExecutingAssembly();
+        BannerUtils.DisplayFancyBanner(assembly, "Comprehensive Test Suite for Kanriya Server", Color.Blue);
 
         // Run test suites based on argument
         var suite = args.Length > 0 ? args[0].ToLower() : "all";
@@ -153,29 +146,4 @@ class Program
         }
     }
 
-    static void LoadEnvironment()
-    {
-        var envPath = ".env";
-        for (int i = 0; i <= 3 && !File.Exists(envPath); i++)
-        {
-            envPath = Path.Combine(string.Join("/", Enumerable.Repeat("..", i)), ".env");
-        }
-
-        if (File.Exists(envPath))
-        {
-            foreach (var line in File.ReadAllLines(envPath))
-            {
-                if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#")) continue;
-                
-                var parts = line.Split('=', 2);
-                if (parts.Length == 2)
-                {
-                    var key = parts[0].Trim();
-                    var value = parts[1].Trim().Trim('"');
-                    if (key != "UID" && key != "GID")
-                        Environment.SetEnvironmentVariable(key, value);
-                }
-            }
-        }
-    }
 }

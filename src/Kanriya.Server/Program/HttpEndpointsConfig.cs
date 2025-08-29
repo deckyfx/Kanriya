@@ -1,7 +1,9 @@
 using Kanriya.Server.HttpRoutes;
 using Kanriya.Server.Services;
 using Kanriya.Server.Services.System;
+using Kanriya.Shared;
 using Microsoft.OpenApi.Models;
+using System.Reflection;
 
 namespace Kanriya.Server.Program;
 
@@ -32,10 +34,11 @@ public static class HttpEndpointsConfig
         // Configure Swagger/OpenAPI
         services.AddSwaggerGen(options =>
         {
+            var assembly = Assembly.GetExecutingAssembly();
             options.SwaggerDoc("v1", new OpenApiInfo
             {
                 Title = "GQLServer API",
-                Version = AppVersion.GetShortVersion(),
+                Version = BuildInfo.GetShortVersion(assembly),
                 Description = "REST API endpoints for GQLServer alongside GraphQL",
                 Contact = new OpenApiContact
                 {

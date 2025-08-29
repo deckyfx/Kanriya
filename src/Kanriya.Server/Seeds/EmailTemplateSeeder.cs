@@ -1,7 +1,7 @@
 using Kanriya.Server.Data;
 using Kanriya.Server.Services;
 using Kanriya.Server.Services.System;
-using Kanriya.Server.Program;
+using Kanriya.Shared;
 using Microsoft.EntityFrameworkCore;
 
 namespace Kanriya.Server.Seeds;
@@ -51,7 +51,7 @@ public class EmailTemplateSeeder : ISeeder
     
     private static List<EmailTemplate> GetSystemTemplates()
     {
-        var publicUrl = EnvironmentConfig.App.PublicUrl;
+        var publicUrl = Shared.EnvironmentConfig.Server.PublicUrl;
         var appName = "Kanriya";
         
         return new List<EmailTemplate>
@@ -109,8 +109,8 @@ This link will expire in 24 hours.
 If you didn't create an account, you can safely ignore this email.
 
 © {{year}} {{appName}}. All rights reserved.",
-                DefaultFromEmail = EnvironmentConfig.Mail.FromAddress,
-                DefaultFromName = EnvironmentConfig.Mail.FromName,
+                DefaultFromEmail = Shared.EnvironmentConfig.Mail.FromAddress,
+                DefaultFromName = Shared.EnvironmentConfig.Mail.FromName,
                 IsActive = true,
                 CreatedBy = "SYSTEM",
                 CreatedAt = DateTime.UtcNow,
@@ -178,8 +178,8 @@ If you didn't request a password reset, please ignore this email. Your password 
 For security reasons, this link can only be used once.
 
 © {{year}} {{appName}}. All rights reserved.",
-                DefaultFromEmail = EnvironmentConfig.Mail.FromAddress,
-                DefaultFromName = EnvironmentConfig.Mail.FromName,
+                DefaultFromEmail = Shared.EnvironmentConfig.Mail.FromAddress,
+                DefaultFromName = Shared.EnvironmentConfig.Mail.FromName,
                 IsActive = true,
                 CreatedBy = "SYSTEM",
                 CreatedAt = DateTime.UtcNow,
@@ -245,8 +245,8 @@ Go to Dashboard: {{loginUrl}}
 If you have any questions, feel free to contact our support team.
 
 © {{year}} {{appName}}. All rights reserved.",
-                DefaultFromEmail = EnvironmentConfig.Mail.FromAddress,
-                DefaultFromName = EnvironmentConfig.Mail.FromName,
+                DefaultFromEmail = Shared.EnvironmentConfig.Mail.FromAddress,
+                DefaultFromName = Shared.EnvironmentConfig.Mail.FromName,
                 IsActive = true,
                 CreatedBy = "SYSTEM",
                 CreatedAt = DateTime.UtcNow,

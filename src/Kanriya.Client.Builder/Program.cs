@@ -1,5 +1,7 @@
 using System.CommandLine;
+using System.Reflection;
 using Kanriya.Client.Builder.Utils;
+using Kanriya.Shared;
 using Spectre.Console;
 
 namespace Kanriya.Client.Builder;
@@ -27,14 +29,8 @@ public class Program
     
     private static void ShowBanner()
     {
-        AnsiConsole.Write(
-            new FigletText("Kanriya Builder")
-                .LeftJustified()
-                .Color(Color.Blue));
-        
-        AnsiConsole.WriteLine();
-        AnsiConsole.MarkupLine("[dim]Cross-platform build automation for Kanriya[/]");
-        AnsiConsole.WriteLine();
+        var assembly = Assembly.GetExecutingAssembly();
+        BannerUtils.DisplayFancyBanner(assembly, "Cross-platform build automation for Kanriya Client", Color.Green);
     }
     
     private static async Task<int> ShowBuildMenuDirectly()

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Kanriya.Server.ViewModels;
-using Kanriya.Server.Program;
+using Kanriya.Shared;
+using System.Reflection;
 
 namespace Kanriya.Server.Controllers;
 
@@ -15,10 +16,11 @@ public class HomeController : Controller
     [HttpGet("/")]
     public IActionResult Index()
     {
+        var assembly = Assembly.GetExecutingAssembly();
         var model = new HomeViewModel
         {
             Title = "GQLServer",
-            Version = AppVersion.GetFullVersion(),
+            Version = BuildInfo.GetFullVersion(assembly),
             Description = "A modern GraphQL API server with authentication, real-time subscriptions, and comprehensive data management capabilities.",
             GraphQLEndpoint = "/graphql",
             SwaggerEndpoint = "/swagger",

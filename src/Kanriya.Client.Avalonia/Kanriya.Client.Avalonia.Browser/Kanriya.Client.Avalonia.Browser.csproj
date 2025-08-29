@@ -1,10 +1,76 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WebAssembly">
+<Project Sdk="Microsoft.NET.Sdk.WebAssembly">
   <PropertyGroup>
     <TargetFramework>net9.0-browser</TargetFramework>
     <OutputType>Exe</OutputType>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Nullable>enable</Nullable>
+    
+    <!-- Version Information -->
+    <Version>1.0.0</Version>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+    <FileVersion>1.0.0</FileVersion>
+    <InformationalVersion>1.0.0</InformationalVersion>
+    
+    <!-- Browser App Metadata -->
+    <AppName>Kanriya Web</AppName>
+    <AppId>com.deckyfx.kanriya.web</AppId>
+    <Codename>Development</Codename>
+    <BuildDate>2025-08-29</BuildDate>
+    
+    <!-- KANRIYA_CLIENT_CONFIG_START -->
+    <!-- Client Environment Configuration (can be overridden by build scripts) -->
+    <ServerUrl>http://localhost:5000</ServerUrl>
+    <GraphQLUrl>http://localhost:5000/graphql</GraphQLUrl>
+    <ApiBaseUrl>http://localhost:5000/api</ApiBaseUrl>
+    <WebSocketUrl>ws://localhost:5000/graphql</WebSocketUrl>
+    <AppEnvironment>Development</AppEnvironment>
+    <DebugMode>true</DebugMode>
+    <!-- KANRIYA_CLIENT_CONFIG_END -->
   </PropertyGroup>
+
+  <!-- Generate assembly attributes for custom metadata -->
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>AppName</_Parameter1>
+      <_Parameter2>$(AppName)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>AppId</_Parameter1>
+      <_Parameter2>$(AppId)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>Codename</_Parameter1>
+      <_Parameter2>$(Codename)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>BuildDate</_Parameter1>
+      <_Parameter2>$(BuildDate)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>ServerUrl</_Parameter1>
+      <_Parameter2>$(ServerUrl)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>GraphQLUrl</_Parameter1>
+      <_Parameter2>$(GraphQLUrl)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>ApiBaseUrl</_Parameter1>
+      <_Parameter2>$(ApiBaseUrl)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>WebSocketUrl</_Parameter1>
+      <_Parameter2>$(WebSocketUrl)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>AppEnvironment</_Parameter1>
+      <_Parameter2>$(AppEnvironment)</_Parameter2>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
+      <_Parameter1>DebugMode</_Parameter1>
+      <_Parameter2>$(DebugMode)</_Parameter2>
+    </AssemblyAttribute>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Browser" />

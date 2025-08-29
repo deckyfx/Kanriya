@@ -5,6 +5,7 @@ using Serilog.Sinks.Spectre;
 using Spectre.Console;
 using Kanriya.Server.Constants;
 using Kanriya.Server.Program;
+using Kanriya.Shared;
 using IOPath = System.IO.Path;
 
 namespace Kanriya.Server.Services.System;
@@ -47,7 +48,7 @@ public static class LogService
                 .Enrich.FromLogContext()
                 .Enrich.WithProperty("ThreadId", global::System.Threading.Thread.CurrentThread.ManagedThreadId)
                 .Enrich.WithProperty("MachineName", Environment.MachineName)
-                .Enrich.WithProperty("Environment", EnvironmentConfig.App.AspNetCoreEnvironment)
+                .Enrich.WithProperty("Environment", Shared.EnvironmentConfig.Server.AspNetCoreEnvironment)
                 .Enrich.WithProperty("Application", ApplicationPaths.ApplicationName)
                 .Enrich.WithProperty("Version", ApplicationPaths.ApplicationVersion);
 

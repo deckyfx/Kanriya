@@ -17,9 +17,9 @@ public static class JwtConfig
     public static void ConfigureJwtAuthentication(IServiceCollection services)
     {
         // Get JWT configuration values from environment
-        var jwtSecret = EnvironmentConfig.Jwt.Secret;
-        var jwtIssuer = EnvironmentConfig.Jwt.Issuer;
-        var jwtAudience = EnvironmentConfig.Jwt.Audience;
+        var jwtSecret = Shared.EnvironmentConfig.Jwt.Secret;
+        var jwtIssuer = Shared.EnvironmentConfig.Jwt.Issuer;
+        var jwtAudience = Shared.EnvironmentConfig.Jwt.Audience;
 
         services
             .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

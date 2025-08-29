@@ -148,9 +148,9 @@ public class AuthenticationMiddleware
     {
         try
         {
-            var jwtSecret = EnvironmentConfig.Jwt.Secret;
-            var jwtIssuer = EnvironmentConfig.Jwt.Issuer;
-            var jwtAudience = EnvironmentConfig.Jwt.Audience;
+            var jwtSecret = Shared.EnvironmentConfig.Jwt.Secret;
+            var jwtIssuer = Shared.EnvironmentConfig.Jwt.Issuer;
+            var jwtAudience = Shared.EnvironmentConfig.Jwt.Audience;
             var key = Encoding.UTF8.GetBytes(jwtSecret);
             
             var tokenHandler = new JwtSecurityTokenHandler();

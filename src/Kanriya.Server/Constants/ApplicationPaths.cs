@@ -43,22 +43,6 @@ public static class ApplicationPaths
     /// </summary>
     public static string LogsDirectory => IOPath.Combine(CacheDirectory, "logs");
 
-    /// <summary>
-    /// Gets potential paths for .env file in priority order
-    /// </summary>
-    public static string[] GetEnvironmentFilePaths()
-    {
-        return new[]
-        {
-            IOPath.Combine(WorkingDirectory, ".env"),                    // Working directory
-            IOPath.Combine(WorkingDirectory, "../../.env"),              // Project root from src/GQLServer
-            IOPath.Combine(ExecutableDirectory, ".env"),                 // Executable directory
-            IOPath.Combine(ExecutableDirectory, "../../../.env"),        // Development path from bin/Debug
-            IOPath.Combine(ExecutableDirectory, "../../../../../.env"),  // Project root from bin/Debug/net9.0
-            IOPath.Combine(AssemblyDirectory, ".env"),                   // Assembly directory
-            ".env"                                                        // Current directory fallback
-        };
-    }
 
     /// <summary>
     /// Ensures a directory exists, creating it if necessary

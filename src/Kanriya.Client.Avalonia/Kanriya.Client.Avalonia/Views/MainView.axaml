@@ -12,23 +12,63 @@
     <vm:MainViewModel />
   </Design.DataContext>
 
-  <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="20">
-    <TextBlock Text="Hello World Avalonia!" 
-               FontSize="32" 
-               FontWeight="Bold"
-               Foreground="#007ACC"
-               HorizontalAlignment="Center"/>
-    <TextBlock Text="Cross-Platform App Running on:" 
-               FontSize="18"
-               HorizontalAlignment="Center"/>
-    <TextBlock Text="{Binding Platform}" 
-               FontSize="24"
-               FontWeight="SemiBold"
-               Foreground="#4CAF50"
-               HorizontalAlignment="Center"/>
-    <TextBlock Text="{Binding Greeting}" 
-               FontSize="16"
-               Opacity="0.7"
-               HorizontalAlignment="Center"/>
-  </StackPanel>
+  <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Top" Spacing="20" Margin="20">
+      <TextBlock Text="🚀 Kanriya Client" 
+                 FontSize="32" 
+                 FontWeight="Bold"
+                 Foreground="#007ACC"
+                 HorizontalAlignment="Center"/>
+      
+      <!-- Platform Info -->
+      <Border Background="#F5F5F5" CornerRadius="8" Padding="15">
+        <StackPanel Spacing="5">
+          <TextBlock Text="📱 Platform Information" 
+                     FontSize="18"
+                     FontWeight="SemiBold"
+                     HorizontalAlignment="Center"/>
+          <TextBlock Text="{Binding Platform}" 
+                     FontSize="16"
+                     Foreground="#4CAF50"
+                     HorizontalAlignment="Center"/>
+        </StackPanel>
+      </Border>
+      
+      <!-- App Info -->
+      <Border Background="#E8F5E8" CornerRadius="8" Padding="15">
+        <StackPanel Spacing="5">
+          <TextBlock Text="ℹ️ Application Information" 
+                     FontSize="18"
+                     FontWeight="SemiBold"
+                     HorizontalAlignment="Center"/>
+          <TextBlock Text="{Binding AppInfo}" 
+                     FontSize="12"
+                     FontFamily="Consolas,Monaco,monospace"
+                     HorizontalAlignment="Center"
+                     TextAlignment="Center"/>
+        </StackPanel>
+      </Border>
+      
+      <!-- Server Config -->
+      <Border Background="#E3F2FD" CornerRadius="8" Padding="15">
+        <StackPanel Spacing="5">
+          <TextBlock Text="🌐 Server Configuration" 
+                     FontSize="18"
+                     FontWeight="SemiBold"
+                     HorizontalAlignment="Center"/>
+          <TextBlock Text="{Binding ServerConfig}" 
+                     FontSize="12"
+                     FontFamily="Consolas,Monaco,monospace"
+                     HorizontalAlignment="Center"
+                     TextAlignment="Center"/>
+        </StackPanel>
+      </Border>
+      
+      <TextBlock Text="{Binding Greeting}" 
+                 FontSize="14"
+                 Opacity="0.7"
+                 HorizontalAlignment="Center"
+                 Margin="0,10,0,0"/>
+    </StackPanel>
+  </ScrollViewer>
 </UserControl>

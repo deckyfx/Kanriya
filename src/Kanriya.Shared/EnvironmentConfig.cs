@@ -1,12 +1,11 @@
-using Kanriya.Server.Constants;
-using Kanriya.Server.Services;
-using Kanriya.Server.Services.System;
+using System.Reflection;
 using IOPath = System.IO.Path;
 
-namespace Kanriya.Server.Program;
+namespace Kanriya.Shared;
 
 /// <summary>
-/// Handles environment configuration including .env file loading and server URL setup
+/// Handles environment configuration including .env file loading
+/// Single source of truth for all projects
 /// </summary>
 public static class EnvironmentConfig
 {
@@ -16,29 +15,20 @@ public static class EnvironmentConfig
     public static string? LastLoadedEnvPath { get; private set; }
     
     /// <summary>
-    /// Load environment variables from .env file and configure server URLs (with logging)
+    /// Load environment variables from .env file (with debug output)
     /// </summary>
-    public static void LoadEnvironment(WebApplicationBuilder builder)
+    public static void LoadEnvironment(bool debug = false)
     {
-        LoadEnvFile();
-        ConfigureServerUrls(builder);
-    }
-    
-    /// <summary>
-    /// Load environment variables from .env file and configure server URLs (without logging)
-    /// </summary>
-    public static void LoadEnvironmentWithoutLogging(WebApplicationBuilder builder)
-    {
-        LoadEnvFileQuiet();
-        ConfigureServerUrlsQuiet(builder);
-    }
-    
-    /// <summary>
-    /// Load .env file from multiple possible locations (with logging)
-    /// </summary>
-    private static void LoadEnvFile()
-    {
-        var envPaths = ApplicationPaths.GetEnvironmentFilePaths();
+        var envPaths = GetEnvironmentFilePaths();
+        
+        if (debug)
+        {
+            Console.WriteLine($"DEBUG: Checking for .env file in:");
+            foreach (var path in envPaths)
+            {
+                Console.WriteLine($"  - {path} (exists: {File.Exists(path)})");
+            }
+        }
         
         bool envLoaded = false;
         foreach (var path in envPaths)
@@ -47,7 +37,12 @@ public static class EnvironmentConfig
             {
                 DotNetEnv.Env.Load(path);
                 LastLoadedEnvPath = path;
-                LogService.LogSuccess($"Loaded .env from: {path}");
+                
+                if (debug)
+                {
+                    Console.WriteLine($"DEBUG: Successfully loaded .env from: {path}");
+                }
+                
                 envLoaded = true;
                 break;
             }
@@ -56,56 +51,37 @@ public static class EnvironmentConfig
         if (!envLoaded)
         {
             LastLoadedEnvPath = null;
-            LogService.LogWarning("No .env file found, using defaults");
-        }
-    }
-    
-    /// <summary>
-    /// Load .env file from multiple possible locations (without logging)
-    /// </summary>
-    private static void LoadEnvFileQuiet()
-    {
-        var envPaths = ApplicationPaths.GetEnvironmentFilePaths();
-        
-        // Debug: Show all paths being checked
-        Console.WriteLine($"DEBUG: Checking for .env file in:");
-        foreach (var path in envPaths)
-        {
-            Console.WriteLine($"  - {path} (exists: {File.Exists(path)})");
-        }
-        
-        foreach (var path in envPaths)
-        {
-            if (File.Exists(path))
+            if (debug)
             {
-                DotNetEnv.Env.Load(path);
-                LastLoadedEnvPath = path;
-                
-                // Debug: Verify that the environment variable was actually loaded
-                var testPort = App.Port;
-                Console.WriteLine($"DEBUG: After loading {path}, SERVER_LISTEN_PORT = {testPort}");
-                break;
+                Console.WriteLine("DEBUG: No .env file found, using defaults");
             }
         }
     }
     
     /// <summary>
-    /// Configure Kestrel server URLs from environment variables (with logging)
+    /// Gets potential paths for .env file in priority order, always prioritizing root directory
     /// </summary>
-    private static void ConfigureServerUrls(WebApplicationBuilder builder)
+    private static string[] GetEnvironmentFilePaths()
     {
-        var urls = App.Urls;
-        builder.WebHost.UseUrls(urls);
-        LogService.LogInfo($"Server will listen on: {urls}");
-    }
-    
-    /// <summary>
-    /// Configure Kestrel server URLs from environment variables (without logging)
-    /// </summary>
-    private static void ConfigureServerUrlsQuiet(WebApplicationBuilder builder)
-    {
-        var urls = App.Urls;
-        builder.WebHost.UseUrls(urls);
+        var workingDirectory = Directory.GetCurrentDirectory();
+        var executableDirectory = AppContext.BaseDirectory;
+        var assemblyDirectory = IOPath.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? AppContext.BaseDirectory;
+        
+        return new[]
+        {
+            // Always look for root directory first (assuming project structure)
+            IOPath.GetFullPath(IOPath.Combine(workingDirectory, "../../../.env")),         // From src/Project to root
+            IOPath.GetFullPath(IOPath.Combine(executableDirectory, "../../../../../.env")), // From bin/Debug/net9.0 to root
+            IOPath.GetFullPath(IOPath.Combine(assemblyDirectory, "../../../../../.env")),   // From assembly location to root
+            
+            // Fallback locations
+            IOPath.Combine(workingDirectory, ".env"),                    // Working directory
+            IOPath.Combine(workingDirectory, "../../.env"),              // Parent directories
+            IOPath.Combine(executableDirectory, ".env"),                 // Executable directory
+            IOPath.Combine(executableDirectory, "../../../.env"),        // Development path from bin/Debug
+            IOPath.Combine(assemblyDirectory, ".env"),                   // Assembly directory
+            ".env"                                                        // Current directory fallback
+        };
     }
     
     /// <summary>
@@ -164,9 +140,9 @@ public static class EnvironmentConfig
     }
     
     /// <summary>
-    /// Get application server configuration values from environment
+    /// Get server configuration values from environment
     /// </summary>
-    public static class App
+    public static class Server
     {
         public static string Ip => 
             Environment.GetEnvironmentVariable("SERVER_BIND_IP") ?? "localhost";

@@ -1,9 +1,9 @@
 using Kanriya.Server.Program;
-using Kanriya.Server.Services;
+using Kanriya.Shared;
 using Kanriya.Server.Services.System;
-using Kanriya.Server.Constants;
 using Serilog;
 using Serilog.Events;
+using System.Reflection;
 
 // KANRIYA GRAPHQL SERVER
 // =================================================
@@ -32,9 +32,13 @@ try
     // Step 1: Create the web application builder
     var builder = WebApplication.CreateBuilder(args);
     
-    // Step 2: Load environment configuration FIRST (before logging)
-    // This loads .env file and configures server URLs from SERVER_BIND_IP and SERVER_LISTEN_PORT
-    EnvironmentConfig.LoadEnvironmentWithoutLogging(builder);
+    // Step 2: Load environment configuration FIRST (before logging)  
+    // This loads .env file from root directory
+    EnvironmentConfig.LoadEnvironment(debug: false);
+    
+    // Configure server URLs from environment
+    var urls = EnvironmentConfig.Server.Urls;
+    builder.WebHost.UseUrls(urls);
     
     // Step 3: Initialize logging service after environment is loaded
     var logConfig = new LogConfiguration
@@ -56,12 +60,13 @@ try
     // Configure Serilog as the logging provider
     builder.Host.UseSerilog(LogService.Logger);
     
-    // Display startup banner
-    LogService.DisplayStartupBanner("Kanriya", AppVersion.GetFullVersion());
+    // Display fancy startup banner
+    var assembly = Assembly.GetExecutingAssembly();
+    BannerUtils.DisplayFancyBanner(assembly, "GraphQL API Server with Authentication and Real-time Subscriptions", Spectre.Console.Color.Cyan1);
     LogService.LogSection("Environment Configuration");
     LogService.LogSuccess($"Loaded environment from: {EnvironmentConfig.LastLoadedEnvPath ?? "defaults"}");
     
-    LogService.LogInfo($"Server will listen on: {EnvironmentConfig.App.Urls}");
+    LogService.LogInfo($"Server will listen on: {urls}");
 
     // Step 3: Configure Database (PostgreSQL with Entity Framework)
     LogService.LogSection("Database Configuration");

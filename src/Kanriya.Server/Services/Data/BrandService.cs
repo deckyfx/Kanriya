@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Kanriya.Server.Data;
 using Kanriya.Server.Data.BrandSchema;
 using Kanriya.Server.Program;
+using Kanriya.Shared;
 using Kanriya.Shared.Utils;
 using Npgsql;
 
