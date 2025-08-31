@@ -14,7 +14,42 @@
 
   <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Top" Spacing="20" Margin="20">
-      <TextBlock Text="🚀 Kanriya Client" 
+      <!-- Language Selector -->
+      <Border Background="#FFF3E0" CornerRadius="8" Padding="10" HorizontalAlignment="Right">
+        <StackPanel Orientation="Horizontal" Spacing="10">
+          <!-- Language Icon using Material Icons font -->
+          <TextBlock Text="&#xE894;" 
+                     FontFamily="{StaticResource MaterialIcons}"
+                     FontSize="20" 
+                     VerticalAlignment="Center"
+                     Margin="0,0,5,0"/>
+          <TextBlock Text="Language:" VerticalAlignment="Center" FontSize="14" Margin="0,0,5,0"/>
+          <ComboBox ItemsSource="{Binding AvailableLanguages}"
+                    SelectedItem="{Binding CurrentLanguage}"
+                    Width="120">
+            <ComboBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock>
+                  <TextBlock.Text>
+                    <MultiBinding StringFormat="{}{0}">
+                      <Binding />
+                    </MultiBinding>
+                  </TextBlock.Text>
+                  <TextBlock.Tag>
+                    <Binding />
+                  </TextBlock.Tag>
+                </TextBlock>
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <Button Content="Apply" 
+                  Command="{Binding ChangeLanguageCommand}"
+                  CommandParameter="{Binding CurrentLanguage}"
+                  Padding="10,5"/>
+        </StackPanel>
+      </Border>
+      
+      <TextBlock Text="Kanriya Client" 
                  FontSize="32" 
                  FontWeight="Bold"
                  Foreground="#007ACC"
@@ -23,10 +58,17 @@
       <!-- Platform Info -->
       <Border Background="#F5F5F5" CornerRadius="8" Padding="15">
         <StackPanel Spacing="5">
-          <TextBlock Text="📱 Platform Information" 
-                     FontSize="18"
-                     FontWeight="SemiBold"
-                     HorizontalAlignment="Center"/>
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
+            <!-- Computer icon -->
+            <TextBlock Text="&#xE30A;" 
+                       FontFamily="{StaticResource MaterialIcons}"
+                       FontSize="24" 
+                       VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding PlatformInfoHeader}" 
+                       FontSize="18"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center"/>
+          </StackPanel>
           <TextBlock Text="{Binding Platform}" 
                      FontSize="16"
                      Foreground="#4CAF50"
@@ -37,13 +79,20 @@
       <!-- App Info -->
       <Border Background="#E8F5E8" CornerRadius="8" Padding="15">
         <StackPanel Spacing="5">
-          <TextBlock Text="ℹ️ Application Information" 
-                     FontSize="18"
-                     FontWeight="SemiBold"
-                     HorizontalAlignment="Center"/>
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
+            <!-- Info icon -->
+            <TextBlock Text="&#xE88E;" 
+                       FontFamily="{StaticResource MaterialIcons}"
+                       FontSize="24" 
+                       VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding AppInfoHeader}" 
+                       FontSize="18"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center"/>
+          </StackPanel>
           <TextBlock Text="{Binding AppInfo}" 
                      FontSize="12"
-                     FontFamily="Consolas,Monaco,monospace"
+                     FontFamily="{StaticResource MonospaceFontFamily}"
                      HorizontalAlignment="Center"
                      TextAlignment="Center"/>
         </StackPanel>
@@ -52,13 +101,20 @@
       <!-- Server Config -->
       <Border Background="#E3F2FD" CornerRadius="8" Padding="15">
         <StackPanel Spacing="5">
-          <TextBlock Text="🌐 Server Configuration" 
-                     FontSize="18"
-                     FontWeight="SemiBold"
-                     HorizontalAlignment="Center"/>
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
+            <!-- Settings/Server icon -->
+            <TextBlock Text="&#xE8B8;" 
+                       FontFamily="{StaticResource MaterialIcons}"
+                       FontSize="24" 
+                       VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding ServerConfigHeader}" 
+                       FontSize="18"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center"/>
+          </StackPanel>
           <TextBlock Text="{Binding ServerConfig}" 
                      FontSize="12"
-                     FontFamily="Consolas,Monaco,monospace"
+                     FontFamily="{StaticResource MonospaceFontFamily}"
                      HorizontalAlignment="Center"
                      TextAlignment="Center"/>
         </StackPanel>
@@ -69,6 +125,119 @@
                  Opacity="0.7"
                  HorizontalAlignment="Center"
                  Margin="0,10,0,0"/>
+      
+      <!-- Typography Showcase -->
+      <Border Background="#FFF8E1" CornerRadius="8" Padding="20" Margin="0,20,0,0">
+        <StackPanel Spacing="15">
+          <TextBlock Text="Typography Showcase / タイポグラフィ / 字体展示" 
+                     Classes="h3 primary"
+                     HorizontalAlignment="Center"/>
+          
+          <!-- Headings Section -->
+          <Border Background="White" CornerRadius="4" Padding="15">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Headings / 見出し / 标题" Classes="h5 primary"/>
+              <TextBlock Classes="h1">H1: Hello World / こんにちは / 你好</TextBlock>
+              <TextBlock Classes="h2">H2: Welcome / ようこそ / 欢迎</TextBlock>
+              <TextBlock Classes="h3">H3: Typography / タイポグラフィ / 字体</TextBlock>
+              <TextBlock Classes="h4">H4: Design System / デザインシステム / 设计系统</TextBlock>
+              <TextBlock Classes="h5">H5: User Interface / ユーザーインターフェース / 用户界面</TextBlock>
+              <TextBlock Classes="h6">H6: Application / アプリケーション / 应用程序</TextBlock>
+            </StackPanel>
+          </Border>
+          
+          <!-- Text Styles Section -->
+          <Border Background="White" CornerRadius="4" Padding="15">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Text Styles / テキストスタイル / 文本样式" Classes="h5 primary"/>
+              <TextBlock Classes="body-large">Body Large: The quick brown fox jumps over the lazy dog. / 素早い茶色の狐が怠け者の犬を飛び越える。/ 快速的棕色狐狸跳过懒狗。</TextBlock>
+              <TextBlock Classes="body">Body: Regular text for content. / 通常のテキスト。/ 常规文本。</TextBlock>
+              <TextBlock Classes="caption">Caption: Small descriptive text. / 小さな説明文。/ 小描述文本。</TextBlock>
+              <TextBlock Classes="overline">OVERLINE TEXT / オーバーライン / 上划线文本</TextBlock>
+            </StackPanel>
+          </Border>
+          
+          <!-- Emphasis Styles Section -->
+          <Border Background="White" CornerRadius="4" Padding="15">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Emphasis / 強調 / 强调" Classes="h5 primary"/>
+              <TextBlock Classes="bold">Bold Text / 太字テキスト / 粗体文本</TextBlock>
+              <TextBlock Classes="italic">Italic Text / イタリック体 / 斜体文本</TextBlock>
+              <TextBlock Classes="underline">Underlined Text / 下線付きテキスト / 下划线文本</TextBlock>
+              <TextBlock Classes="strikethrough">Strikethrough / 取り消し線 / 删除线</TextBlock>
+              <TextBlock Classes="bold italic">Bold Italic / 太字イタリック / 粗斜体</TextBlock>
+            </StackPanel>
+          </Border>
+          
+          <!-- Color Variations Section -->
+          <Border Background="White" CornerRadius="4" Padding="15">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Colors / 色 / 颜色" Classes="h5 primary"/>
+              <TextBlock Classes="body-large primary">Primary: Information / 情報 / 信息</TextBlock>
+              <TextBlock Classes="body-large success">Success: Complete / 完了 / 完成</TextBlock>
+              <TextBlock Classes="body-large warning">Warning: Caution / 注意 / 警告</TextBlock>
+              <TextBlock Classes="body-large danger">Danger: Error / エラー / 错误</TextBlock>
+              <TextBlock Classes="body-large muted">Muted: Disabled / 無効 / 禁用</TextBlock>
+            </StackPanel>
+          </Border>
+          
+          <!-- Special Styles Section -->
+          <Border Background="White" CornerRadius="4" Padding="15">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Special Styles / 特殊スタイル / 特殊样式" Classes="h5 primary"/>
+              <TextBlock Classes="code">Code: function() { return "Hello"; } / コード / 代码</TextBlock>
+              <Border BorderThickness="4,0,0,0" BorderBrush="#007ACC" Padding="12,8" Margin="0,8">
+                <TextBlock Classes="quote" TextWrapping="Wrap">
+                  "Design is not just what it looks like and feels like. Design is how it works." - Steve Jobs
+                  「デザインとは、見た目や感じだけではない。デザインとは、どのように機能するかである。」
+                  "设计不仅仅是外观和感觉。设计是它的工作方式。"
+                </TextBlock>
+              </Border>
+            </StackPanel>
+          </Border>
+          
+          <!-- Font Weight Variations -->
+          <Border Background="White" CornerRadius="4" Padding="15">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Font Weights / フォントウェイト / 字重" Classes="h5 primary"/>
+              <TextBlock FontWeight="Thin" FontSize="16">Thin (100): Typography / タイポグラフィ / 字体</TextBlock>
+              <TextBlock FontWeight="ExtraLight" FontSize="16">Extra Light (200): Typography / タイポグラフィ / 字体</TextBlock>
+              <TextBlock FontWeight="Light" FontSize="16">Light (300): Typography / タイポグラフィ / 字体</TextBlock>
+              <TextBlock FontWeight="Normal" FontSize="16">Regular (400): Typography / タイポグラフィ / 字体</TextBlock>
+              <TextBlock FontWeight="Medium" FontSize="16">Medium (500): Typography / タイポグラフィ / 字体</TextBlock>
+              <TextBlock FontWeight="SemiBold" FontSize="16">SemiBold (600): Typography / タイポグラフィ / 字体</TextBlock>
+              <TextBlock FontWeight="Bold" FontSize="16">Bold (700): Typography / タイポグラフィ / 字体</TextBlock>
+              <TextBlock FontWeight="ExtraBold" FontSize="16">Extra Bold (800): Typography / タイポグラフィ / 字体</TextBlock>
+              <TextBlock FontWeight="Black" FontSize="16">Black (900): Typography / タイポグラフィ / 字体</TextBlock>
+            </StackPanel>
+          </Border>
+          
+          <!-- Mixed Languages Example -->
+          <Border Background="White" CornerRadius="4" Padding="15">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Mixed Languages / 混合言語 / 混合语言" Classes="h5 primary"/>
+              <TextBlock Classes="body-large" TextWrapping="Wrap">
+                English: The quick brown fox jumps over the lazy dog.
+              </TextBlock>
+              <TextBlock Classes="body-large" TextWrapping="Wrap">
+                日本語: いろはにほへとちりぬるをわかよたれそつねならむうゐのおくやまけふこえてあさきゆめみしゑひもせす
+              </TextBlock>
+              <TextBlock Classes="body-large" TextWrapping="Wrap">
+                简体中文: 天地玄黄，宇宙洪荒。日月盈昃，辰宿列张。寒来暑往，秋收冬藏。
+              </TextBlock>
+              <TextBlock Classes="body-large" TextWrapping="Wrap">
+                繁體中文: 天地玄黃，宇宙洪荒。日月盈昃，辰宿列張。寒來暑往，秋收冬藏。
+              </TextBlock>
+              <TextBlock Classes="body-large" TextWrapping="Wrap">
+                한국어: 다람쥐 헌 쳇바퀴에 타고파. 키스의 고유조건은 입술끼리 만나야 하고 특별한 기술은 필요치 않다.
+              </TextBlock>
+              <TextBlock Classes="body-large" TextWrapping="Wrap">
+                Mixed: Hello 世界! Welcome to カンリヤ client. 这是一个 test テスト 测试。
+              </TextBlock>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Border>
     </StackPanel>
   </ScrollViewer>
 </UserControl>

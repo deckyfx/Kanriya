@@ -79,11 +79,15 @@
   <ItemGroup>
     <EmbeddedResource Include="Assets\Icons\**" />
   </ItemGroup>
+  
+  <!-- Embedded Fonts for offline-first support -->
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\Fonts\*.ttf" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia" />
     <PackageReference Include="Avalonia.Themes.Fluent" />
-    <PackageReference Include="Avalonia.Fonts.Inter" />
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
     <PackageReference Include="Avalonia.Diagnostics">
       <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>

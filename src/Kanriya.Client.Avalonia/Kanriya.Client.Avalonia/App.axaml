@@ -9,7 +9,178 @@
         <local:ViewLocator/>
     </Application.DataTemplates>
 
+    <Application.Resources>
+        <FontFamily x:Key="InterRegularFont">avares://Kanriya.Client.Avalonia/Assets/Fonts/Inter-Regular.ttf#Inter</FontFamily>
+        <FontFamily x:Key="InterMediumFont">avares://Kanriya.Client.Avalonia/Assets/Fonts/Inter-Medium.ttf#Inter</FontFamily>
+        <FontFamily x:Key="InterSemiBoldFont">avares://Kanriya.Client.Avalonia/Assets/Fonts/Inter-SemiBold.ttf#Inter</FontFamily>
+        <FontFamily x:Key="InterBoldFont">avares://Kanriya.Client.Avalonia/Assets/Fonts/Inter-Bold.ttf#Inter</FontFamily>
+        <FontFamily x:Key="NotoSansRegularFont">avares://Kanriya.Client.Avalonia/Assets/Fonts/NotoSans-Regular.ttf#Noto Sans</FontFamily>
+        <FontFamily x:Key="NotoSansMediumFont">avares://Kanriya.Client.Avalonia/Assets/Fonts/NotoSans-Medium.ttf#Noto Sans</FontFamily>
+        <FontFamily x:Key="NotoSansSemiBoldFont">avares://Kanriya.Client.Avalonia/Assets/Fonts/NotoSans-SemiBold.ttf#Noto Sans</FontFamily>
+        <FontFamily x:Key="NotoSansBoldFont">avares://Kanriya.Client.Avalonia/Assets/Fonts/NotoSans-Bold.ttf#Noto Sans</FontFamily>
+        <FontFamily x:Key="NotoSansJPFont">avares://Kanriya.Client.Avalonia/Assets/Fonts/NotoSansJP.ttf#Noto Sans JP</FontFamily>
+        <FontFamily x:Key="NotoSansSCFont">avares://Kanriya.Client.Avalonia/Assets/Fonts/NotoSansSC.ttf#Noto Sans SC</FontFamily>
+        <FontFamily x:Key="NotoSansTCFont">avares://Kanriya.Client.Avalonia/Assets/Fonts/NotoSansTC.ttf#Noto Sans TC</FontFamily>
+        <FontFamily x:Key="MaterialIcons">avares://Kanriya.Client.Avalonia/Assets/Fonts/MaterialIcons-Regular.ttf#Material Icons</FontFamily>
+        <FontFamily x:Key="AppFontFamily">avares://Kanriya.Client.Avalonia/Assets/Fonts/Inter-Regular.ttf#Inter, avares://Kanriya.Client.Avalonia/Assets/Fonts/Inter-Medium.ttf#Inter, avares://Kanriya.Client.Avalonia/Assets/Fonts/Inter-SemiBold.ttf#Inter, avares://Kanriya.Client.Avalonia/Assets/Fonts/Inter-Bold.ttf#Inter, avares://Kanriya.Client.Avalonia/Assets/Fonts/NotoSans-Regular.ttf#Noto Sans, avares://Kanriya.Client.Avalonia/Assets/Fonts/NotoSans-Medium.ttf#Noto Sans, avares://Kanriya.Client.Avalonia/Assets/Fonts/NotoSans-SemiBold.ttf#Noto Sans, avares://Kanriya.Client.Avalonia/Assets/Fonts/NotoSans-Bold.ttf#Noto Sans, avares://Kanriya.Client.Avalonia/Assets/Fonts/NotoSansJP.ttf#Noto Sans JP, avares://Kanriya.Client.Avalonia/Assets/Fonts/NotoSansSC.ttf#Noto Sans SC, avares://Kanriya.Client.Avalonia/Assets/Fonts/NotoSansTC.ttf#Noto Sans TC</FontFamily>
+        <!-- Use the same fonts for monospace to ensure Eastern character support -->
+        <FontFamily x:Key="MonospaceFontFamily">avares://Kanriya.Client.Avalonia/Assets/Fonts/Inter-Regular.ttf#Inter, avares://Kanriya.Client.Avalonia/Assets/Fonts/Inter-Medium.ttf#Inter, avares://Kanriya.Client.Avalonia/Assets/Fonts/Inter-SemiBold.ttf#Inter, avares://Kanriya.Client.Avalonia/Assets/Fonts/Inter-Bold.ttf#Inter, avares://Kanriya.Client.Avalonia/Assets/Fonts/NotoSans-Regular.ttf#Noto Sans, avares://Kanriya.Client.Avalonia/Assets/Fonts/NotoSans-Medium.ttf#Noto Sans, avares://Kanriya.Client.Avalonia/Assets/Fonts/NotoSans-SemiBold.ttf#Noto Sans, avares://Kanriya.Client.Avalonia/Assets/Fonts/NotoSans-Bold.ttf#Noto Sans, avares://Kanriya.Client.Avalonia/Assets/Fonts/NotoSansJP.ttf#Noto Sans JP, avares://Kanriya.Client.Avalonia/Assets/Fonts/NotoSansSC.ttf#Noto Sans SC, avares://Kanriya.Client.Avalonia/Assets/Fonts/NotoSansTC.ttf#Noto Sans TC</FontFamily>
+    </Application.Resources>
+
     <Application.Styles>
         <FluentTheme />
+        <Style Selector="Window">
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+        </Style>
+        <Style Selector="TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+        </Style>
+        <Style Selector="TextBox">
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+        </Style>
+        <Style Selector="Button">
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+        </Style>
+        <Style Selector="ComboBox">
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+        </Style>
+        <Style Selector="Label">
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+        </Style>
+        <Style Selector="MenuItem">
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+        </Style>
+        <Style Selector="ListBoxItem">
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+        </Style>
+        <!-- Additional controls that might need fonts -->
+        <Style Selector="ContentControl">
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+        </Style>
+        
+        <!-- Typography Styles -->
+        <!-- Heading Styles -->
+        <Style Selector="TextBlock.h1">
+            <Setter Property="FontSize" Value="48" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+            <Setter Property="Margin" Value="0,8,0,8" />
+        </Style>
+        
+        <Style Selector="TextBlock.h2">
+            <Setter Property="FontSize" Value="36" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+            <Setter Property="Margin" Value="0,6,0,6" />
+        </Style>
+        
+        <Style Selector="TextBlock.h3">
+            <Setter Property="FontSize" Value="28" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+            <Setter Property="Margin" Value="0,5,0,5" />
+        </Style>
+        
+        <Style Selector="TextBlock.h4">
+            <Setter Property="FontSize" Value="24" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+            <Setter Property="Margin" Value="0,4,0,4" />
+        </Style>
+        
+        <Style Selector="TextBlock.h5">
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontWeight" Value="Medium" />
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+            <Setter Property="Margin" Value="0,3,0,3" />
+        </Style>
+        
+        <Style Selector="TextBlock.h6">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontWeight" Value="Medium" />
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+            <Setter Property="Margin" Value="0,2,0,2" />
+        </Style>
+        
+        <!-- Text Styles -->
+        <Style Selector="TextBlock.body">
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+            <Setter Property="LineHeight" Value="20" />
+        </Style>
+        
+        <Style Selector="TextBlock.body-large">
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+            <Setter Property="LineHeight" Value="24" />
+        </Style>
+        
+        <Style Selector="TextBlock.caption">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="Normal" />
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+            <Setter Property="Opacity" Value="0.7" />
+        </Style>
+        
+        <Style Selector="TextBlock.overline">
+            <Setter Property="FontSize" Value="10" />
+            <Setter Property="FontWeight" Value="Medium" />
+            <Setter Property="FontFamily" Value="{StaticResource AppFontFamily}" />
+            <Setter Property="LetterSpacing" Value="1.5" />
+        </Style>
+        
+        <!-- Emphasis Styles -->
+        <Style Selector="TextBlock.bold">
+            <Setter Property="FontWeight" Value="Bold" />
+        </Style>
+        
+        <Style Selector="TextBlock.italic">
+            <Setter Property="FontStyle" Value="Italic" />
+        </Style>
+        
+        <Style Selector="TextBlock.underline">
+            <Setter Property="TextDecorations" Value="Underline" />
+        </Style>
+        
+        <Style Selector="TextBlock.strikethrough">
+            <Setter Property="TextDecorations" Value="Strikethrough" />
+        </Style>
+        
+        <!-- Special Styles -->
+        <Style Selector="TextBlock.code">
+            <Setter Property="FontFamily" Value="{StaticResource MonospaceFontFamily}" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Background" Value="#F5F5F5" />
+            <Setter Property="Padding" Value="2,1" />
+        </Style>
+        
+        <Style Selector="TextBlock.quote">
+            <Setter Property="FontStyle" Value="Italic" />
+            <Setter Property="Margin" Value="16,8,16,8" />
+            <Setter Property="Padding" Value="12,8,12,8" />
+        </Style>
+        
+        <!-- Color Variations -->
+        <Style Selector="TextBlock.primary">
+            <Setter Property="Foreground" Value="#007ACC" />
+        </Style>
+        
+        <Style Selector="TextBlock.success">
+            <Setter Property="Foreground" Value="#4CAF50" />
+        </Style>
+        
+        <Style Selector="TextBlock.warning">
+            <Setter Property="Foreground" Value="#FF9800" />
+        </Style>
+        
+        <Style Selector="TextBlock.danger">
+            <Setter Property="Foreground" Value="#F44336" />
+        </Style>
+        
+        <Style Selector="TextBlock.muted">
+            <Setter Property="Foreground" Value="#9E9E9E" />
+        </Style>
     </Application.Styles>
 </Application>

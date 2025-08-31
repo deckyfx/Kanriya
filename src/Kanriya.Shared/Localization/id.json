@@ -1,0 +1,184 @@
+{
+  "app": {
+    "name": "Kanriya",
+    "welcome": "Selamat datang di Kanriya Client",
+    "loading": "Memuat...",
+    "error": "Terjadi kesalahan",
+    "retry": "Coba Lagi",
+    "cancel": "Batal",
+    "ok": "OK",
+    "yes": "Ya",
+    "no": "Tidak",
+    "save": "Simpan",
+    "delete": "Hapus",
+    "edit": "Ubah",
+    "close": "Tutup",
+    "back": "Kembali",
+    "next": "Selanjutnya",
+    "finish": "Selesai",
+    "search": "Cari",
+    "settings": "Pengaturan",
+    "about": "Tentang",
+    "help": "Bantuan",
+    "logout": "Keluar",
+    "login": "Masuk"
+  },
+  "platform": {
+    "info": "Platform: {0}",
+    "desktop": "Desktop",
+    "android": "Android",
+    "ios": "iOS",
+    "browser": "Browser",
+    "version": "Versi: {0}",
+    "build": "Build: {0}",
+    "environment": "Lingkungan: {0}"
+  },
+  "server": {
+    "connection": "Koneksi Server",
+    "url": "URL Server: {0}",
+    "status": {
+      "connected": "Terhubung",
+      "connecting": "Menghubungkan...",
+      "disconnected": "Terputus",
+      "error": "Kesalahan Koneksi",
+      "reconnecting": "Menghubungkan ulang..."
+    },
+    "messages": {
+      "connectionLost": "Koneksi ke server terputus",
+      "connectionEstablished": "Terhubung ke server",
+      "reconnectAttempt": "Mencoba menghubungkan ulang... ({0}/{1})",
+      "reconnectFailed": "Gagal menghubungkan ulang setelah {0} percobaan"
+    }
+  },
+  "auth": {
+    "title": "Autentikasi",
+    "apiKey": "Kunci API",
+    "apiPassword": "Kata Sandi API",
+    "email": "Email",
+    "password": "Kata Sandi",
+    "rememberMe": "Ingat Saya",
+    "forgotPassword": "Lupa Kata Sandi?",
+    "signIn": "Masuk",
+    "signUp": "Daftar",
+    "signOut": "Keluar",
+    "errors": {
+      "invalidCredentials": "Kredensial tidak valid",
+      "sessionExpired": "Sesi berakhir. Silakan masuk kembali.",
+      "unauthorized": "Akses tidak diizinkan",
+      "forbidden": "Akses dilarang"
+    }
+  },
+  "brand": {
+    "title": "Brand",
+    "name": "Nama Brand",
+    "description": "Deskripsi",
+    "created": "Dibuat",
+    "modified": "Diubah",
+    "owner": "Pemilik",
+    "operators": "Operator",
+    "actions": {
+      "create": "Buat Brand",
+      "update": "Perbarui Brand",
+      "delete": "Hapus Brand",
+      "select": "Pilih Brand"
+    },
+    "messages": {
+      "created": "Brand berhasil dibuat",
+      "updated": "Brand berhasil diperbarui",
+      "deleted": "Brand berhasil dihapus",
+      "selected": "Brand dipilih: {0}"
+    }
+  },
+  "user": {
+    "title": "Pengguna",
+    "name": "Nama",
+    "email": "Email",
+    "role": "Peran",
+    "userStatus": "Status",
+    "lastLogin": "Login Terakhir",
+    "created": "Dibuat",
+    "actions": {
+      "create": "Buat Pengguna",
+      "update": "Perbarui Pengguna",
+      "delete": "Hapus Pengguna",
+      "changePassword": "Ubah Kata Sandi",
+      "resetPassword": "Atur Ulang Kata Sandi"
+    },
+    "roles": {
+      "owner": "Pemilik",
+      "operator": "Operator",
+      "viewer": "Penonton",
+      "admin": "Administrator"
+    },
+    "status": {
+      "active": "Aktif",
+      "inactive": "Tidak Aktif",
+      "suspended": "Ditangguhkan",
+      "pending": "Menunggu"
+    }
+  },
+  "errors": {
+    "network": "Koneksi jaringan gagal",
+    "config": "Kesalahan konfigurasi",
+    "unknown": "Terjadi kesalahan yang tidak diketahui",
+    "timeout": "Waktu permintaan habis",
+    "serverError": "Terjadi kesalahan server",
+    "clientError": "Terjadi kesalahan klien",
+    "validation": "Validasi gagal",
+    "notFound": "Sumber daya tidak ditemukan",
+    "messages": {
+      "tryAgain": "Silakan coba lagi nanti",
+      "contactSupport": "Jika masalah berlanjut, silakan hubungi dukungan",
+      "checkConnection": "Silakan periksa koneksi internet Anda"
+    }
+  },
+  "validation": {
+    "required": "{0} wajib diisi",
+    "email": "Silakan masukkan alamat email yang valid",
+    "minLength": "{0} harus minimal {1} karakter",
+    "maxLength": "{0} maksimal {1} karakter",
+    "pattern": "Format {0} tidak valid",
+    "number": "{0} harus berupa angka",
+    "min": "{0} minimal {1}",
+    "max": "{0} maksimal {1}",
+    "url": "Silakan masukkan URL yang valid",
+    "date": "Silakan masukkan tanggal yang valid",
+    "match": "{0} dan {1} harus sama"
+  },
+  "datetime": {
+    "today": "Hari ini",
+    "yesterday": "Kemarin",
+    "tomorrow": "Besok",
+    "now": "Sekarang",
+    "ago": "{0} yang lalu",
+    "in": "dalam {0}",
+    "seconds": "detik",
+    "minute": "menit",
+    "minutes": "menit",
+    "hour": "jam",
+    "hours": "jam",
+    "day": "hari",
+    "days": "hari",
+    "week": "minggu",
+    "weeks": "minggu",
+    "month": "bulan",
+    "months": "bulan",
+    "year": "tahun",
+    "years": "tahun"
+  },
+  "navigation": {
+    "home": "Beranda",
+    "dashboard": "Dasbor",
+    "brands": "Brand",
+    "users": "Pengguna",
+    "settings": "Pengaturan",
+    "profile": "Profil",
+    "reports": "Laporan",
+    "analytics": "Analitik",
+    "help": "Bantuan",
+    "documentation": "Dokumentasi",
+    "platformInfo": "Informasi Platform",
+    "appInfo": "Informasi Aplikasi",
+    "serverConfig": "Konfigurasi Server"
+  }
+}

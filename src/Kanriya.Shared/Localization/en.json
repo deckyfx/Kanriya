@@ -1,0 +1,184 @@
+{
+  "app": {
+    "name": "Kanriya",
+    "welcome": "Welcome to Kanriya Client",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "ok": "OK",
+    "yes": "Yes",
+    "no": "No",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "finish": "Finish",
+    "search": "Search",
+    "settings": "Settings",
+    "about": "About",
+    "help": "Help",
+    "logout": "Logout",
+    "login": "Login"
+  },
+  "platform": {
+    "info": "Platform: {0}",
+    "desktop": "Desktop",
+    "android": "Android",
+    "ios": "iOS",
+    "browser": "Browser",
+    "version": "Version: {0}",
+    "build": "Build: {0}",
+    "environment": "Environment: {0}"
+  },
+  "server": {
+    "connection": "Server Connection",
+    "url": "Server URL: {0}",
+    "status": {
+      "connected": "Connected",
+      "connecting": "Connecting...",
+      "disconnected": "Disconnected",
+      "error": "Connection Error",
+      "reconnecting": "Reconnecting..."
+    },
+    "messages": {
+      "connectionLost": "Connection to server lost",
+      "connectionEstablished": "Connected to server",
+      "reconnectAttempt": "Attempting to reconnect... ({0}/{1})",
+      "reconnectFailed": "Failed to reconnect after {0} attempts"
+    }
+  },
+  "auth": {
+    "title": "Authentication",
+    "apiKey": "API Key",
+    "apiPassword": "API Password",
+    "email": "Email",
+    "password": "Password",
+    "rememberMe": "Remember Me",
+    "forgotPassword": "Forgot Password?",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "signOut": "Sign Out",
+    "errors": {
+      "invalidCredentials": "Invalid credentials",
+      "sessionExpired": "Session expired. Please sign in again.",
+      "unauthorized": "Unauthorized access",
+      "forbidden": "Access forbidden"
+    }
+  },
+  "brand": {
+    "title": "Brand",
+    "name": "Brand Name",
+    "description": "Description",
+    "created": "Created",
+    "modified": "Modified",
+    "owner": "Owner",
+    "operators": "Operators",
+    "actions": {
+      "create": "Create Brand",
+      "update": "Update Brand",
+      "delete": "Delete Brand",
+      "select": "Select Brand"
+    },
+    "messages": {
+      "created": "Brand created successfully",
+      "updated": "Brand updated successfully",
+      "deleted": "Brand deleted successfully",
+      "selected": "Brand selected: {0}"
+    }
+  },
+  "user": {
+    "title": "User",
+    "name": "Name",
+    "email": "Email",
+    "role": "Role",
+    "userStatus": "Status",
+    "lastLogin": "Last Login",
+    "created": "Created",
+    "actions": {
+      "create": "Create User",
+      "update": "Update User",
+      "delete": "Delete User",
+      "changePassword": "Change Password",
+      "resetPassword": "Reset Password"
+    },
+    "roles": {
+      "owner": "Owner",
+      "operator": "Operator",
+      "viewer": "Viewer",
+      "admin": "Administrator"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "suspended": "Suspended",
+      "pending": "Pending"
+    }
+  },
+  "errors": {
+    "network": "Network connection failed",
+    "config": "Configuration error",
+    "unknown": "An unknown error occurred",
+    "timeout": "Request timed out",
+    "serverError": "Server error occurred",
+    "clientError": "Client error occurred",
+    "validation": "Validation failed",
+    "notFound": "Resource not found",
+    "messages": {
+      "tryAgain": "Please try again later",
+      "contactSupport": "If the problem persists, please contact support",
+      "checkConnection": "Please check your internet connection"
+    }
+  },
+  "validation": {
+    "required": "{0} is required",
+    "email": "Please enter a valid email address",
+    "minLength": "{0} must be at least {1} characters",
+    "maxLength": "{0} must be no more than {1} characters",
+    "pattern": "{0} format is invalid",
+    "number": "{0} must be a number",
+    "min": "{0} must be at least {1}",
+    "max": "{0} must be no more than {1}",
+    "url": "Please enter a valid URL",
+    "date": "Please enter a valid date",
+    "match": "{0} and {1} must match"
+  },
+  "datetime": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "tomorrow": "Tomorrow",
+    "now": "Now",
+    "ago": "{0} ago",
+    "in": "in {0}",
+    "seconds": "seconds",
+    "minute": "minute",
+    "minutes": "minutes",
+    "hour": "hour",
+    "hours": "hours",
+    "day": "day",
+    "days": "days",
+    "week": "week",
+    "weeks": "weeks",
+    "month": "month",
+    "months": "months",
+    "year": "year",
+    "years": "years"
+  },
+  "navigation": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "brands": "Brands",
+    "users": "Users",
+    "settings": "Settings",
+    "profile": "Profile",
+    "reports": "Reports",
+    "analytics": "Analytics",
+    "help": "Help",
+    "documentation": "Documentation",
+    "platformInfo": "Platform Information",
+    "appInfo": "Application Information",
+    "serverConfig": "Server Configuration"
+  }
+}

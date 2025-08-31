@@ -65,7 +65,8 @@ public static class EnvironmentConfig
     {
         var workingDirectory = Directory.GetCurrentDirectory();
         var executableDirectory = AppContext.BaseDirectory;
-        var assemblyDirectory = IOPath.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? AppContext.BaseDirectory;
+        // Use AppContext.BaseDirectory for single-file app compatibility
+        var assemblyDirectory = AppContext.BaseDirectory;
         
         return new[]
         {

@@ -1,4 +1,5 @@
 using System.Reflection;
+using Kanriya.Shared.Services;
 
 namespace Kanriya.Shared;
 
@@ -145,5 +146,36 @@ public static class ClientEnvironmentConfig
             "Browser" => "/idbfs/kanriya/cache", // IndexedDB virtual path for WASM
             _ => Path.Combine(Environment.CurrentDirectory, "cache")
         };
+    }
+    
+    /// <summary>
+    /// Localization configuration for client applications
+    /// </summary>
+    public static class Localization
+    {
+        /// <summary>
+        /// Get the shared LocalizationService instance
+        /// </summary>
+        public static LocalizationService Service => LocalizationService.Instance;
+        
+        /// <summary>
+        /// Get the current language code
+        /// </summary>
+        public static string CurrentLanguage => Service.CurrentLanguage;
+        
+        /// <summary>
+        /// Set the current language
+        /// </summary>
+        public static void SetLanguage(string culture) => Service.SetLanguage(culture);
+        
+        /// <summary>
+        /// Get all supported language codes
+        /// </summary>
+        public static IEnumerable<string> SupportedLanguages => Service.SupportedLanguages;
+        
+        /// <summary>
+        /// Node.js-like t() function for getting translations
+        /// </summary>
+        public static string t(string key, params object[] args) => Service.t(key, args);
     }
 }

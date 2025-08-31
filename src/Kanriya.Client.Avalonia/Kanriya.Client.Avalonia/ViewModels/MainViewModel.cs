@@ -1,25 +1,45 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Kanriya.Shared;
+using Kanriya.Shared.Services;
 
 namespace Kanriya.Client.Avalonia.ViewModels;
 
 public partial class MainViewModel : ViewModelBase
 {
-    [ObservableProperty]
-    private string _greeting = "Welcome to Kanriya Client - Built with Avalonia!";
+    private readonly LocalizationService _localization;
     
     [ObservableProperty]
-    private string _platform;
+    private string _greeting = string.Empty;
+    
+    [ObservableProperty]
+    private string _platform = string.Empty;
     
     [ObservableProperty]
     private string _appInfo = "";
     
     [ObservableProperty]
     private string _serverConfig = "";
+    
+    [ObservableProperty]
+    private string _platformInfoHeader = "Platform Information";
+    
+    [ObservableProperty]
+    private string _appInfoHeader = "Application Information";
+    
+    [ObservableProperty]
+    private string _serverConfigHeader = "Server Configuration";
+    
+    [ObservableProperty]
+    private string _currentLanguage = "en";
+    
+    [ObservableProperty]
+    private List<string> _availableLanguages = new();
 
     public MainViewModel()
     {
@@ -27,29 +47,67 @@ public partial class MainViewModel : ViewModelBase
         var sharedAssembly = Assembly.GetExecutingAssembly();
         ClientEnvironmentConfig.Initialize(sharedAssembly);
         
+        // Initialize localization
+        _localization = ClientEnvironmentConfig.Localization.Service;
+        _localization.LanguageChanged += OnLanguageChanged;
+        
+        // Set initial values with localization
+        _currentLanguage = _localization.CurrentLanguage;
+        _availableLanguages = new List<string>(_localization.SupportedLanguages);
+        
+        UpdateLocalizedStrings();
         _platform = GetPlatformInfo();
         _appInfo = GetAppInfo();
         _serverConfig = GetServerConfig();
     }
+    
+    private void OnLanguageChanged(object? sender, string newLanguage)
+    {
+        CurrentLanguage = newLanguage;
+        UpdateLocalizedStrings();
+        
+        // Update all displayed information with new language
+        Platform = GetPlatformInfo();
+        AppInfo = GetAppInfo();
+        ServerConfig = GetServerConfig();
+    }
+    
+    private void UpdateLocalizedStrings()
+    {
+        Greeting = _localization["app.welcome"].Value;
+        PlatformInfoHeader = _localization["navigation.platformInfo"].Value ?? "Platform Information";
+        AppInfoHeader = _localization["navigation.appInfo"].Value ?? "Application Information";
+        ServerConfigHeader = _localization["navigation.serverConfig"].Value ?? "Server Configuration";
+    }
+    
+    [RelayCommand]
+    private void ChangeLanguage(string language)
+    {
+        ClientEnvironmentConfig.Localization.SetLanguage(language);
+    }
 
     private string GetPlatformInfo()
     {
+        string platformName;
+        
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            return $"Windows ({RuntimeInformation.OSArchitecture})";
+            platformName = $"Windows ({RuntimeInformation.OSArchitecture})";
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            return $"Linux ({RuntimeInformation.OSArchitecture})";
+            platformName = $"Linux ({RuntimeInformation.OSArchitecture})";
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            return $"macOS ({RuntimeInformation.OSArchitecture})";
+            platformName = $"macOS ({RuntimeInformation.OSArchitecture})";
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD))
-            return $"FreeBSD ({RuntimeInformation.OSArchitecture})";
+            platformName = $"FreeBSD ({RuntimeInformation.OSArchitecture})";
         else if (OperatingSystem.IsAndroid())
-            return "Android";
+            platformName = _localization["platform.android"].Value;
         else if (OperatingSystem.IsIOS())
-            return "iOS";
+            platformName = _localization["platform.ios"].Value;
         else if (OperatingSystem.IsBrowser())
-            return "Web Browser (WASM)";
+            platformName = _localization["platform.browser"].Value;
         else
-            return $"Unknown ({RuntimeInformation.OSDescription})";
+            platformName = $"Unknown ({RuntimeInformation.OSDescription})";
+            
+        return _localization["platform.info", platformName].Value;
     }
 
     private string GetAppInfo()
@@ -61,21 +119,21 @@ public partial class MainViewModel : ViewModelBase
         var codename = BuildInfo.GetCodename(assembly);
         var buildDate = BuildInfo.GetBuildDate(assembly);
         
-        return $"App: {appName}\n" +
+        return $"{_localization["app.name"]}: {appName}\n" +
                $"ID: {appId}\n" +
-               $"Version: {version} ({codename})\n" +
-               $"Built: {buildDate}";
+               $"{_localization["platform.version", version]} ({codename})\n" +
+               $"{_localization["platform.build", buildDate]}";
     }
 
     private string GetServerConfig()
     {
-        return $"Server: {ClientEnvironmentConfig.Server.BaseUrl}\n" +
+        return $"{_localization["server.connection"]}: {ClientEnvironmentConfig.Server.BaseUrl}\n" +
                $"GraphQL: {ClientEnvironmentConfig.Server.GraphQLUrl}\n" +
                $"API: {ClientEnvironmentConfig.Server.ApiBaseUrl}\n" +
                $"WebSocket: {ClientEnvironmentConfig.Server.WebSocketUrl}\n" +
-               $"Environment: {ClientEnvironmentConfig.App.Environment}\n" +
+               $"{_localization["platform.environment", ClientEnvironmentConfig.App.Environment]}\n" +
                $"Debug Mode: {ClientEnvironmentConfig.App.Debug}\n" +
-               $"Platform: {ClientEnvironmentConfig.Platform.Name}";
+               $"{_localization["platform.info", ClientEnvironmentConfig.Platform.Name]}";
     }
     
 }

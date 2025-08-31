@@ -1,0 +1,184 @@
+{
+  "app": {
+    "name": "Kanriya",
+    "welcome": "Kanriyaクライアントへようこそ",
+    "loading": "読み込み中...",
+    "error": "エラーが発生しました",
+    "retry": "再試行",
+    "cancel": "キャンセル",
+    "ok": "OK",
+    "yes": "はい",
+    "no": "いいえ",
+    "save": "保存",
+    "delete": "削除",
+    "edit": "編集",
+    "close": "閉じる",
+    "back": "戻る",
+    "next": "次へ",
+    "finish": "完了",
+    "search": "検索",
+    "settings": "設定",
+    "about": "概要",
+    "help": "ヘルプ",
+    "logout": "ログアウト",
+    "login": "ログイン"
+  },
+  "platform": {
+    "info": "プラットフォーム: {0}",
+    "desktop": "デスクトップ",
+    "android": "Android",
+    "ios": "iOS",
+    "browser": "ブラウザ",
+    "version": "バージョン: {0}",
+    "build": "ビルド: {0}",
+    "environment": "環境: {0}"
+  },
+  "server": {
+    "connection": "サーバー接続",
+    "url": "サーバーURL: {0}",
+    "status": {
+      "connected": "接続済み",
+      "connecting": "接続中...",
+      "disconnected": "切断済み",
+      "error": "接続エラー",
+      "reconnecting": "再接続中..."
+    },
+    "messages": {
+      "connectionLost": "サーバーとの接続が失われました",
+      "connectionEstablished": "サーバーに接続しました",
+      "reconnectAttempt": "再接続を試みています... ({0}/{1})",
+      "reconnectFailed": "{0}回の試行後、再接続に失敗しました"
+    }
+  },
+  "auth": {
+    "title": "認証",
+    "apiKey": "APIキー",
+    "apiPassword": "APIパスワード",
+    "email": "メールアドレス",
+    "password": "パスワード",
+    "rememberMe": "ログイン状態を保持",
+    "forgotPassword": "パスワードを忘れた方",
+    "signIn": "ログイン",
+    "signUp": "新規登録",
+    "signOut": "ログアウト",
+    "errors": {
+      "invalidCredentials": "認証情報が無効です",
+      "sessionExpired": "セッションの有効期限が切れました。再度ログインしてください。",
+      "unauthorized": "認証されていません",
+      "forbidden": "アクセスが拒否されました"
+    }
+  },
+  "brand": {
+    "title": "ブランド",
+    "name": "ブランド名",
+    "description": "説明",
+    "created": "作成日時",
+    "modified": "更新日時",
+    "owner": "オーナー",
+    "operators": "オペレーター",
+    "actions": {
+      "create": "ブランドを作成",
+      "update": "ブランドを更新",
+      "delete": "ブランドを削除",
+      "select": "ブランドを選択"
+    },
+    "messages": {
+      "created": "ブランドが正常に作成されました",
+      "updated": "ブランドが正常に更新されました",
+      "deleted": "ブランドが正常に削除されました",
+      "selected": "ブランドが選択されました: {0}"
+    }
+  },
+  "user": {
+    "title": "ユーザー",
+    "name": "名前",
+    "email": "メールアドレス",
+    "role": "役割",
+    "userStatus": "ステータス",
+    "lastLogin": "最終ログイン",
+    "created": "作成日時",
+    "actions": {
+      "create": "ユーザーを作成",
+      "update": "ユーザーを更新",
+      "delete": "ユーザーを削除",
+      "changePassword": "パスワードを変更",
+      "resetPassword": "パスワードをリセット"
+    },
+    "roles": {
+      "owner": "オーナー",
+      "operator": "オペレーター",
+      "viewer": "閲覧者",
+      "admin": "管理者"
+    },
+    "status": {
+      "active": "アクティブ",
+      "inactive": "非アクティブ",
+      "suspended": "停止中",
+      "pending": "保留中"
+    }
+  },
+  "errors": {
+    "network": "ネットワーク接続に失敗しました",
+    "config": "設定エラー",
+    "unknown": "不明なエラーが発生しました",
+    "timeout": "リクエストがタイムアウトしました",
+    "serverError": "サーバーエラーが発生しました",
+    "clientError": "クライアントエラーが発生しました",
+    "validation": "検証に失敗しました",
+    "notFound": "リソースが見つかりません",
+    "messages": {
+      "tryAgain": "後でもう一度お試しください",
+      "contactSupport": "問題が解決しない場合は、サポートにお問い合わせください",
+      "checkConnection": "インターネット接続を確認してください"
+    }
+  },
+  "validation": {
+    "required": "{0}は必須です",
+    "email": "有効なメールアドレスを入力してください",
+    "minLength": "{0}は最低{1}文字必要です",
+    "maxLength": "{0}は最大{1}文字までです",
+    "pattern": "{0}の形式が無効です",
+    "number": "{0}は数値である必要があります",
+    "min": "{0}は最小{1}である必要があります",
+    "max": "{0}は最大{1}である必要があります",
+    "url": "有効なURLを入力してください",
+    "date": "有効な日付を入力してください",
+    "match": "{0}と{1}が一致する必要があります"
+  },
+  "datetime": {
+    "today": "今日",
+    "yesterday": "昨日",
+    "tomorrow": "明日",
+    "now": "今",
+    "ago": "{0}前",
+    "in": "{0}後",
+    "seconds": "秒",
+    "minute": "分",
+    "minutes": "分",
+    "hour": "時間",
+    "hours": "時間",
+    "day": "日",
+    "days": "日",
+    "week": "週間",
+    "weeks": "週間",
+    "month": "ヶ月",
+    "months": "ヶ月",
+    "year": "年",
+    "years": "年"
+  },
+  "navigation": {
+    "home": "ホーム",
+    "dashboard": "ダッシュボード",
+    "brands": "ブランド",
+    "users": "ユーザー",
+    "settings": "設定",
+    "profile": "プロフィール",
+    "reports": "レポート",
+    "analytics": "分析",
+    "help": "ヘルプ",
+    "documentation": "ドキュメント",
+    "platformInfo": "プラットフォーム情報",
+    "appInfo": "アプリケーション情報",
+    "serverConfig": "サーバー設定"
+  }
+}
