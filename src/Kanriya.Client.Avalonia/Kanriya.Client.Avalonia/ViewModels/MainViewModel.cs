@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -59,6 +60,9 @@ public partial class MainViewModel : ViewModelBase
         _platform = GetPlatformInfo();
         _appInfo = GetAppInfo();
         _serverConfig = GetServerConfig();
+        
+        // Notify browser if running in WebAssembly
+        NotifyBrowserIfNeeded();
     }
     
     private void OnLanguageChanged(object? sender, string newLanguage)
@@ -70,6 +74,12 @@ public partial class MainViewModel : ViewModelBase
         Platform = GetPlatformInfo();
         AppInfo = GetAppInfo();
         ServerConfig = GetServerConfig();
+        
+        // Send language change event to browser if in WebAssembly
+        if (OperatingSystem.IsBrowser())
+        {
+            SendEventToBrowser("languageChanged", newLanguage);
+        }
     }
     
     private void UpdateLocalizedStrings()
@@ -136,4 +146,62 @@ public partial class MainViewModel : ViewModelBase
                $"{_localization["platform.info", ClientEnvironmentConfig.Platform.Name]}";
     }
     
+    private void NotifyBrowserIfNeeded()
+    {
+        if (OperatingSystem.IsBrowser())
+        {
+            try
+            {
+                // Use reflection to call browser-specific code to avoid compilation issues on other platforms
+                var browserAssembly = AppDomain.CurrentDomain.GetAssemblies()
+                    .FirstOrDefault(a => a.GetName().Name == "Kanriya.Client.Avalonia.Browser");
+                
+                if (browserAssembly != null)
+                {
+                    var serviceType = browserAssembly.GetType("Kanriya.Client.Avalonia.Browser.BrowserPlatformService");
+                    if (serviceType != null)
+                    {
+                        var instanceProperty = serviceType.GetProperty("Instance");
+                        var instance = instanceProperty?.GetValue(null);
+                        
+                        var notifyMethod = serviceType.GetMethod("NotifyApplicationReady");
+                        notifyMethod?.Invoke(instance, null);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to notify browser: {ex.Message}");
+            }
+        }
+    }
+    
+    private void SendEventToBrowser(string eventName, string data)
+    {
+        if (OperatingSystem.IsBrowser())
+        {
+            try
+            {
+                var browserAssembly = AppDomain.CurrentDomain.GetAssemblies()
+                    .FirstOrDefault(a => a.GetName().Name == "Kanriya.Client.Avalonia.Browser");
+                
+                if (browserAssembly != null)
+                {
+                    var serviceType = browserAssembly.GetType("Kanriya.Client.Avalonia.Browser.BrowserPlatformService");
+                    if (serviceType != null)
+                    {
+                        var instanceProperty = serviceType.GetProperty("Instance");
+                        var instance = instanceProperty?.GetValue(null);
+                        
+                        var sendMethod = serviceType.GetMethod("SendCustomEvent");
+                        sendMethod?.Invoke(instance, new object[] { eventName, data });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to send event to browser: {ex.Message}");
+            }
+        }
+    }
 }
