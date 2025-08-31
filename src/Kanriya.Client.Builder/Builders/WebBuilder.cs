@@ -43,12 +43,12 @@ public class WebBuilder : BasePlatformBuilder
             return;
         }
         
-        if (AnsiConsole.Confirm("🌐 [bold]Start HTTP server now?[/]", true))
+        var port = AnsiConsole.Prompt(
+            new TextPrompt<int>("Enter the port to use (or 0 to not run the server):")
+                .DefaultValue(8080));
+        
+        if (port != 0)
         {
-            var port = AnsiConsole.Prompt(
-                new TextPrompt<int>("Port:")
-                    .DefaultValue(8080));
-            
             await StartHttpServer(port, webPath, true);
         }
     }
