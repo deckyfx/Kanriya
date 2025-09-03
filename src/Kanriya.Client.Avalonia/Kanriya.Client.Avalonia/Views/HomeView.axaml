@@ -1,0 +1,101 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Kanriya.Client.Avalonia.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Kanriya.Client.Avalonia.Views.HomeView"
+             x:DataType="vm:HomeViewModel">
+  
+  <Grid VerticalAlignment="Center" HorizontalAlignment="Center">
+    <StackPanel Spacing="20" MaxWidth="600">
+      <!-- Logo -->
+      <Image Source="avares://Kanriya.Client.Avalonia/Assets/Icons/kanriya-logo.png"
+             Width="120"
+             Height="120"
+             HorizontalAlignment="Center"/>
+      
+      <!-- Welcome Message -->
+      <TextBlock Text="{Binding WelcomeMessage}"
+                 Classes="h2"
+                 HorizontalAlignment="Center"
+                 TextAlignment="Center"/>
+      
+      <!-- Description -->
+      <TextBlock Text="{Binding Description}"
+                 Classes="body-large"
+                 TextWrapping="Wrap"
+                 TextAlignment="Center"
+                 Opacity="0.8"/>
+      
+      <!-- Feature Cards -->
+      <Grid ColumnDefinitions="*,*,*" RowDefinitions="Auto" Margin="0,20">
+        <!-- Build Info Card -->
+        <Border Grid.Column="0" 
+                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                CornerRadius="8"
+                Padding="20"
+                Margin="4">
+          <StackPanel Spacing="10">
+            <TextBlock Text="&#xE88E;" 
+                       FontFamily="{StaticResource MaterialIcons}"
+                       FontSize="32"
+                       HorizontalAlignment="Center"
+                       Foreground="#667eea"/>
+            <TextBlock Text="Build Info" 
+                       Classes="h6"
+                       HorizontalAlignment="Center"/>
+            <TextBlock Text="View application build information and configuration"
+                       Classes="caption"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"/>
+          </StackPanel>
+        </Border>
+        
+        <!-- Typography Card -->
+        <Border Grid.Column="1" 
+                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                CornerRadius="8"
+                Padding="20"
+                Margin="4">
+          <StackPanel Spacing="10">
+            <TextBlock Text="&#xE264;" 
+                       FontFamily="{StaticResource MaterialIcons}"
+                       FontSize="32"
+                       HorizontalAlignment="Center"
+                       Foreground="#764ba2"/>
+            <TextBlock Text="Typography" 
+                       Classes="h6"
+                       HorizontalAlignment="Center"/>
+            <TextBlock Text="Explore font styles and text formatting options"
+                       Classes="caption"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"/>
+          </StackPanel>
+        </Border>
+        
+        <!-- Display Image Card -->
+        <Border Grid.Column="2" 
+                Background="{DynamicResource SystemControlBackgroundChromeMediumLowBrush}"
+                CornerRadius="8"
+                Padding="20"
+                Margin="4">
+          <StackPanel Spacing="10">
+            <TextBlock Text="&#xE3F4;" 
+                       FontFamily="{StaticResource MaterialIcons}"
+                       FontSize="32"
+                       HorizontalAlignment="Center"
+                       Foreground="#10b981"/>
+            <TextBlock Text="Images" 
+                       Classes="h6"
+                       HorizontalAlignment="Center"/>
+            <TextBlock Text="Test image display with PNG, SVG, embedded and remote sources"
+                       Classes="caption"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"/>
+          </StackPanel>
+        </Border>
+      </Grid>
+    </StackPanel>
+  </Grid>
+</UserControl>

@@ -1,0 +1,142 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Kanriya.Client.Avalonia.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Kanriya.Client.Avalonia.Views.MainMenuView"
+             x:DataType="vm:MainMenuViewModel">
+  
+  <SplitView IsPaneOpen="{Binding IsPaneOpen}"
+             DisplayMode="CompactInline"
+             CompactPaneLength="48"
+             OpenPaneLength="250">
+    
+    <SplitView.Pane>
+      <Grid RowDefinitions="Auto,*,Auto" Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}">
+        <!-- Header -->
+        <Border Grid.Row="0" Padding="12" BorderThickness="0,0,0,1" 
+                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+          <Grid ColumnDefinitions="Auto,*">
+            <Button Grid.Column="0" 
+                    Command="{Binding TogglePaneCommand}"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Padding="8">
+              <TextBlock Text="&#xE700;" 
+                         FontFamily="{StaticResource MaterialIcons}"
+                         FontSize="24"/>
+            </Button>
+            <TextBlock Grid.Column="1" 
+                       Text="Kanriya Client" 
+                       VerticalAlignment="Center"
+                       Margin="12,0,0,0"
+                       FontSize="16"
+                       FontWeight="SemiBold"
+                       IsVisible="{Binding IsPaneOpen}"/>
+          </Grid>
+        </Border>
+        
+        <!-- Navigation Items -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+          <StackPanel Spacing="2" Margin="0,8">
+            <!-- Home -->
+            <Button Command="{Binding NavigateToHomeCommand}"
+                    Classes="nav-button"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Left">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <TextBlock Text="&#xE88A;" 
+                           FontFamily="{StaticResource MaterialIcons}"
+                           FontSize="20"
+                           VerticalAlignment="Center"/>
+                <TextBlock Text="Home" 
+                           IsVisible="{Binding IsPaneOpen}"
+                           VerticalAlignment="Center"/>
+              </StackPanel>
+            </Button>
+            
+            <!-- Build Info -->
+            <Button Command="{Binding NavigateToBuildInfoCommand}"
+                    Classes="nav-button"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Left">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <TextBlock Text="&#xE88E;" 
+                           FontFamily="{StaticResource MaterialIcons}"
+                           FontSize="20"
+                           VerticalAlignment="Center"/>
+                <TextBlock Text="Build Info" 
+                           IsVisible="{Binding IsPaneOpen}"
+                           VerticalAlignment="Center"/>
+              </StackPanel>
+            </Button>
+            
+            <!-- Typography -->
+            <Button Command="{Binding NavigateToTypographyCommand}"
+                    Classes="nav-button"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Left">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <TextBlock Text="&#xE264;" 
+                           FontFamily="{StaticResource MaterialIcons}"
+                           FontSize="20"
+                           VerticalAlignment="Center"/>
+                <TextBlock Text="Typography" 
+                           IsVisible="{Binding IsPaneOpen}"
+                           VerticalAlignment="Center"/>
+              </StackPanel>
+            </Button>
+            
+            <!-- Display Image -->
+            <Button Command="{Binding NavigateToDisplayImageCommand}"
+                    Classes="nav-button"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Left">
+              <StackPanel Orientation="Horizontal" Spacing="12">
+                <TextBlock Text="&#xE3F4;" 
+                           FontFamily="{StaticResource MaterialIcons}"
+                           FontSize="20"
+                           VerticalAlignment="Center"/>
+                <TextBlock Text="Display Image" 
+                           IsVisible="{Binding IsPaneOpen}"
+                           VerticalAlignment="Center"/>
+              </StackPanel>
+            </Button>
+          </StackPanel>
+        </ScrollViewer>
+        
+        <!-- Footer -->
+        <Border Grid.Row="2" Padding="12" BorderThickness="0,1,0,0"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}"
+                IsVisible="{Binding IsPaneOpen}">
+          <TextBlock Text="v1.0.0" 
+                     FontSize="12"
+                     Opacity="0.6"
+                     HorizontalAlignment="Center"/>
+        </Border>
+      </Grid>
+    </SplitView.Pane>
+    
+    <SplitView.Content>
+      <!-- Content Area -->
+      <ContentControl Content="{Binding CurrentPage}"/>
+    </SplitView.Content>
+    
+  </SplitView>
+  
+  <UserControl.Styles>
+    <Style Selector="Button.nav-button">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+      <Setter Property="Padding" Value="12,8"/>
+      <Setter Property="Margin" Value="4,0"/>
+    </Style>
+    <Style Selector="Button.nav-button:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListLowBrush}"/>
+    </Style>
+    <Style Selector="Button.nav-button:pressed">
+      <Setter Property="Background" Value="{DynamicResource SystemControlHighlightListMediumBrush}"/>
+    </Style>
+  </UserControl.Styles>
+</UserControl>

@@ -1,0 +1,129 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Kanriya.Client.Avalonia.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Kanriya.Client.Avalonia.Views.TypographyView"
+             x:DataType="vm:TypographyViewModel">
+  
+  <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+    <StackPanel Spacing="20" Margin="20">
+      <!-- Page Header -->
+      <TextBlock Text="{Binding PageTitle}" Classes="h2" Margin="0,0,0,10"/>
+      
+      <!-- Typography Showcase -->
+      <Border Background="#FFF8E1" CornerRadius="8" Padding="20">
+        <StackPanel Spacing="15">
+          <TextBlock Text="Typography Showcase / タイポグラフィ / 字体展示" 
+                     Classes="h3 primary"
+                     HorizontalAlignment="Center"/>
+          
+          <!-- Headings Section -->
+          <Border Background="White" CornerRadius="4" Padding="15">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Headings / 見出し / 标题" Classes="h5 primary"/>
+              <TextBlock Classes="h1">H1: Hello World / こんにちは / 你好</TextBlock>
+              <TextBlock Classes="h2">H2: Welcome / ようこそ / 欢迎</TextBlock>
+              <TextBlock Classes="h3">H3: Typography / タイポグラフィ / 字体</TextBlock>
+              <TextBlock Classes="h4">H4: Design System / デザインシステム / 设计系统</TextBlock>
+              <TextBlock Classes="h5">H5: User Interface / ユーザーインターフェース / 用户界面</TextBlock>
+              <TextBlock Classes="h6">H6: Application / アプリケーション / 应用程序</TextBlock>
+            </StackPanel>
+          </Border>
+          
+          <!-- Text Styles Section -->
+          <Border Background="White" CornerRadius="4" Padding="15">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Text Styles / テキストスタイル / 文本样式" Classes="h5 primary"/>
+              <TextBlock Classes="body-large">Body Large: The quick brown fox jumps over the lazy dog. / 素早い茶色の狐が怠け者の犬を飛び越える。/ 快速的棕色狐狸跳过懒狗。</TextBlock>
+              <TextBlock Classes="body">Body: Regular text for content. / 通常のテキスト。/ 常规文本。</TextBlock>
+              <TextBlock Classes="caption">Caption: Small descriptive text. / 小さな説明文。/ 小描述文本。</TextBlock>
+              <TextBlock Classes="overline">OVERLINE TEXT / オーバーライン / 上划线文本</TextBlock>
+            </StackPanel>
+          </Border>
+          
+          <!-- Emphasis Styles Section -->
+          <Border Background="White" CornerRadius="4" Padding="15">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Emphasis / 強調 / 强调" Classes="h5 primary"/>
+              <TextBlock Classes="bold">Bold Text / 太字テキスト / 粗体文本</TextBlock>
+              <TextBlock Classes="italic">Italic Text / イタリック体 / 斜体文本</TextBlock>
+              <TextBlock Classes="underline">Underlined Text / 下線付きテキスト / 下划线文本</TextBlock>
+              <TextBlock Classes="strikethrough">Strikethrough / 取り消し線 / 删除线</TextBlock>
+              <TextBlock Classes="bold italic">Bold Italic / 太字イタリック / 粗斜体</TextBlock>
+            </StackPanel>
+          </Border>
+          
+          <!-- Color Variations Section -->
+          <Border Background="White" CornerRadius="4" Padding="15">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Colors / 色 / 颜色" Classes="h5 primary"/>
+              <TextBlock Classes="body-large primary">Primary: Information / 情報 / 信息</TextBlock>
+              <TextBlock Classes="body-large success">Success: Complete / 完了 / 完成</TextBlock>
+              <TextBlock Classes="body-large warning">Warning: Caution / 注意 / 警告</TextBlock>
+              <TextBlock Classes="body-large danger">Danger: Error / エラー / 错误</TextBlock>
+              <TextBlock Classes="body-large muted">Muted: Disabled / 無効 / 禁用</TextBlock>
+            </StackPanel>
+          </Border>
+          
+          <!-- Special Styles Section -->
+          <Border Background="White" CornerRadius="4" Padding="15">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Special Styles / 特殊スタイル / 特殊样式" Classes="h5 primary"/>
+              <TextBlock Classes="code">Code: function() { return "Hello"; } / コード / 代码</TextBlock>
+              <Border BorderThickness="4,0,0,0" BorderBrush="#007ACC" Padding="12,8" Margin="0,8">
+                <TextBlock Classes="quote" TextWrapping="Wrap">
+                  "Design is not just what it looks like and feels like. Design is how it works." - Steve Jobs
+                  「デザインとは、見た目や感じだけではない。デザインとは、どのように機能するかである。」
+                  "设计不仅仅是外观和感觉。设计是它的工作方式。"
+                </TextBlock>
+              </Border>
+            </StackPanel>
+          </Border>
+          
+          <!-- Font Weight Variations -->
+          <Border Background="White" CornerRadius="4" Padding="15">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Font Weights / フォントウェイト / 字重" Classes="h5 primary"/>
+              <TextBlock FontWeight="Thin" FontSize="16">Thin (100): Typography / タイポグラフィ / 字体</TextBlock>
+              <TextBlock FontWeight="ExtraLight" FontSize="16">Extra Light (200): Typography / タイポグラフィ / 字体</TextBlock>
+              <TextBlock FontWeight="Light" FontSize="16">Light (300): Typography / タイポグラフィ / 字体</TextBlock>
+              <TextBlock FontWeight="Normal" FontSize="16">Regular (400): Typography / タイポグラフィ / 字体</TextBlock>
+              <TextBlock FontWeight="Medium" FontSize="16">Medium (500): Typography / タイポグラフィ / 字体</TextBlock>
+              <TextBlock FontWeight="SemiBold" FontSize="16">SemiBold (600): Typography / タイポグラフィ / 字体</TextBlock>
+              <TextBlock FontWeight="Bold" FontSize="16">Bold (700): Typography / タイポグラフィ / 字体</TextBlock>
+              <TextBlock FontWeight="ExtraBold" FontSize="16">Extra Bold (800): Typography / タイポグラフィ / 字体</TextBlock>
+              <TextBlock FontWeight="Black" FontSize="16">Black (900): Typography / タイポグラフィ / 字体</TextBlock>
+            </StackPanel>
+          </Border>
+          
+          <!-- Mixed Languages Example -->
+          <Border Background="White" CornerRadius="4" Padding="15">
+            <StackPanel Spacing="8">
+              <TextBlock Text="Mixed Languages / 混合言語 / 混合语言" Classes="h5 primary"/>
+              <TextBlock Classes="body-large" TextWrapping="Wrap">
+                English: The quick brown fox jumps over the lazy dog.
+              </TextBlock>
+              <TextBlock Classes="body-large" TextWrapping="Wrap">
+                日本語: いろはにほへとちりぬるをわかよたれそつねならむうゐのおくやまけふこえてあさきゆめみしゑひもせす
+              </TextBlock>
+              <TextBlock Classes="body-large" TextWrapping="Wrap">
+                简体中文: 天地玄黄，宇宙洪荒。日月盈昃，辰宿列张。寒来暑往，秋收冬藏。
+              </TextBlock>
+              <TextBlock Classes="body-large" TextWrapping="Wrap">
+                繁體中文: 天地玄黃，宇宙洪荒。日月盈昃，辰宿列張。寒來暑往，秋收冬藏。
+              </TextBlock>
+              <TextBlock Classes="body-large" TextWrapping="Wrap">
+                한국어: 다람쥐 헌 쳇바퀴에 타고파. 키스의 고유조건은 입술끼리 만나야 하고 특별한 기술은 필요치 않다.
+              </TextBlock>
+              <TextBlock Classes="body-large" TextWrapping="Wrap">
+                Mixed: Hello 世界! Welcome to カンリヤ client. 这是一个 test テスト 测试。
+              </TextBlock>
+            </StackPanel>
+          </Border>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

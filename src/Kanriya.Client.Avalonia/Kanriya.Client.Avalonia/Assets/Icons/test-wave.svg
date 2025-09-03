@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="400" height="200" viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Gradient definition -->
+  <defs>
+    <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#764ba2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#10b981;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="400" height="200" fill="#f8f9fa"/>
+  
+  <!-- Wave path -->
+  <path d="M0,100 Q100,50 200,100 T400,100 L400,200 L0,200 Z" 
+        fill="url(#waveGradient)" 
+        opacity="0.8"
+        filter="url(#shadow)"/>
+  
+  <!-- Second wave -->
+  <path d="M0,120 Q100,80 200,120 T400,120 L400,200 L0,200 Z" 
+        fill="url(#waveGradient)" 
+        opacity="0.5"/>
+  
+  <!-- Text -->
+  <text x="200" y="60" 
+        font-family="Arial, sans-serif" 
+        font-size="32" 
+        font-weight="bold" 
+        text-anchor="middle" 
+        fill="#333">
+    SVG Wave Test
+  </text>
+  
+  <!-- Decorative circles -->
+  <circle cx="50" cy="50" r="20" fill="#667eea" opacity="0.3"/>
+  <circle cx="350" cy="50" r="15" fill="#764ba2" opacity="0.3"/>
+  <circle cx="200" cy="150" r="10" fill="white" opacity="0.8"/>
+</svg>

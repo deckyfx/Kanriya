@@ -1,0 +1,103 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:Kanriya.Client.Avalonia.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Kanriya.Client.Avalonia.Views.BuildInfoView"
+             x:DataType="vm:BuildInfoViewModel">
+  
+  <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+    <StackPanel Spacing="20" Margin="20">
+      <!-- Page Header -->
+      <TextBlock Text="Build Information" Classes="h2" Margin="0,0,0,10"/>
+      
+      <!-- Language Selector -->
+      <Border Background="#FFF3E0" CornerRadius="8" Padding="10" HorizontalAlignment="Right">
+        <StackPanel Orientation="Horizontal" Spacing="10">
+          <TextBlock Text="&#xE894;" 
+                     FontFamily="{StaticResource MaterialIcons}"
+                     FontSize="20" 
+                     VerticalAlignment="Center"
+                     Margin="0,0,5,0"/>
+          <TextBlock Text="Language:" VerticalAlignment="Center" FontSize="14" Margin="0,0,5,0"/>
+          <ComboBox ItemsSource="{Binding AvailableLanguages}"
+                    SelectedItem="{Binding CurrentLanguage}"
+                    Width="120">
+            <ComboBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding}"/>
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <Button Content="Apply" 
+                  Command="{Binding ChangeLanguageCommand}"
+                  CommandParameter="{Binding CurrentLanguage}"
+                  Padding="10,5"/>
+        </StackPanel>
+      </Border>
+      
+      <!-- Platform Info -->
+      <Border Background="#F5F5F5" CornerRadius="8" Padding="15">
+        <StackPanel Spacing="5">
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
+            <TextBlock Text="&#xE30A;" 
+                       FontFamily="{StaticResource MaterialIcons}"
+                       FontSize="24" 
+                       VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding PlatformInfoHeader}" 
+                       FontSize="18"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center"/>
+          </StackPanel>
+          <TextBlock Text="{Binding Platform}" 
+                     FontSize="16"
+                     Foreground="#4CAF50"
+                     HorizontalAlignment="Center"/>
+        </StackPanel>
+      </Border>
+      
+      <!-- App Info -->
+      <Border Background="#E8F5E8" CornerRadius="8" Padding="15">
+        <StackPanel Spacing="5">
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
+            <TextBlock Text="&#xE88E;" 
+                       FontFamily="{StaticResource MaterialIcons}"
+                       FontSize="24" 
+                       VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding AppInfoHeader}" 
+                       FontSize="18"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center"/>
+          </StackPanel>
+          <TextBlock Text="{Binding AppInfo}" 
+                     FontSize="12"
+                     FontFamily="{StaticResource MonospaceFontFamily}"
+                     HorizontalAlignment="Center"
+                     TextAlignment="Center"/>
+        </StackPanel>
+      </Border>
+      
+      <!-- Server Config -->
+      <Border Background="#E3F2FD" CornerRadius="8" Padding="15">
+        <StackPanel Spacing="5">
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
+            <TextBlock Text="&#xE8B8;" 
+                       FontFamily="{StaticResource MaterialIcons}"
+                       FontSize="24" 
+                       VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding ServerConfigHeader}" 
+                       FontSize="18"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center"/>
+          </StackPanel>
+          <TextBlock Text="{Binding ServerConfig}" 
+                     FontSize="12"
+                     FontFamily="{StaticResource MonospaceFontFamily}"
+                     HorizontalAlignment="Center"
+                     TextAlignment="Center"/>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

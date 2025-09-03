@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Radial gradient for depth -->
+    <radialGradient id="logoGradient" cx="50%" cy="50%">
+      <stop offset="0%" style="stop-color:#764ba2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#667eea;stop-opacity:1" />
+    </radialGradient>
+    
+    <!-- Shadow filter -->
+    <filter id="logoShadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.25"/>
+    </filter>
+    
+    <!-- Pattern for texture -->
+    <pattern id="dots" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="10" cy="10" r="2" fill="white" opacity="0.1"/>
+    </pattern>
+  </defs>
+  
+  <!-- Outer circle background -->
+  <circle cx="128" cy="128" r="120" fill="url(#logoGradient)" filter="url(#logoShadow)"/>
+  
+  <!-- Pattern overlay -->
+  <circle cx="128" cy="128" r="120" fill="url(#dots)"/>
+  
+  <!-- Letter K shape -->
+  <g transform="translate(128, 128)">
+    <!-- Main K stroke -->
+    <path d="M -40,-60 L -40,60 M -40,0 L 40,-60 M -40,0 L 40,60" 
+          stroke="white" 
+          stroke-width="16" 
+          stroke-linecap="round" 
+          stroke-linejoin="round"
+          fill="none"/>
+  </g>
+  
+  <!-- Decorative elements -->
+  <circle cx="128" cy="128" r="100" 
+          fill="none" 
+          stroke="white" 
+          stroke-width="2" 
+          opacity="0.3"/>
+  
+  <circle cx="128" cy="128" r="110" 
+          fill="none" 
+          stroke="white" 
+          stroke-width="1" 
+          opacity="0.2"/>
+  
+  <!-- Small accent circles -->
+  <circle cx="80" cy="60" r="4" fill="white" opacity="0.6"/>
+  <circle cx="176" cy="196" r="4" fill="white" opacity="0.6"/>
+  <circle cx="176" cy="60" r="3" fill="white" opacity="0.4"/>
+  <circle cx="80" cy="196" r="3" fill="white" opacity="0.4"/>
+  
+  <!-- Text label -->
+  <text x="128" y="210" 
+        font-family="Arial, sans-serif" 
+        font-size="14" 
+        font-weight="bold" 
+        text-anchor="middle" 
+        fill="white"
+        opacity="0.9">
+    KANRIYA
+  </text>
+</svg>
