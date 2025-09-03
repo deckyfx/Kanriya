@@ -1,0 +1,329 @@
+@page "/cookie-api-test"
+@layout MainLayout
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@using System.Net.Http.Json
+@using System.Text.Json
+
+<h3>Cookie and Session Test (Pure API Approach)</h3>
+
+<div style="margin: 2rem 0; padding: 1rem; background: #f5f5f5; border-radius: 4px;">
+    <h4>1. Cookie Management via REST API</h4>
+    
+    <div style="margin: 1rem 0;">
+        <label>Cookie Name:</label>
+        <input @bind="cookieName" style="margin: 0 0.5rem; padding: 0.25rem;" />
+        <label>Cookie Value:</label>
+        <input @bind="cookieValue" style="margin: 0 0.5rem; padding: 0.25rem;" />
+        <button @onclick="SetCookieViaApi" style="padding: 0.25rem 0.5rem;">POST - Create Cookie</button>
+    </div>
+    
+    <div style="margin: 1rem 0;">
+        <button @onclick="GetAllCookiesViaApi" style="padding: 0.25rem 0.5rem;">GET - Read All</button>
+        <button @onclick="GetSpecificCookieViaApi" style="padding: 0.25rem 0.5rem;">GET - Read One</button>
+        <button @onclick="UpdateCookieViaApi" style="padding: 0.25rem 0.5rem;">PUT - Replace</button>
+        <button @onclick="PatchCookieViaApi" style="padding: 0.25rem 0.5rem;">PATCH - Extend</button>
+        <button @onclick="DeleteCookieViaApi" style="padding: 0.25rem 0.5rem;">DELETE - Remove</button>
+        <button @onclick="DeleteAllCookiesViaApi" style="padding: 0.25rem 0.5rem;">DELETE - Clear All</button>
+    </div>
+    
+    <div style="margin: 1rem 0; padding: 0.5rem; background: white; border: 1px solid #ddd;">
+        <strong>Cookie API Response:</strong>
+        <pre style="white-space: pre-wrap; word-wrap: break-word;">@cookieResponse</pre>
+    </div>
+</div>
+
+<div style="margin: 2rem 0; padding: 1rem; background: #e8f5e9; border-radius: 4px;">
+    <h4>2. Session Management via REST API</h4>
+    
+    <div style="margin: 1rem 0;">
+        <label>Session Key:</label>
+        <input @bind="sessionKey" style="margin: 0 0.5rem; padding: 0.25rem;" />
+        <label>Session Value:</label>
+        <input @bind="sessionValue" style="margin: 0 0.5rem; padding: 0.25rem;" />
+        <button @onclick="SetSessionViaApi" style="padding: 0.25rem 0.5rem;">POST - Create</button>
+    </div>
+    
+    <div style="margin: 1rem 0;">
+        <button @onclick="GetAllSessionViaApi" style="padding: 0.25rem 0.5rem;">GET - Read All</button>
+        <button @onclick="GetSpecificSessionViaApi" style="padding: 0.25rem 0.5rem;">GET - Read One</button>
+        <button @onclick="UpdateSessionViaApi" style="padding: 0.25rem 0.5rem;">PUT - Replace</button>
+        <button @onclick="PatchSessionViaApi" style="padding: 0.25rem 0.5rem;">PATCH - Append</button>
+        <button @onclick="DeleteSessionViaApi" style="padding: 0.25rem 0.5rem;">DELETE - Remove</button>
+        <button @onclick="ClearSessionViaApi" style="padding: 0.25rem 0.5rem;">DELETE - Clear All</button>
+    </div>
+    
+    <div style="margin: 1rem 0; padding: 0.5rem; background: white; border: 1px solid #ddd;">
+        <strong>Session API Response:</strong>
+        <pre style="white-space: pre-wrap; word-wrap: break-word;">@sessionResponse</pre>
+    </div>
+</div>
+
+<div style="margin: 2rem 0; padding: 1rem; background: #fff3e0; border-radius: 4px;">
+    <h4>3. How This Works</h4>
+    <ul style="line-height: 1.8;">
+        <li><strong>Pure API Approach:</strong> All operations go through REST API endpoints</li>
+        <li><strong>No Header Issues:</strong> API controller handles headers before response starts</li>
+        <li><strong>All HTTP Methods:</strong> GET, POST, PUT, PATCH, DELETE all work</li>
+        <li><strong>Blazor as Client:</strong> Blazor acts as a pure client calling APIs</li>
+        <li><strong>Session Persistence:</strong> Server-side sessions persist across requests</li>
+    </ul>
+</div>
+
+@code {
+    private string cookieName = "test-cookie";
+    private string cookieValue = "test-value-123";
+    private string cookieResponse = "";
+    
+    private string sessionKey = "test-key";
+    private string sessionValue = "test-value-456";
+    private string sessionResponse = "";
+    
+    private string ApiBase => "/api/console";
+    
+    // Pretty print JSON response
+    private string FormatJson(string json)
+    {
+        try
+        {
+            var parsed = JsonDocument.Parse(json);
+            return JsonSerializer.Serialize(parsed, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch
+        {
+            return json;
+        }
+    }
+    
+    // ===== COOKIE OPERATIONS =====
+    
+    private async Task SetCookieViaApi()
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync($"{ApiBase}/cookies", new
+            {
+                name = cookieName,
+                value = cookieValue,
+                daysToExpire = 7,
+                httpOnly = false,
+                secure = false
+            });
+            var content = await response.Content.ReadAsStringAsync();
+            cookieResponse = $"POST {response.StatusCode}:\n{FormatJson(content)}";
+        }
+        catch (Exception ex)
+        {
+            cookieResponse = $"Error: {ex.Message}";
+        }
+    }
+    
+    private async Task GetAllCookiesViaApi()
+    {
+        try
+        {
+            var response = await Http.GetAsync($"{ApiBase}/cookies");
+            var content = await response.Content.ReadAsStringAsync();
+            cookieResponse = $"GET {response.StatusCode}:\n{FormatJson(content)}";
+        }
+        catch (Exception ex)
+        {
+            cookieResponse = $"Error: {ex.Message}";
+        }
+    }
+    
+    private async Task GetSpecificCookieViaApi()
+    {
+        try
+        {
+            var response = await Http.GetAsync($"{ApiBase}/cookies/{cookieName}");
+            var content = await response.Content.ReadAsStringAsync();
+            cookieResponse = $"GET {response.StatusCode}:\n{FormatJson(content)}";
+        }
+        catch (Exception ex)
+        {
+            cookieResponse = $"Error: {ex.Message}";
+        }
+    }
+    
+    private async Task UpdateCookieViaApi()
+    {
+        try
+        {
+            var response = await Http.PutAsJsonAsync($"{ApiBase}/cookies/{cookieName}", new
+            {
+                value = cookieValue + "-updated-" + DateTime.Now.Ticks,
+                daysToExpire = 14,
+                httpOnly = false,
+                secure = false
+            });
+            var content = await response.Content.ReadAsStringAsync();
+            cookieResponse = $"PUT {response.StatusCode}:\n{FormatJson(content)}";
+        }
+        catch (Exception ex)
+        {
+            cookieResponse = $"Error: {ex.Message}";
+        }
+    }
+    
+    private async Task PatchCookieViaApi()
+    {
+        try
+        {
+            var request = new HttpRequestMessage(HttpMethod.Patch, $"{ApiBase}/cookies/{cookieName}");
+            request.Content = JsonContent.Create(new
+            {
+                daysToExpire = 30,
+                httpOnly = true
+            });
+            var response = await Http.SendAsync(request);
+            var content = await response.Content.ReadAsStringAsync();
+            cookieResponse = $"PATCH {response.StatusCode}:\n{FormatJson(content)}";
+        }
+        catch (Exception ex)
+        {
+            cookieResponse = $"Error: {ex.Message}";
+        }
+    }
+    
+    private async Task DeleteCookieViaApi()
+    {
+        try
+        {
+            var response = await Http.DeleteAsync($"{ApiBase}/cookies/{cookieName}");
+            var content = await response.Content.ReadAsStringAsync();
+            cookieResponse = $"DELETE {response.StatusCode}:\n{FormatJson(content)}";
+        }
+        catch (Exception ex)
+        {
+            cookieResponse = $"Error: {ex.Message}";
+        }
+    }
+    
+    private async Task DeleteAllCookiesViaApi()
+    {
+        try
+        {
+            var response = await Http.DeleteAsync($"{ApiBase}/cookies");
+            var content = await response.Content.ReadAsStringAsync();
+            cookieResponse = $"DELETE ALL {response.StatusCode}:\n{FormatJson(content)}";
+        }
+        catch (Exception ex)
+        {
+            cookieResponse = $"Error: {ex.Message}";
+        }
+    }
+    
+    // ===== SESSION OPERATIONS =====
+    
+    private async Task SetSessionViaApi()
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync($"{ApiBase}/session", new
+            {
+                key = sessionKey,
+                value = sessionValue
+            });
+            var content = await response.Content.ReadAsStringAsync();
+            sessionResponse = $"POST {response.StatusCode}:\n{FormatJson(content)}";
+        }
+        catch (Exception ex)
+        {
+            sessionResponse = $"Error: {ex.Message}";
+        }
+    }
+    
+    private async Task GetAllSessionViaApi()
+    {
+        try
+        {
+            var response = await Http.GetAsync($"{ApiBase}/session");
+            var content = await response.Content.ReadAsStringAsync();
+            sessionResponse = $"GET {response.StatusCode}:\n{FormatJson(content)}";
+        }
+        catch (Exception ex)
+        {
+            sessionResponse = $"Error: {ex.Message}";
+        }
+    }
+    
+    private async Task GetSpecificSessionViaApi()
+    {
+        try
+        {
+            var response = await Http.GetAsync($"{ApiBase}/session/{sessionKey}");
+            var content = await response.Content.ReadAsStringAsync();
+            sessionResponse = $"GET {response.StatusCode}:\n{FormatJson(content)}";
+        }
+        catch (Exception ex)
+        {
+            sessionResponse = $"Error: {ex.Message}";
+        }
+    }
+    
+    private async Task UpdateSessionViaApi()
+    {
+        try
+        {
+            var response = await Http.PutAsJsonAsync($"{ApiBase}/session/{sessionKey}", new
+            {
+                value = sessionValue + "-updated-" + DateTime.Now.Ticks
+            });
+            var content = await response.Content.ReadAsStringAsync();
+            sessionResponse = $"PUT {response.StatusCode}:\n{FormatJson(content)}";
+        }
+        catch (Exception ex)
+        {
+            sessionResponse = $"Error: {ex.Message}";
+        }
+    }
+    
+    private async Task PatchSessionViaApi()
+    {
+        try
+        {
+            var request = new HttpRequestMessage(HttpMethod.Patch, $"{ApiBase}/session/{sessionKey}");
+            request.Content = JsonContent.Create(new
+            {
+                value = "-appended-" + DateTime.Now.Second,
+                append = true
+            });
+            var response = await Http.SendAsync(request);
+            var content = await response.Content.ReadAsStringAsync();
+            sessionResponse = $"PATCH {response.StatusCode}:\n{FormatJson(content)}";
+        }
+        catch (Exception ex)
+        {
+            sessionResponse = $"Error: {ex.Message}";
+        }
+    }
+    
+    private async Task DeleteSessionViaApi()
+    {
+        try
+        {
+            var response = await Http.DeleteAsync($"{ApiBase}/session/{sessionKey}");
+            var content = await response.Content.ReadAsStringAsync();
+            sessionResponse = $"DELETE {response.StatusCode}:\n{FormatJson(content)}";
+        }
+        catch (Exception ex)
+        {
+            sessionResponse = $"Error: {ex.Message}";
+        }
+    }
+    
+    private async Task ClearSessionViaApi()
+    {
+        try
+        {
+            var response = await Http.DeleteAsync($"{ApiBase}/session");
+            var content = await response.Content.ReadAsStringAsync();
+            sessionResponse = $"DELETE ALL {response.StatusCode}:\n{FormatJson(content)}";
+        }
+        catch (Exception ex)
+        {
+            sessionResponse = $"Error: {ex.Message}";
+        }
+    }
+}

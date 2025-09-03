@@ -1,0 +1,38 @@
+@inherits LayoutComponentBase
+@inject Blazor.Services.BlazorLocalizationService L
+
+<MudLayout>
+    <MudAppBar Elevation="1">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" />
+        <MudText Typo="Typo.h5" Class="ml-3">@L.T("app.name")</MudText>
+        <MudSpacer />
+        <LanguageSwitcher />
+        <MudIconButton Icon="@Icons.Material.Filled.Settings" Color="Color.Inherit" />
+    </MudAppBar>
+    <MudDrawer Open="true" Fixed="true" Elevation="2">
+        <MudDrawerHeader>
+            <MudText Typo="Typo.h6">Navigation</MudText>
+        </MudDrawerHeader>
+        <MudNavMenu>
+            <MudNavLink Href="/console" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+            <MudNavLink Href="/cookie-api-test" Icon="@Icons.Material.Filled.Cookie">Cookie/Session Test</MudNavLink>
+            <MudNavGroup Title="Testing" Icon="@Icons.Material.Filled.Science" Expanded="false">
+                <MudNavLink Href="/cookie-test" Icon="@Icons.Material.Filled.Code">Cookie Test (JS)</MudNavLink>
+                <MudNavLink Href="/cookie-test-server" Icon="@Icons.Material.Filled.Dns">Cookie Test (Server)</MudNavLink>
+            </MudNavGroup>
+            <MudNavLink Href="/" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.Large" Class="my-4">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    protected override void OnInitialized()
+    {
+        L.Initialize();
+    }
+}

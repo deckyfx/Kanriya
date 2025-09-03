@@ -121,6 +121,7 @@ public class UserService : IUserService
     
     public async Task<(bool Success, string Message, User? User)> VerifyEmailAsync(
         string verificationToken,
+        bool skipEmail = false,
         CancellationToken cancellationToken = default)
     {
         using var scope = CreateScope();
@@ -200,8 +201,15 @@ public class UserService : IUserService
         
         _logger.LogInformation("Verified and activated user {Email}", user.Email);
         
-        // Send welcome email
-        await SendWelcomeEmailAsync(user, cancellationToken);
+        // Send welcome email unless skipped
+        if (!skipEmail)
+        {
+            await SendWelcomeEmailAsync(user, cancellationToken);
+        }
+        else
+        {
+            _logger.LogInformation("Skipping welcome email for {Email} as requested", user.Email);
+        }
         
         return (true, "Email verified successfully", user);
     }
@@ -345,6 +353,7 @@ public class UserService : IUserService
     
     public async Task<(bool Success, string Message, string? NewToken)> ResendVerificationAsync(
         string email,
+        bool skipEmail = false,
         CancellationToken cancellationToken = default)
     {
         using var scope = CreateScope();
@@ -362,10 +371,16 @@ public class UserService : IUserService
         
         await dbContext.SaveChangesAsync(cancellationToken);
         
-        // Send new activation email
-        await SendActivationEmailAsync(pendingUser, cancellationToken);
-        
-        _logger.LogInformation("Resent verification email for {Email}", email);
+        // Send new activation email unless skipped
+        if (!skipEmail)
+        {
+            await SendActivationEmailAsync(pendingUser, cancellationToken);
+            _logger.LogInformation("Resent verification email for {Email}", email);
+        }
+        else
+        {
+            _logger.LogInformation("Skipping activation email resend for {Email} as requested", email);
+        }
         
         return (true, "Verification email resent. Please check your inbox.", pendingUser.VerificationToken);
     }
@@ -511,6 +526,7 @@ public class UserService : IUserService
     
     public async Task<(bool Success, string Message, string? ResetToken)> RequestPasswordResetAsync(
         string email,
+        bool skipEmail = false,
         CancellationToken cancellationToken = default)
     {
         using var scope = CreateScope();
@@ -534,11 +550,17 @@ public class UserService : IUserService
         
         await dbContext.SaveChangesAsync(cancellationToken);
         
-        // Send email with reset token
-        var resetLink = $"{Shared.EnvironmentConfig.Server.BaseUrl}/reset-password?token={resetToken}";
-        await _mailerService.SendPasswordResetEmailAsync(email, resetToken, resetLink);
-        
-        _logger.LogInformation("Password reset requested for user {Email}", email);
+        // Send email with reset token unless skipped
+        if (!skipEmail)
+        {
+            var resetLink = $"{Shared.EnvironmentConfig.Server.BaseUrl}/reset-password?token={resetToken}";
+            await _mailerService.SendPasswordResetEmailAsync(email, resetToken, resetLink);
+            _logger.LogInformation("Password reset email sent for user {Email}", email);
+        }
+        else
+        {
+            _logger.LogInformation("Skipping password reset email for {Email} as requested", email);
+        }
         
         // Return token for testing purposes (in production, only send via email)
         return (true, "If the email exists, a password reset link has been sent", resetToken);
@@ -547,6 +569,7 @@ public class UserService : IUserService
     public async Task<(bool Success, string Message)> ResetPasswordAsync(
         string resetToken,
         string newPassword,
+        bool skipEmail = false,
         CancellationToken cancellationToken = default)
     {
         if (!IsPasswordValid(newPassword))

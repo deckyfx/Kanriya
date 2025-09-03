@@ -99,18 +99,39 @@ try
 
     // Step 9: Configure Blazor Server for Console
     LogService.LogSection("Blazor Server Configuration");
-    builder.Services.AddRazorPages();
+    builder.Services.AddRazorPages().AddRazorPagesOptions(options =>
+    {
+        options.RootDirectory = "/Blazor/Pages";
+    });
     builder.Services.AddServerSideBlazor();
     builder.Services.AddMudServices();
     
     // Add HTTP context accessor for cookie access
     builder.Services.AddHttpContextAccessor();
     
+    // Add session support (like PHP sessions)
+    builder.Services.AddDistributedMemoryCache(); // For development - use Redis/SQL for production
+    builder.Services.AddSession(options =>
+    {
+        options.IdleTimeout = TimeSpan.FromMinutes(30);
+        options.Cookie.Name = "Kanriya.Session";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.IsEssential = true;
+        options.Cookie.Path = "/";
+    });
+    
     // Add authentication state provider
-    builder.Services.AddScoped<Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider, Kanriya.Server.WebConsole.Services.CustomAuthenticationStateProvider>();
+    builder.Services.AddScoped<Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider, Kanriya.Server.Blazor.Services.CustomAuthenticationStateProvider>();
     
     // Add localization support
-    builder.Services.AddScoped<Kanriya.Server.WebConsole.Services.BlazorLocalizationService>();
+    builder.Services.AddScoped<Kanriya.Server.Blazor.Services.BlazorLocalizationService>();
+    
+    // Add HttpClient for Blazor components to call APIs
+    builder.Services.AddScoped(sp => 
+    {
+        var baseUrl = EnvironmentConfig.Server.PublicUrl ?? $"http://localhost:{EnvironmentConfig.Server.Port}";
+        return new HttpClient { BaseAddress = new Uri(baseUrl) };
+    });
     
     // Add support for serving static files from RCL (Razor Class Libraries)
     builder.WebHost.UseStaticWebAssets();

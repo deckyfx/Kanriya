@@ -1,8 +1,0 @@
-@page "/console/{*path}"
-@namespace Kanriya.Server.Pages
-@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
-@{
-    Layout = "_Layout";
-}
-
-<component type="typeof(Kanriya.Server.WebConsole.App)" render-mode="ServerPrerendered" />

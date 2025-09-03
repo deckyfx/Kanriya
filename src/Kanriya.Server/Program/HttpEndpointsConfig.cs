@@ -1,4 +1,3 @@
-using Kanriya.Server.HttpRoutes;
 using Kanriya.Server.Services;
 using Kanriya.Server.Services.System;
 using Kanriya.Shared;
@@ -15,20 +14,12 @@ namespace Kanriya.Server.Program;
 public static class HttpEndpointsConfig
 {
     /// <summary>
-    /// Configure HTTP services including MVC, Swagger, and Razor
+    /// Configure HTTP services including API Controllers and Swagger
     /// </summary>
     public static void ConfigureHttpServices(IServiceCollection services)
     {
-        // Add MVC with Razor views support
-        services.AddControllersWithViews();
-        
-        // Configure Razor view engine
-        services.Configure<Microsoft.AspNetCore.Mvc.Razor.RazorViewEngineOptions>(options =>
-        {
-            options.ViewLocationFormats.Clear();
-            options.ViewLocationFormats.Add("/Views/{1}/{0}.cshtml");
-            options.ViewLocationFormats.Add("/Views/Shared/{0}.cshtml");
-        });
+        // Add API Controllers only (no views needed)
+        services.AddControllers();
         
         // Add API endpoint explorer for Swagger
         services.AddEndpointsApiExplorer();
@@ -88,7 +79,7 @@ public static class HttpEndpointsConfig
             }
         });
         
-        LogService.LogSuccess("HTTP services configured (MVC, Razor, Swagger)");
+        LogService.LogSuccess("HTTP services configured (API Controllers, Swagger)");
     }
     
     /// <summary>
@@ -119,26 +110,25 @@ public static class HttpEndpointsConfig
         // Enable routing
         app.UseRouting();
         
+        // Add session middleware (must be after UseRouting and before UseEndpoints)
+        app.UseSession();
+        
         // Configure endpoints
         app.UseEndpoints(endpoints =>
         {
-            // Map controller routes
+            // Map API Controllers for RESTful endpoints
             endpoints.MapControllers();
             
-            // Map controller routes with views
-            endpoints.MapControllerRoute(
-                name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
-            
-            // Map Blazor Server endpoints for Web Console
+            // Map Razor Pages (only for _Host which hosts Blazor)
             endpoints.MapRazorPages();
-            endpoints.MapBlazorHub("/console/_blazor");
-            endpoints.MapFallbackToPage("/console/{*path:nonfile}", "/_ConsoleHost");
+            
+            // Map Blazor Server SignalR hub
+            endpoints.MapBlazorHub();
+            
+            // Fallback to Blazor host for all routes except API and static files
+            endpoints.MapFallbackToPage("/{*path:nonfile}", "/_Host");
         });
         
-        LogService.LogSuccess("Blazor Console configured at /console");
-        
-        // Map custom API routes (health and api info)
-        app.MapApiInfoRoutes();
+        LogService.LogSuccess("Blazor application configured at root path");
     }
 }

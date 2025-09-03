@@ -1,0 +1,94 @@
+@page "/"
+@namespace Kanriya.Server.Blazor.Pages
+@layout EmptyLayout
+@using Kanriya.Shared
+@using System.Reflection
+
+<div style="min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 12px; padding: 3rem; box-shadow: 0 20px 40px rgba(0,0,0,0.1); max-width: 800px; width: 90%;">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <h1 style="color: #333; margin: 0; font-size: 2.5rem;">Kanriya</h1>
+            <p style="color: #666; margin: 0.5rem 0;">Version @version</p>
+            <p style="color: #777; margin: 1rem 0; line-height: 1.6;">
+                A modern GraphQL API server with authentication, real-time subscriptions, and comprehensive data management capabilities.
+            </p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 1rem; margin: 2rem 0;">
+            @foreach (var feature in features)
+            {
+                <div style="text-align: center; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+                    <div style="font-size: 2rem;">@feature.Icon</div>
+                    <div style="color: #555; font-size: 0.9rem; margin-top: 0.5rem;">@feature.Name</div>
+                </div>
+            }
+        </div>
+
+        <div style="border-top: 1px solid #e0e0e0; margin: 2rem 0; padding-top: 2rem;">
+            <h3 style="color: #333; margin-bottom: 1rem;">Available Endpoints</h3>
+            <div style="display: grid; gap: 0.5rem;">
+                @foreach (var endpoint in endpoints)
+                {
+                    <a href="@endpoint.Path" 
+                       style="display: flex; justify-content: space-between; padding: 0.75rem 1rem; background: #f8f9fa; border-radius: 6px; text-decoration: none; color: #333; transition: all 0.2s;"
+                       onmouseover="this.style.background='#e9ecef'" 
+                       onmouseout="this.style.background='#f8f9fa'">
+                        <span>@endpoint.Label</span>
+                        <span style="color: #667eea;">@endpoint.Path →</span>
+                    </a>
+                }
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid #e0e0e0;">
+            <a href="/console" 
+               style="display: inline-block; padding: 0.75rem 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 6px; text-decoration: none; font-weight: 500; transition: transform 0.2s;"
+               onmouseover="this.style.transform='scale(1.05)'" 
+               onmouseout="this.style.transform='scale(1)'">
+                Open Admin Console →
+            </a>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string version = "";
+    private List<Feature> features = new();
+    private List<EndpointInfo> endpoints = new();
+
+    protected override void OnInitialized()
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        version = BuildInfo.GetFullVersion(assembly);
+        
+        features = new List<Feature>
+        {
+            new() { Icon = "🔐", Name = "JWT Auth" },
+            new() { Icon = "📊", Name = "PostgreSQL" },
+            new() { Icon = "⚡", Name = "Subscriptions" },
+            new() { Icon = "🔍", Name = "Filtering" },
+            new() { Icon = "📝", Name = "CRUD Ops" },
+            new() { Icon = "👥", Name = "Role-Based" }
+        };
+        
+        endpoints = new List<EndpointInfo>
+        {
+            new() { Label = "GraphQL Playground", Path = "/graphql" },
+            new() { Label = "Swagger UI", Path = "/swagger" },
+            new() { Label = "Admin Console", Path = "/console" },
+            new() { Label = "Health Check", Path = "/health" }
+        };
+    }
+
+    private class Feature
+    {
+        public string Icon { get; set; } = "";
+        public string Name { get; set; } = "";
+    }
+
+    private class EndpointInfo
+    {
+        public string Label { get; set; } = "";
+        public string Path { get; set; } = "";
+    }
+}

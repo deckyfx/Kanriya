@@ -1,0 +1,156 @@
+@page "/console"
+@namespace Kanriya.Server.Blazor.Pages
+@layout MainLayout
+@inject NavigationManager Navigation
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudGrid>
+        <MudItem xs="12">
+            <MudPaper Class="pa-4">
+                <MudText Typo="Typo.h4" Class="mb-4">Admin Console</MudText>
+                <MudText Typo="Typo.body1" Class="mb-4">
+                    Welcome to the Kanriya Admin Console. Use the menu on the left to navigate through different sections.
+                </MudText>
+                
+                <MudGrid Class="mt-4">
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudCard>
+                            <MudCardContent>
+                                <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Large" Color="Color.Primary" />
+                                <MudText Typo="Typo.h6" Class="mt-2">Users</MudText>
+                                <MudText Typo="Typo.body2">Manage system users</MudText>
+                            </MudCardContent>
+                            <MudCardActions>
+                                <MudButton Color="Color.Primary" Variant="Variant.Text" @onclick='() => Navigation.NavigateTo("/console/users")'>
+                                    View
+                                </MudButton>
+                            </MudCardActions>
+                        </MudCard>
+                    </MudItem>
+                    
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudCard>
+                            <MudCardContent>
+                                <MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Large" Color="Color.Secondary" />
+                                <MudText Typo="Typo.h6" Class="mt-2">Brands</MudText>
+                                <MudText Typo="Typo.body2">Manage brands</MudText>
+                            </MudCardContent>
+                            <MudCardActions>
+                                <MudButton Color="Color.Secondary" Variant="Variant.Text" @onclick='() => Navigation.NavigateTo("/console/brands")'>
+                                    View
+                                </MudButton>
+                            </MudCardActions>
+                        </MudCard>
+                    </MudItem>
+                    
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudCard>
+                            <MudCardContent>
+                                <MudIcon Icon="@Icons.Material.Filled.Settings" Size="Size.Large" Color="Color.Tertiary" />
+                                <MudText Typo="Typo.h6" Class="mt-2">Settings</MudText>
+                                <MudText Typo="Typo.body2">System settings</MudText>
+                            </MudCardContent>
+                            <MudCardActions>
+                                <MudButton Color="Color.Tertiary" Variant="Variant.Text" @onclick='() => Navigation.NavigateTo("/console/settings")'>
+                                    View
+                                </MudButton>
+                            </MudCardActions>
+                        </MudCard>
+                    </MudItem>
+                    
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudCard>
+                            <MudCardContent>
+                                <MudIcon Icon="@Icons.Material.Filled.BarChart" Size="Size.Large" Color="Color.Info" />
+                                <MudText Typo="Typo.h6" Class="mt-2">Analytics</MudText>
+                                <MudText Typo="Typo.body2">View system metrics</MudText>
+                            </MudCardContent>
+                            <MudCardActions>
+                                <MudButton Color="Color.Info" Variant="Variant.Text" @onclick='() => Navigation.NavigateTo("/console/analytics")'>
+                                    View
+                                </MudButton>
+                            </MudCardActions>
+                        </MudCard>
+                    </MudItem>
+                </MudGrid>
+                
+                <MudDivider Class="my-4" />
+                
+                <MudText Typo="Typo.h5" Class="mb-3">Authentication Pages (Documentation)</MudText>
+                <MudText Typo="Typo.body2" Class="mb-3">
+                    These pages handle authentication flows for the system. They're typically accessed via email links or sign-in page redirects.
+                </MudText>
+                
+                <MudGrid>
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudCard>
+                            <MudCardContent>
+                                <MudIcon Icon="@Icons.Material.Filled.Email" Size="Size.Large" Color="Color.Success" />
+                                <MudText Typo="Typo.h6" Class="mt-2">Email Verification</MudText>
+                                <MudText Typo="Typo.body2">Verify email from activation link</MudText>
+                            </MudCardContent>
+                            <MudCardActions>
+                                <MudButton Color="Color.Success" Variant="Variant.Text" @onclick='() => Navigation.NavigateTo("/verify-email?mock=1")'>
+                                    Test Mock
+                                </MudButton>
+                            </MudCardActions>
+                        </MudCard>
+                    </MudItem>
+                    
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudCard>
+                            <MudCardContent>
+                                <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Color="Color.Warning" />
+                                <MudText Typo="Typo.h6" Class="mt-2">Reset Password</MudText>
+                                <MudText Typo="Typo.body2">Reset password from email link</MudText>
+                            </MudCardContent>
+                            <MudCardActions>
+                                <MudButton Color="Color.Warning" Variant="Variant.Text" @onclick='() => Navigation.NavigateTo("/reset-password?mock=1")'>
+                                    Test Mock
+                                </MudButton>
+                            </MudCardActions>
+                        </MudCard>
+                    </MudItem>
+                    
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudCard>
+                            <MudCardContent>
+                                <MudIcon Icon="@Icons.Material.Filled.Send" Size="Size.Large" Color="Color.Info" />
+                                <MudText Typo="Typo.h6" Class="mt-2">Request Activation</MudText>
+                                <MudText Typo="Typo.body2">Send activation email</MudText>
+                            </MudCardContent>
+                            <MudCardActions>
+                                <MudButton Color="Color.Info" Variant="Variant.Text" @onclick='() => Navigation.NavigateTo("/request-activation?mock=1")'>
+                                    Test Mock
+                                </MudButton>
+                            </MudCardActions>
+                        </MudCard>
+                    </MudItem>
+                    
+                    <MudItem xs="12" sm="6" md="3">
+                        <MudCard>
+                            <MudCardContent>
+                                <MudIcon Icon="@Icons.Material.Filled.LockReset" Size="Size.Large" Color="Color.Error" />
+                                <MudText Typo="Typo.h6" Class="mt-2">Request Password Reset</MudText>
+                                <MudText Typo="Typo.body2">Send password reset email</MudText>
+                            </MudCardContent>
+                            <MudCardActions>
+                                <MudButton Color="Color.Error" Variant="Variant.Text" @onclick='() => Navigation.NavigateTo("/request-reset-password?mock=1")'>
+                                    Test Mock
+                                </MudButton>
+                            </MudCardActions>
+                        </MudCard>
+                    </MudItem>
+                </MudGrid>
+                
+                <MudAlert Severity="Severity.Info" Class="mt-3">
+                    <strong>Note:</strong> All authentication pages support mock mode by adding <code>?mock=1</code> to the URL for testing purposes.
+                </MudAlert>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+    
+}

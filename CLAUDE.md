@@ -40,6 +40,61 @@ This project implements a sophisticated multi-tenant architecture using PostgreS
 - **BrandOperator** = Role for brand operators
 - **brand_** = Schema prefix for brand-specific schemas
 
+## Blazor Development Standards
+
+### Mock Mode Support
+**MANDATORY**: All Blazor pages which has form input or success / failed state MUST include mock mode support:
+
+1. **Query Parameter Detection** in `OnInitialized()`:
+```csharp
+protected override void OnInitialized()
+{
+    var uri = new Uri(Navigation.Uri);
+    var query = HttpUtility.ParseQueryString(uri.Query);
+    if (query["mock"] != null)
+    {
+        isMockMode = true;
+        // Set up mock data/state
+    }
+}
+```
+
+2. **Hidden Field Persistence** for forms:
+```razor
+@if (isMockMode)
+{
+    <input type="hidden" name="mock" value="true" />
+}
+```
+
+3. **Mock Behavior** in handlers:
+```csharp
+if (isMockMode)
+{
+    await Task.Delay(1000);  // Simulate processing
+    // Set success state with mock data
+    return;
+}
+```
+
+### GraphQL Query Restrictions
+**NEVER** make direct GraphQL queries from Blazor pages. Instead:
+- Use existing services (UserService, AuthService, BrandService, etc.)
+- Create new service methods if needed
+- Services handle GraphQL communication
+- Blazor pages only call service methods
+
+Example:
+```csharp
+// ❌ WRONG - Direct GraphQL in Blazor page
+var graphqlQuery = new { query = "mutation ..." };
+await Http.PostAsJsonAsync("/graphql", graphqlQuery);
+
+// ✅ CORRECT - Use service layer
+await authService.VerifyEmailAsync(token);
+await userService.RequestPasswordResetAsync(email);
+```
+
 ## Environment Configuration
 
 **IMPORTANT**: All environment variable access MUST go through the centralized `EnvironmentConfig` class.

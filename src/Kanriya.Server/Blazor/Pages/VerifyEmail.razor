@@ -1,0 +1,127 @@
+@page "/verify-email"
+@namespace Kanriya.Server.Blazor.Pages
+@layout EmptyLayout
+@inject NavigationManager Navigation
+@inject IUserService UserService
+@using Kanriya.Server.Services.Data
+@using System.Web
+
+<div style="min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 12px; padding: 3rem; box-shadow: 0 20px 40px rgba(0,0,0,0.1); max-width: 500px; width: 90%; text-align: center;">
+        @if (isLoading)
+        {
+            <div style="display: flex; flex-direction: column; align-items: center;">
+                <div style="width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                <p style="color: #666; margin-top: 1rem;">Verifying your email...</p>
+            </div>
+        }
+        else if (success)
+        {
+            <div>
+                <div style="font-size: 4rem; margin-bottom: 1rem;">✅</div>
+                <h2 style="color: #333; margin: 1rem 0;">Email Verified Successfully!</h2>
+                <p style="color: #666; margin: 1rem 0; line-height: 1.6;">
+                    Your email address has been verified successfully.
+                </p>
+                @if (!string.IsNullOrEmpty(userEmail))
+                {
+                    <p style="color: #555; margin: 1rem 0;">
+                        Email: <strong>@userEmail</strong>
+                    </p>
+                }
+                <div style="margin-top: 2rem;">
+                    <a href="/signin" 
+                       style="display: inline-block; padding: 0.75rem 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 6px; text-decoration: none; font-weight: 500;">
+                        Sign In
+                    </a>
+                    <p style="color: #777; margin-top: 1rem; font-size: 0.9rem;">
+                        You can now sign in with your email and password.
+                    </p>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div>
+                <div style="font-size: 4rem; margin-bottom: 1rem;">❌</div>
+                <h2 style="color: #333; margin: 1rem 0;">Verification Failed</h2>
+                <p style="color: #666; margin: 1rem 0; line-height: 1.6;">
+                    @message
+                </p>
+                <div style="margin-top: 2rem;">
+                    <a href="/signin" 
+                       style="display: inline-block; padding: 0.75rem 2rem; background: #2196F3; color: white; border-radius: 6px; text-decoration: none; font-weight: 500;">
+                        Go to Sign In
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    @@keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+
+@code {
+    private bool isLoading = true;
+    private bool success = false;
+    private string message = "";
+    private string? userEmail = null;
+    private string? token = null;
+    private bool skipEmail = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Extract parameters from query string
+        var uri = new Uri(Navigation.Uri);
+        var query = HttpUtility.ParseQueryString(uri.Query);
+        token = query["token"];
+        
+        // Check for skip-email parameter
+        if (query["skip-email"] != null)
+        {
+            skipEmail = true;
+        }
+        
+        // Check for mock parameter
+        if (query["mock"] != null)
+        {
+            success = true;
+            message = "Email verified successfully!";
+            userEmail = "test@example.com";
+            isLoading = false;
+            return;
+        }
+        
+        if (string.IsNullOrEmpty(token))
+        {
+            success = false;
+            message = "Invalid verification link. Token is missing.";
+            isLoading = false;
+            return;
+        }
+        
+        try
+        {
+            // Call UserService to verify email
+            var result = await UserService.VerifyEmailAsync(token, skipEmail);
+            success = result.Success;
+            message = result.Message;
+            userEmail = result.User?.Email;
+        }
+        catch (Exception ex)
+        {
+            success = false;
+            message = "An error occurred during verification. Please try again or contact support.";
+            System.Console.WriteLine($"Email verification error: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

@@ -1,0 +1,144 @@
+@page "/cookie-test-server"
+@layout MainLayout
+@using Microsoft.AspNetCore.Http
+@using System.Net.Http
+@inject IHttpContextAccessor HttpContextAccessor
+@inject NavigationManager NavigationManager
+@inject HttpClient Http
+
+<h3>Cookie and Session Test (PHP-Style Server Processing)</h3>
+
+<div style="margin: 2rem 0; padding: 1rem; background: #f5f5f5; border-radius: 4px;">
+    <h4>1. Server-Side Cookie (via Form POST)</h4>
+    
+    <form method="post" action="/console/cookie-test-server">
+        <div style="margin: 1rem 0;">
+            <label>Cookie Name:</label>
+            <input name="cookieName" value="@cookieName" style="margin: 0 0.5rem; padding: 0.25rem;" />
+            <label>Cookie Value:</label>
+            <input name="cookieValue" value="@cookieValue" style="margin: 0 0.5rem; padding: 0.25rem;" />
+            <button type="submit" name="action" value="setCookie" style="padding: 0.25rem 0.5rem;">Set Cookie</button>
+        </div>
+    </form>
+    
+    <form method="post" action="/console/cookie-test-server">
+        <button type="submit" name="action" value="readCookies" style="padding: 0.25rem 0.5rem;">Read All Cookies</button>
+        <button type="submit" name="action" value="clearCookies" style="padding: 0.25rem 0.5rem; margin-left: 0.5rem;">Clear Cookies</button>
+    </form>
+    
+    @if (!string.IsNullOrEmpty(cookieMessage))
+    {
+        <div style="margin: 1rem 0; padding: 0.5rem; background: white; border: 1px solid #ddd;">
+            <pre>@cookieMessage</pre>
+        </div>
+    }
+    
+    <div style="margin: 1rem 0; padding: 0.5rem; background: white; border: 1px solid #ddd;">
+        <strong>Current Cookies:</strong>
+        <pre>@currentCookies</pre>
+    </div>
+</div>
+
+<div style="margin: 2rem 0; padding: 1rem; background: #fff3e0; border-radius: 4px;">
+    <h4>2. Server-Side Session (via Form POST)</h4>
+    
+    <form method="post" action="/console/cookie-test-server">
+        <div style="margin: 1rem 0;">
+            <label>Session Key:</label>
+            <input name="sessionKey" value="@sessionKey" style="margin: 0 0.5rem; padding: 0.25rem;" />
+            <label>Session Value:</label>
+            <input name="sessionValue" value="@sessionValue" style="margin: 0 0.5rem; padding: 0.25rem;" />
+            <button type="submit" name="action" value="setSession" style="padding: 0.25rem 0.5rem;">Set Session Value</button>
+        </div>
+    </form>
+    
+    <form method="post" action="/console/cookie-test-server">
+        <button type="submit" name="action" value="readSession" style="padding: 0.25rem 0.5rem;">Read Session</button>
+        <button type="submit" name="action" value="clearSession" style="padding: 0.25rem 0.5rem; margin-left: 0.5rem;">Clear Session</button>
+    </form>
+    
+    @if (!string.IsNullOrEmpty(sessionMessage))
+    {
+        <div style="margin: 1rem 0; padding: 0.5rem; background: white; border: 1px solid #ddd;">
+            <pre>@sessionMessage</pre>
+        </div>
+    }
+    
+    <div style="margin: 1rem 0; padding: 0.5rem; background: white; border: 1px solid #ddd;">
+        <strong>Current Session Data:</strong>
+        <pre>@currentSessionData</pre>
+    </div>
+</div>
+
+<div style="margin: 2rem 0; padding: 1rem; background: #f3e5f5; border-radius: 4px;">
+    <h4>3. Session Info</h4>
+    <p><strong>Session ID:</strong> @sessionId</p>
+    <p><strong>Session Cookie Name:</strong> Kanriya.Session</p>
+    <p style="font-size: 12px; color: #666; margin-top: 1rem;">
+        ℹ️ This page uses form POST like PHP to set cookies and sessions before the response starts.
+    </p>
+</div>
+
+@code {
+    private string cookieName = "test-cookie";
+    private string cookieValue = "test-value-123";
+    private string cookieMessage = "";
+    private string currentCookies = "";
+    
+    private string sessionKey = "myKey";
+    private string sessionValue = "myValue";
+    private string sessionMessage = "";
+    private string currentSessionData = "";
+    private string sessionId = "";
+    
+    protected override async Task OnInitializedAsync()
+    {
+        var httpContext = HttpContextAccessor.HttpContext;
+        if (httpContext != null)
+        {
+            // Load session
+            await httpContext.Session.LoadAsync();
+            sessionId = httpContext.Session?.Id ?? "N/A";
+            
+            // TempData not available in Blazor components, removed for now
+            
+            // Read current cookies
+            ReadCurrentCookies();
+            
+            // Read current session data
+            await ReadCurrentSessionData();
+        }
+    }
+    
+    private void ReadCurrentCookies()
+    {
+        var httpContext = HttpContextAccessor.HttpContext;
+        if (httpContext?.Request != null)
+        {
+            var cookies = httpContext.Request.Cookies
+                .Select(c => $"{c.Key} = {c.Value}")
+                .ToList();
+                
+            currentCookies = cookies.Any() ? string.Join("\n", cookies) : "No cookies found";
+        }
+    }
+    
+    private async Task ReadCurrentSessionData()
+    {
+        var httpContext = HttpContextAccessor.HttpContext;
+        if (httpContext?.Session != null)
+        {
+            await httpContext.Session.LoadAsync();
+            var keys = httpContext.Session.Keys.ToList();
+            if (keys.Any())
+            {
+                var items = keys.Select(k => $"{k} = {httpContext.Session.GetString(k)}");
+                currentSessionData = $"Session Keys ({keys.Count}):\n{string.Join("\n", items)}";
+            }
+            else
+            {
+                currentSessionData = "No data in session";
+            }
+        }
+    }
+}

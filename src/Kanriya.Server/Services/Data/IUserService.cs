@@ -22,6 +22,7 @@ public interface IUserService
     /// </summary>
     Task<(bool Success, string Message, User? User)> VerifyEmailAsync(
         string verificationToken,
+        bool skipEmail = false,
         CancellationToken cancellationToken = default);
     
     /// <summary>
@@ -38,6 +39,7 @@ public interface IUserService
     /// </summary>
     Task<(bool Success, string Message, string? NewToken)> ResendVerificationAsync(
         string email,
+        bool skipEmail = false,
         CancellationToken cancellationToken = default);
     
     // ==================== USER MANAGEMENT ====================
@@ -75,6 +77,7 @@ public interface IUserService
     /// </summary>
     Task<(bool Success, string Message, string? ResetToken)> RequestPasswordResetAsync(
         string email,
+        bool skipEmail = false,
         CancellationToken cancellationToken = default);
     
     /// <summary>
@@ -83,6 +86,7 @@ public interface IUserService
     Task<(bool Success, string Message)> ResetPasswordAsync(
         string resetToken,
         string newPassword,
+        bool skipEmail = false,
         CancellationToken cancellationToken = default);
     
     /// <summary>
