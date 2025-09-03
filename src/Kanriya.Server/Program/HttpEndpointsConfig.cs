@@ -2,6 +2,8 @@ using Kanriya.Server.HttpRoutes;
 using Kanriya.Server.Services;
 using Kanriya.Server.Services.System;
 using Kanriya.Shared;
+using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
 
@@ -117,13 +119,24 @@ public static class HttpEndpointsConfig
         // Enable routing
         app.UseRouting();
         
-        // Map controller routes
-        app.MapControllers();
+        // Configure endpoints
+        app.UseEndpoints(endpoints =>
+        {
+            // Map controller routes
+            endpoints.MapControllers();
+            
+            // Map controller routes with views
+            endpoints.MapControllerRoute(
+                name: "default",
+                pattern: "{controller=Home}/{action=Index}/{id?}");
+            
+            // Map Blazor Server endpoints for Web Console
+            endpoints.MapRazorPages();
+            endpoints.MapBlazorHub("/console/_blazor");
+            endpoints.MapFallbackToPage("/console/{*path:nonfile}", "/_ConsoleHost");
+        });
         
-        // Map controller routes with views
-        app.MapControllerRoute(
-            name: "default",
-            pattern: "{controller=Home}/{action=Index}/{id?}");
+        LogService.LogSuccess("Blazor Console configured at /console");
         
         // Map custom API routes (health and api info)
         app.MapApiInfoRoutes();

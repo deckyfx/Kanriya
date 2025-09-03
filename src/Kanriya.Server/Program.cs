@@ -1,6 +1,7 @@
 using Kanriya.Server.Program;
 using Kanriya.Shared;
 using Kanriya.Server.Services.System;
+using MudBlazor.Services;
 using Serilog;
 using Serilog.Events;
 using System.Reflection;
@@ -96,7 +97,26 @@ try
     LogService.LogSuccess("Mail services configured with SMTP driver");
     LogService.LogInfo("Email queue system ready for processing");
 
-    // Step 9: Feature flags removed (too complex for current needs)
+    // Step 9: Configure Blazor Server for Console
+    LogService.LogSection("Blazor Server Configuration");
+    builder.Services.AddRazorPages();
+    builder.Services.AddServerSideBlazor();
+    builder.Services.AddMudServices();
+    
+    // Add HTTP context accessor for cookie access
+    builder.Services.AddHttpContextAccessor();
+    
+    // Add authentication state provider
+    builder.Services.AddScoped<Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider, Kanriya.Server.WebConsole.Services.CustomAuthenticationStateProvider>();
+    
+    // Add localization support
+    builder.Services.AddScoped<Kanriya.Server.WebConsole.Services.BlazorLocalizationService>();
+    
+    // Add support for serving static files from RCL (Razor Class Libraries)
+    builder.WebHost.UseStaticWebAssets();
+    
+    LogService.LogSuccess("Blazor Server configured with MudBlazor");
+    LogService.LogInfo("Console will be available at: /console");
 
     // Step 10: Configure HTTP Endpoints and Swagger
     LogService.LogSection("HTTP Endpoints Configuration");
@@ -121,12 +141,11 @@ try
     // Step 14: Configure middleware pipeline
     LogService.LogSection("Middleware Configuration");
     
-    // Configure HTTP endpoints first
+    // Configure HTTP endpoints first (includes static files, routing, swagger, and Blazor)
     HttpEndpointsConfig.ConfigureHttpMiddleware(app);
     
     // Configure Hangfire middleware
     HangfireConfig.ConfigureHangfireMiddleware(app);
-    
     
     // Then configure GraphQL middleware
     GraphQLConfig.ConfigureGraphQLMiddleware(app);

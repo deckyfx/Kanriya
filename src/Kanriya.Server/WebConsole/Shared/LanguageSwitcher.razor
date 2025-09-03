@@ -1,0 +1,47 @@
+@inject WebConsole.Services.BlazorLocalizationService L
+@inject NavigationManager NavigationManager
+
+<MudMenu Icon="@Icons.Material.Filled.Language" Color="Color.Inherit" Label="@GetLanguageName(L.CurrentLanguage)">
+    @foreach (var lang in L.SupportedLanguages)
+    {
+        <MudMenuItem OnClick="@(() => ChangeLanguage(lang))">
+            @if (lang == L.CurrentLanguage)
+            {
+                <MudIcon Icon="@Icons.Material.Filled.Check" Class="mr-2" />
+            }
+            else
+            {
+                <span class="mr-4"></span>
+            }
+            @GetLanguageName(lang)
+        </MudMenuItem>
+    }
+</MudMenu>
+
+@code {
+    protected override void OnInitialized()
+    {
+        L.Initialize();
+    }
+    
+    void ChangeLanguage(string languageCode)
+    {
+        // Get current URL and add/update the lang query parameter
+        var uri = new Uri(NavigationManager.Uri);
+        var baseUrl = uri.GetLeftPart(UriPartial.Path);
+        NavigationManager.NavigateTo($"{baseUrl}?lang={languageCode}", forceLoad: true);
+    }
+    
+    string GetLanguageName(string code)
+    {
+        return code switch
+        {
+            "en" => "English",
+            "id" => "Bahasa Indonesia",
+            "ja" => "日本語",
+            "zh" => "中文",
+            "zh-CN" => "简体中文",
+            _ => code
+        };
+    }
+}
