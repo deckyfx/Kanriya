@@ -1,0 +1,443 @@
+@using Microsoft.AspNetCore.Components.Web
+@inherits ErrorBoundary
+
+@if (CurrentException is null)
+{
+    @ChildContent
+}
+else if (ErrorContent is not null)
+{
+    @ErrorContent(CurrentException)
+}
+else
+{
+    <div class="error-boundary-container">
+        <div class="error-header">
+            <div class="error-header-content">
+                <h1 class="error-title">Whoops, looks like something went wrong.</h1>
+                @if (IsDevelopment())
+                {
+                    <div class="error-subtitle">
+                        @CurrentException.GetType().Name
+                    </div>
+                }
+            </div>
+        </div>
+        
+        @if (IsDevelopment())
+        {
+            <div class="error-body">
+                <div class="error-message">
+                    <div class="error-message-title">Error Message</div>
+                    <div class="error-message-content">
+                        @CurrentException.Message
+                    </div>
+                </div>
+                
+                <div class="stack-trace">
+                    <div class="stack-trace-title">Stack Trace</div>
+                    <div class="stack-frames">
+                        @foreach (var frame in ParseStackTrace())
+                        {
+                            <div class="stack-frame @(frame.IsUserCode ? "user-code" : "framework-code")">
+                                <div class="frame-index">#@frame.Index</div>
+                                <div class="frame-content">
+                                    <div class="frame-method">
+                                        @if (frame.IsUserCode)
+                                        {
+                                            <span class="highlight">@frame.Method</span>
+                                        }
+                                        else
+                                        {
+                                            <span>@frame.Method</span>
+                                        }
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(frame.File))
+                                    {
+                                        <div class="frame-file">
+                                            <span class="file-path">@frame.File</span>
+                                            @if (frame.Line > 0)
+                                            {
+                                                <span class="file-line">:@frame.Line</span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+                
+                @if (CurrentException.InnerException != null)
+                {
+                    <div class="inner-exception">
+                        <div class="inner-exception-title">Inner Exception</div>
+                        <div class="inner-exception-content">
+                            <div class="exception-type">@CurrentException.InnerException.GetType().Name</div>
+                            <div class="exception-message">@CurrentException.InnerException.Message</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="error-body production">
+                <div class="production-message">
+                    <p>An error occurred while processing your request.</p>
+                    <p>Please try refreshing the page. If the problem persists, contact support.</p>
+                </div>
+                <button class="refresh-button" onclick="location.reload()">
+                    Refresh Page
+                </button>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private bool IsDevelopment()
+    {
+        #if DEBUG
+            return true;
+        #else
+            return false;
+        #endif
+    }
+    
+    private List<StackFrame> ParseStackTrace()
+    {
+        var frames = new List<StackFrame>();
+        if (CurrentException?.StackTrace == null) return frames;
+        
+        var lines = CurrentException.StackTrace.Split('\n');
+        for (int i = 0; i < lines.Length && i < 20; i++) // Limit to 20 frames
+        {
+            var line = lines[i].Trim();
+            if (string.IsNullOrEmpty(line)) continue;
+            
+            var frame = new StackFrame
+            {
+                Index = frames.Count,
+                Method = ExtractMethod(line),
+                File = ExtractFile(line),
+                Line = ExtractLineNumber(line),
+                IsUserCode = IsUserCode(line)
+            };
+            
+            frames.Add(frame);
+        }
+        
+        return frames;
+    }
+    
+    private string ExtractMethod(string stackLine)
+    {
+        var atIndex = stackLine.IndexOf(" at ");
+        if (atIndex >= 0)
+        {
+            var methodPart = stackLine.Substring(atIndex + 4);
+            var inIndex = methodPart.IndexOf(" in ");
+            if (inIndex > 0)
+            {
+                return methodPart.Substring(0, inIndex);
+            }
+            return methodPart;
+        }
+        return stackLine;
+    }
+    
+    private string ExtractFile(string stackLine)
+    {
+        var inIndex = stackLine.IndexOf(" in ");
+        if (inIndex > 0)
+        {
+            var filePart = stackLine.Substring(inIndex + 4);
+            var colonIndex = filePart.LastIndexOf(':');
+            if (colonIndex > 0)
+            {
+                var file = filePart.Substring(0, colonIndex);
+                // Shorten the path for display
+                if (file.Contains("/"))
+                {
+                    var parts = file.Split('/');
+                    if (parts.Length > 3)
+                    {
+                        return $".../{string.Join("/", parts.Skip(parts.Length - 3))}";
+                    }
+                }
+                return file;
+            }
+        }
+        return string.Empty;
+    }
+    
+    private int ExtractLineNumber(string stackLine)
+    {
+        var match = System.Text.RegularExpressions.Regex.Match(stackLine, @":line (\d+)");
+        if (match.Success)
+        {
+            return int.Parse(match.Groups[1].Value);
+        }
+        return 0;
+    }
+    
+    private bool IsUserCode(string stackLine)
+    {
+        return stackLine.Contains("Kanriya.") && 
+               !stackLine.Contains("Microsoft.") && 
+               !stackLine.Contains("System.");
+    }
+    
+    private class StackFrame
+    {
+        public int Index { get; set; }
+        public string Method { get; set; } = string.Empty;
+        public string File { get; set; } = string.Empty;
+        public int Line { get; set; }
+        public bool IsUserCode { get; set; }
+    }
+    
+    protected override async Task OnErrorAsync(Exception exception)
+    {
+        // Log the error
+        Console.Error.WriteLine($"[ErrorBoundary] {exception.GetType().Name}: {exception.Message}");
+        await base.OnErrorAsync(exception);
+    }
+}
+
+<style>
+    .error-boundary-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #f5f5f5;
+        overflow-y: auto;
+        z-index: 10000;
+    }
+    
+    .error-header {
+        background: linear-gradient(135deg, #ef5350 0%, #e53935 100%);
+        color: white;
+        padding: 3rem 0;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    
+    .error-header-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }
+    
+    .error-title {
+        font-size: 2rem;
+        font-weight: 300;
+        margin: 0;
+        letter-spacing: -0.5px;
+    }
+    
+    .error-subtitle {
+        font-size: 1.25rem;
+        margin-top: 0.5rem;
+        opacity: 0.95;
+        font-family: 'Consolas', 'Monaco', monospace;
+    }
+    
+    .error-body {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+    }
+    
+    .error-message {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-left: 4px solid #ef5350;
+    }
+    
+    .error-message-title {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .error-message-content {
+        font-family: 'Consolas', 'Monaco', monospace;
+        color: #e53935;
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+    
+    .stack-trace {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .stack-trace-title {
+        background: #37474f;
+        color: white;
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .stack-frames {
+        max-height: 500px;
+        overflow-y: auto;
+    }
+    
+    .stack-frame {
+        border-bottom: 1px solid #eceff1;
+        display: flex;
+        align-items: flex-start;
+        padding: 1rem 1.5rem;
+        transition: background-color 0.2s;
+    }
+    
+    .stack-frame:hover {
+        background: #fafafa;
+    }
+    
+    .stack-frame.user-code {
+        background: #fff3e0;
+    }
+    
+    .stack-frame.user-code:hover {
+        background: #ffe0b2;
+    }
+    
+    .frame-index {
+        color: #90a4ae;
+        font-size: 0.875rem;
+        min-width: 30px;
+        margin-right: 1rem;
+    }
+    
+    .frame-content {
+        flex: 1;
+    }
+    
+    .frame-method {
+        font-family: 'Consolas', 'Monaco', monospace;
+        font-size: 0.875rem;
+        color: #37474f;
+        line-height: 1.4;
+        word-break: break-all;
+    }
+    
+    .frame-method .highlight {
+        color: #e53935;
+        font-weight: 600;
+    }
+    
+    .frame-file {
+        margin-top: 0.25rem;
+        font-size: 0.75rem;
+        color: #607d8b;
+        font-family: 'Consolas', 'Monaco', monospace;
+    }
+    
+    .file-line {
+        color: #ff6f00;
+        font-weight: 600;
+    }
+    
+    .inner-exception {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border-left: 4px solid #ff9800;
+    }
+    
+    .inner-exception-title {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .exception-type {
+        font-family: 'Consolas', 'Monaco', monospace;
+        color: #ff6f00;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    
+    .exception-message {
+        font-family: 'Consolas', 'Monaco', monospace;
+        color: #666;
+        line-height: 1.6;
+    }
+    
+    /* Production mode styles */
+    .error-body.production {
+        text-align: center;
+        padding: 4rem 2rem;
+    }
+    
+    .production-message {
+        max-width: 500px;
+        margin: 0 auto 2rem;
+    }
+    
+    .production-message p {
+        font-size: 1.125rem;
+        color: #546e7a;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+    }
+    
+    .refresh-button {
+        background: #ef5350;
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 4px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    
+    .refresh-button:hover {
+        background: #e53935;
+    }
+    
+    /* Mobile responsive */
+    @@media (max-width: 768px) {
+        .error-header-content {
+            padding: 0 1rem;
+        }
+        
+        .error-title {
+            font-size: 1.5rem;
+        }
+        
+        .error-body {
+            padding: 0 1rem;
+        }
+        
+        .stack-frame {
+            padding: 0.75rem 1rem;
+        }
+        
+        .frame-method {
+            font-size: 0.75rem;
+        }
+    }
+</style>

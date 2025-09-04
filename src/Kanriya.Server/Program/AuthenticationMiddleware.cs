@@ -37,10 +37,12 @@ public class AuthenticationMiddleware
             
             if (!string.IsNullOrEmpty(token))
             {
+                _logger.LogDebug("Token extracted from request: {Token}", token.Substring(0, Math.Min(20, token.Length)) + "...");
                 var principal = ValidateToken(token);
                 
                 if (principal != null)
                 {
+                    _logger.LogDebug("Token validated successfully");
                     var currentUser = new CurrentUser();
                     
                     // Check if this is a brand-context token
@@ -121,6 +123,14 @@ public class AuthenticationMiddleware
                         context.User = principal;
                     }
                 }
+                else
+                {
+                    _logger.LogDebug("Token validation failed");
+                }
+            }
+            else
+            {
+                _logger.LogDebug("No token found in request for path: {Path}", context.Request.Path);
             }
         }
         catch (Exception ex)
@@ -133,14 +143,26 @@ public class AuthenticationMiddleware
 
     private string? ExtractToken(HttpContext context)
     {
+        // First check Authorization header
         var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
         
-        if (string.IsNullOrEmpty(authHeader))
-            return null;
-        
-        if (authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+        if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+        {
+            _logger.LogDebug("Token found in Authorization header");
             return authHeader.Substring(7);
+        }
         
+        // Then check for token in cookies (for Blazor Server)
+        if (context.Request.Cookies.TryGetValue("AuthToken", out var cookieToken))
+        {
+            _logger.LogDebug("Token found in cookie, length: {Length}", cookieToken?.Length ?? 0);
+            // The token might be URL encoded in the cookie
+            var decodedToken = System.Web.HttpUtility.UrlDecode(cookieToken);
+            _logger.LogDebug("Decoded token length: {Length}", decodedToken?.Length ?? 0);
+            return decodedToken;
+        }
+        
+        _logger.LogDebug("No token found in Authorization header or cookies");
         return null;
     }
 

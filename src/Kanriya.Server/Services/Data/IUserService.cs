@@ -1,4 +1,5 @@
 using Kanriya.Server.Data;
+using Kanriya.Shared.Models;
 
 namespace Kanriya.Server.Services.Data;
 
@@ -15,6 +16,7 @@ public interface IUserService
     Task<(bool Success, string Message, string? VerificationToken)> SignUpAsync(
         string email, 
         string password,
+        RequestOptions? options = null,
         CancellationToken cancellationToken = default);
     
     /// <summary>
@@ -22,7 +24,7 @@ public interface IUserService
     /// </summary>
     Task<(bool Success, string Message, User? User)> VerifyEmailAsync(
         string verificationToken,
-        bool skipEmail = false,
+        RequestOptions? options = null,
         CancellationToken cancellationToken = default);
     
     /// <summary>
@@ -32,6 +34,7 @@ public interface IUserService
         string emailOrApiSecret,
         string password,
         string? brandId = null,
+        RequestOptions? options = null,
         CancellationToken cancellationToken = default);
     
     /// <summary>
@@ -39,7 +42,7 @@ public interface IUserService
     /// </summary>
     Task<(bool Success, string Message, string? NewToken)> ResendVerificationAsync(
         string email,
-        bool skipEmail = false,
+        RequestOptions? options = null,
         CancellationToken cancellationToken = default);
     
     // ==================== USER MANAGEMENT ====================
@@ -70,6 +73,7 @@ public interface IUserService
         string userId,
         string currentPassword,
         string newPassword,
+        RequestOptions? options = null,
         CancellationToken cancellationToken = default);
     
     /// <summary>
@@ -77,7 +81,7 @@ public interface IUserService
     /// </summary>
     Task<(bool Success, string Message, string? ResetToken)> RequestPasswordResetAsync(
         string email,
-        bool skipEmail = false,
+        RequestOptions? options = null,
         CancellationToken cancellationToken = default);
     
     /// <summary>
@@ -86,7 +90,7 @@ public interface IUserService
     Task<(bool Success, string Message)> ResetPasswordAsync(
         string resetToken,
         string newPassword,
-        bool skipEmail = false,
+        RequestOptions? options = null,
         CancellationToken cancellationToken = default);
     
     /// <summary>

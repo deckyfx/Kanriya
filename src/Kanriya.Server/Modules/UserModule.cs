@@ -115,9 +115,11 @@ public class UserAuthMutations
         SignUpInput input,
         [Service] IUserService userService,
         [Service] ITopicEventSender sender,
+        [GraphQLDescription("Optional request configuration")]
+        RequestOptionsInput? options = null,
         CancellationToken cancellationToken = default)
     {
-        var result = await userService.SignUpAsync(input.Email, input.Password, cancellationToken);
+        var result = await userService.SignUpAsync(input.Email, input.Password, options?.ToRequestOptions(), cancellationToken);
         
         // Note: PendingUser creation event could be published here if we had access to the PendingUser
         // For now, we rely on the service to handle this internally
@@ -136,13 +138,13 @@ public class UserAuthMutations
     [GraphQLName("verifyEmail")]
     public async Task<AuthOutput> VerifyEmail(
         string verificationToken,
-        [GraphQLDescription("Skip sending welcome email (for development/testing). The verification process still completes.")]
-        bool skipEmail = false,
         [Service] IUserService userService,
         [Service] ITopicEventSender sender,
+        [GraphQLDescription("Optional request configuration")]
+        RequestOptionsInput? options = null,
         CancellationToken cancellationToken = default)
     {
-        var result = await userService.VerifyEmailAsync(verificationToken, skipEmail, cancellationToken);
+        var result = await userService.VerifyEmailAsync(verificationToken, options?.ToRequestOptions(), cancellationToken);
         
         string? token = null;
         if (result.Success && result.User != null)
@@ -179,9 +181,11 @@ public class UserAuthMutations
     public async Task<AuthOutput> SignIn(
         SignInInput input,
         [Service] IUserService userService,
+        [GraphQLDescription("Optional request configuration")]
+        RequestOptionsInput? options = null,
         CancellationToken cancellationToken = default)
     {
-        var result = await userService.SignInAsync(input.Email, input.Password, input.BrandId, cancellationToken);
+        var result = await userService.SignInAsync(input.Email, input.Password, input.BrandId, options?.ToRequestOptions(), cancellationToken);
         
         return new AuthOutput
         {
@@ -198,12 +202,12 @@ public class UserAuthMutations
     [GraphQLName("resendVerification")]
     public async Task<AuthOutput> ResendVerification(
         string email,
-        [GraphQLDescription("Skip sending activation email (for development/testing). The token is still generated.")]
-        bool skipEmail = false,
         [Service] IUserService userService,
+        [GraphQLDescription("Optional request configuration")]
+        RequestOptionsInput? options = null,
         CancellationToken cancellationToken = default)
     {
-        var result = await userService.ResendVerificationAsync(email, skipEmail, cancellationToken);
+        var result = await userService.ResendVerificationAsync(email, options?.ToRequestOptions(), cancellationToken);
         
         return new AuthOutput
         {
@@ -223,6 +227,7 @@ public class UserAuthMutations
         string newPassword,
         [Service] IUserService userService,
         [GlobalState] CurrentUser currentUser,
+        RequestOptionsInput? options = null,
         CancellationToken cancellationToken = default)
     {
         if (currentUser?.User == null)
@@ -238,6 +243,7 @@ public class UserAuthMutations
             currentUser.User.Id, 
             currentPassword, 
             newPassword, 
+            options?.ToRequestOptions(),
             cancellationToken);
         
         return new AuthOutput
@@ -258,12 +264,12 @@ public class UserAuthMutations
     public async Task<AuthOutput> RequestPasswordReset(
         [GraphQLDescription("The email address associated with your account")]
         string email,
-        [GraphQLDescription("Skip sending reset email (for development/testing). The token is still generated.")]
-        bool skipEmail = false,
         [Service] IUserService userService,
+        [GraphQLDescription("Optional request configuration")]
+        RequestOptionsInput? options = null,
         CancellationToken cancellationToken = default)
     {
-        var result = await userService.RequestPasswordResetAsync(email, skipEmail, cancellationToken);
+        var result = await userService.RequestPasswordResetAsync(email, options?.ToRequestOptions(), cancellationToken);
         
         return new AuthOutput
         {
@@ -287,12 +293,12 @@ public class UserAuthMutations
         string resetToken,
         [GraphQLDescription("Your new password (min 8 chars, must include uppercase, lowercase, and number)")]
         string newPassword,
-        [GraphQLDescription("Skip sending confirmation email if any (for development/testing). The password is still reset.")]
-        bool skipEmail = false,
         [Service] IUserService userService,
+        [GraphQLDescription("Optional request configuration")]
+        RequestOptionsInput? options = null,
         CancellationToken cancellationToken = default)
     {
-        var result = await userService.ResetPasswordAsync(resetToken, newPassword, skipEmail, cancellationToken);
+        var result = await userService.ResetPasswordAsync(resetToken, newPassword, options?.ToRequestOptions(), cancellationToken);
         
         return new AuthOutput
         {

@@ -3,6 +3,7 @@ using Kanriya.Server.Services.Data;
 using Kanriya.Server.Types;
 using Kanriya.Server.Types.Inputs;
 using Kanriya.Server.Types.Outputs;
+using Kanriya.Shared.Models;
 using HotChocolate.AspNetCore;
 using HotChocolate.Authorization;
 
@@ -22,11 +23,13 @@ public class AuthMutations
         SignUpInput input,
         [Service] IUserService userService,
         [Service] IHttpContextAccessor httpContextAccessor,
+        RequestOptionsInput? options = null,
         CancellationToken cancellationToken = default)
     {
         var result = await userService.SignUpAsync(
             input.Email,
             input.Password,
+            options?.ToRequestOptions(),
             cancellationToken);
         
         return new AuthOutput
@@ -49,9 +52,10 @@ public class AuthMutations
     public async Task<AuthOutput> VerifyEmail(
         string verificationToken,
         [Service] IUserService userService,
+        RequestOptionsInput? options = null,
         CancellationToken cancellationToken = default)
     {
-        var result = await userService.VerifyEmailAsync(verificationToken, cancellationToken);
+        var result = await userService.VerifyEmailAsync(verificationToken, options?.ToRequestOptions(), cancellationToken);
         
         // Don't generate token here - user must sign in after email verification
         
@@ -73,12 +77,14 @@ public class AuthMutations
     public async Task<AuthOutput> SignIn(
         SignInInput input,
         [Service] IUserService userService,
+        RequestOptionsInput? options = null,
         CancellationToken cancellationToken = default)
     {
         var result = await userService.SignInAsync(
             input.Email,
             input.Password,
             input.BrandId,
+            options?.ToRequestOptions(),
             cancellationToken);
         
         return new AuthOutput
@@ -97,9 +103,10 @@ public class AuthMutations
     public async Task<AuthOutput> ResendVerification(
         string email,
         [Service] IUserService userService,
+        RequestOptionsInput? options = null,
         CancellationToken cancellationToken = default)
     {
-        var result = await userService.ResendVerificationAsync(email, cancellationToken);
+        var result = await userService.ResendVerificationAsync(email, options?.ToRequestOptions(), cancellationToken);
         
         return new AuthOutput
         {
@@ -120,6 +127,7 @@ public class AuthMutations
         string newPassword,
         [Service] IUserService userService,
         [GlobalState] CurrentUser currentUser,
+        RequestOptionsInput? options = null,
         CancellationToken cancellationToken = default)
     {
         if (currentUser?.User == null)
@@ -135,6 +143,7 @@ public class AuthMutations
             currentUser.User.Id,
             currentPassword,
             newPassword,
+            options?.ToRequestOptions(),
             cancellationToken);
         
         return new AuthOutput

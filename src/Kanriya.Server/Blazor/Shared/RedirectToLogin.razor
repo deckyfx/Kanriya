@@ -1,0 +1,28 @@
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+
+<div class="text-center p-5">
+    <p>Redirecting to sign in...</p>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        Console.WriteLine($"[RedirectToLogin] Component initialized - Current URL: {Navigation.Uri}");
+        base.OnInitialized();
+    }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Only redirect after the component is rendered to avoid pre-rendering issues
+            var returnUrl = Uri.EscapeDataString(Navigation.Uri);
+            var redirectUrl = $"/signin?returnUrl={returnUrl}";
+            Console.WriteLine($"[RedirectToLogin] Redirecting to: {redirectUrl}");
+            Navigation.NavigateTo(redirectUrl, forceLoad: false);
+        }
+        
+        await base.OnAfterRenderAsync(firstRender);
+    }
+}

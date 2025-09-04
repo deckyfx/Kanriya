@@ -1,0 +1,88 @@
+# Test localized SignIn messages with wrong password
+
+# Test with English (default)
+mutation SignInEnglish {
+  signIn(
+    input: {
+      email: "user@example.com"
+      password: "wrongpassword"
+    }
+  ) {
+    success
+    message  # Should return: "Invalid email or password"
+    token
+  }
+}
+
+# Test with Japanese
+mutation SignInJapanese {
+  signIn(
+    input: {
+      email: "user@example.com"
+      password: "wrongpassword"
+    }
+    options: {
+      lang: "ja"
+    }
+  ) {
+    success
+    message  # Should return localized Japanese message
+    token
+  }
+}
+
+# Test with Chinese
+mutation SignInChinese {
+  signIn(
+    input: {
+      email: "user@example.com"
+      password: "wrongpassword"
+    }
+    options: {
+      lang: "zh"
+    }
+  ) {
+    success
+    message  # Should return localized Chinese message
+    token
+  }
+}
+
+# Test successful sign in with language preference
+mutation SignInSuccessWithLanguage {
+  signIn(
+    input: {
+      email: "valid@example.com"
+      password: "correctPassword123!"
+    }
+    options: {
+      lang: "ja"
+    }
+  ) {
+    success
+    message  # Should return: localized "Sign in successful" in Japanese
+    token
+    user {
+      id
+      email
+    }
+  }
+}
+
+# Test with skip email option (for future use)
+mutation SignInWithOptions {
+  signIn(
+    input: {
+      email: "test@example.com"
+      password: "Test123!"
+    }
+    options: {
+      lang: "en"
+      skipEmail: false  # This is optional since it's nullable
+    }
+  ) {
+    success
+    message
+    token
+  }
+}

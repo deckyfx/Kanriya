@@ -121,14 +121,8 @@ public static class GraphQLConfig
     /// </summary>
     public static void ConfigureGraphQLMiddleware(WebApplication app)
     {
-        // Custom authentication middleware to populate CurrentUser
-        app.UseCustomAuthentication();
-        
-        // Authentication must come before Authorization
-        app.UseAuthentication();
-        
-        // Authorization must come before MapGraphQL
-        app.UseAuthorization();
+        // Note: Authentication middleware is already configured in Program.cs
+        // before this method is called, so we don't need to add it again
         
         // WebSockets required for GraphQL subscriptions
         app.UseWebSockets();

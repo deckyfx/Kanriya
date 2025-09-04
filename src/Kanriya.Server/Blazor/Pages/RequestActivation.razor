@@ -3,7 +3,10 @@
 @layout EmptyLayout
 @inject NavigationManager Navigation
 @inject IUserService UserService
+@inject BlazorLocalizationService L
 @using Kanriya.Server.Services.Data
+@using Kanriya.Server.Blazor.Services
+@using Kanriya.Shared.Models
 
 <div style="min-height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center;">
     <div style="background: white; border-radius: 12px; padding: 3rem; box-shadow: 0 20px 40px rgba(0,0,0,0.1); max-width: 500px; width: 90%;">
@@ -11,23 +14,23 @@
         {
             <div style="text-align: center;">
                 <div style="font-size: 4rem; margin-bottom: 1rem;">✅</div>
-                <h2 style="color: #333; margin: 1rem 0;">Activation Email Sent!</h2>
+                <h2 style="color: #333; margin: 1rem 0;">@L.T("Blazor.RequestActivation.success.title")</h2>
                 <p style="color: #666; margin: 1rem 0; line-height: 1.6;">
-                    We've sent an activation link to <strong>@email</strong>. Please check your email to activate your account.
+                    @L.T("Blazor.RequestActivation.success.message") <strong>@email</strong>. @L.T("Blazor.RequestActivation.success.checkEmail")
                 </p>
                 <p style="color: #777; margin-top: 1rem; font-size: 0.9rem;">
-                    Didn't receive the email? Check your spam folder or try again in a few minutes.
+                    @L.T("Blazor.RequestActivation.success.noEmail")
                 </p>
                 <a href="/signin" 
                    style="display: inline-block; padding: 0.75rem 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 6px; text-decoration: none; font-weight: 500; margin-top: 1.5rem;">
-                    Go to Sign In
+                    @L.T("Blazor.RequestActivation.success.goToSignIn")
                 </a>
             </div>
         }
         else
         {
             <div>
-                <h2 style="color: #333; margin: 0 0 2rem 0; text-align: center;">Request Account Activation</h2>
+                <h2 style="color: #333; margin: 0 0 2rem 0; text-align: center;">@L.T("Blazor.RequestActivation.title")</h2>
                 
                 @if (!string.IsNullOrEmpty(errorMessage))
                 {
@@ -57,11 +60,11 @@
                     
                     <div style="margin-bottom: 1.5rem;">
                         <label style="display: block; color: #555; margin-bottom: 0.5rem; font-weight: 500;">
-                            Email Address
+                            @L.T("Blazor.RequestActivation.form.emailLabel")
                         </label>
                         <input type="email" @bind="email" required
                                style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem; box-sizing: border-box;"
-                               placeholder="Enter your email address" 
+                               placeholder="@L.T("Blazor.RequestActivation.form.emailPlaceholder")" 
                                disabled="@isSubmitting" />
                     </div>
                     
@@ -69,17 +72,17 @@
                             style="width: 100%; padding: 0.75rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 6px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: opacity 0.2s; opacity: @(isSubmitting ? "0.7" : "1");">
                         @if (isSubmitting)
                         {
-                            <span>Sending Activation Email...</span>
+                            <span>@L.T("Blazor.RequestActivation.form.submitting")</span>
                         }
                         else
                         {
-                            <span>Send Activation Email</span>
+                            <span>@L.T("Blazor.RequestActivation.form.submitButton")</span>
                         }
                     </button>
                 </form>
                 
                 <p style="text-align: center; color: #777; margin-top: 1.5rem; font-size: 0.9rem;">
-                    Already activated? <a href="/signin" style="color: #667eea; text-decoration: none;">Sign in</a>
+                    @L.T("Blazor.RequestActivation.form.alreadyActivated") <a href="/signin" style="color: #667eea; text-decoration: none;">@L.T("Blazor.RequestActivation.form.signInLink")</a>
                 </p>
             </div>
         }
@@ -97,6 +100,9 @@
 
     protected override void OnInitialized()
     {
+        // Initialize localization
+        L.Initialize();
+        
         // Check for query parameters
         var uri = new Uri(Navigation.Uri);
         var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
@@ -104,7 +110,7 @@
         if (query["mock"] != null)
         {
             isMockMode = true;
-            infoMessage = "Mock mode enabled - submissions will simulate success";
+            infoMessage = L.T("Blazor.RequestActivation.mockMode");
         }
         
         if (query["skip-email"] != null)
@@ -112,7 +118,7 @@
             skipEmail = true;
             if (!string.IsNullOrEmpty(infoMessage))
                 infoMessage += " | ";
-            infoMessage += "Email sending disabled";
+            infoMessage += L.T("Blazor.RequestActivation.skipEmail");
         }
     }
 
@@ -123,13 +129,13 @@
         // Validate email
         if (string.IsNullOrEmpty(email))
         {
-            errorMessage = "Please enter your email address.";
+            errorMessage = L.T("Blazor.RequestActivation.validation.enterEmail");
             return;
         }
         
         if (!email.Contains("@") || !email.Contains("."))
         {
-            errorMessage = "Please enter a valid email address.";
+            errorMessage = L.T("Blazor.RequestActivation.validation.invalidEmail");
             return;
         }
         
@@ -148,19 +154,20 @@
             }
             
             // Call UserService to request activation email
-            var result = await UserService.ResendVerificationAsync(email, skipEmail);
+            var options = skipEmail ? new RequestOptions { SkipEmail = true } : null;
+            var result = await UserService.ResendVerificationAsync(email, options);
             if (result.Success)
             {
                 isSuccess = true;
             }
             else
             {
-                errorMessage = result.Message ?? "Failed to send activation email. Please try again.";
+                errorMessage = result.Message ?? L.T("Blazor.RequestActivation.validation.invalidEmail");
             }
         }
         catch (Exception ex)
         {
-            errorMessage = "An error occurred. Please try again or contact support.";
+            errorMessage = L.T("app.error");
             System.Console.WriteLine($"Request activation error: {ex.Message}");
         }
         finally

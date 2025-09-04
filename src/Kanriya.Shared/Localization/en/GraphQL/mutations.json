@@ -1,0 +1,46 @@
+{
+  "GraphQL": {
+    "mutation": {
+      "signIn": {
+        "invalidCredentials": "Invalid email or password",
+        "success": "Sign in successful",
+        "accountLocked": "Account is locked. Please contact support.",
+        "emailNotVerified": "Email not verified. Please check your inbox.",
+        "tooManyAttempts": "Too many failed attempts. Please try again later."
+      },
+      "signUp": {
+        "invalidEmail": "Invalid email format",
+        "invalidPassword": "Password must be at least 8 characters with uppercase, lowercase, and number",
+        "emailAlreadyExists": "Email already registered",
+        "pendingVerification": "Email already pending verification. Check your email.",
+        "success": "Verification email sent. Please check your inbox."
+      },
+      "verifyEmail": {
+        "invalidToken": "Invalid verification token",
+        "tokenExpired": "Verification token expired",
+        "alreadyVerified": "Email already verified",
+        "success": "Email verified successfully"
+      },
+      "resendVerification": {
+        "emailNotFound": "Email not found",
+        "alreadyVerified": "Email already verified",
+        "success": "Verification email resent. Please check your inbox."
+      },
+      "requestPasswordReset": {
+        "success": "If the email exists, a password reset link has been sent",
+        "userNotFound": "User not found"
+      },
+      "resetPassword": {
+        "invalidToken": "Invalid or expired reset token",
+        "invalidPassword": "Password must be at least 8 characters with uppercase, lowercase, and number",
+        "success": "Password has been reset successfully"
+      },
+      "changePassword": {
+        "invalidCurrentPassword": "Current password is incorrect",
+        "invalidPassword": "Password must be at least 8 characters with uppercase, lowercase, and number",
+        "userNotFound": "User not found",
+        "success": "Password changed successfully"
+      }
+    }
+  }
+}

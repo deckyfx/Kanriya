@@ -1,0 +1,137 @@
+@page "/test-error"
+@layout AuthorizedLayout
+
+<PageTitle>Error Boundary Test</PageTitle>
+
+<div class="test-container">
+    <h2>Error Boundary Test Page</h2>
+    <p>Click the buttons below to trigger different types of errors and see the Laravel-style error page.</p>
+    
+    <div class="button-group">
+        <button class="test-button" @onclick="ThrowNullReference">
+            Throw NullReferenceException
+        </button>
+        
+        <button class="test-button" @onclick="ThrowInvalidOperation">
+            Throw InvalidOperationException
+        </button>
+        
+        <button class="test-button" @onclick="ThrowCustomError">
+            Throw Custom Error
+        </button>
+        
+        <button class="test-button" @onclick="ThrowWithInnerException">
+            Throw With Inner Exception
+        </button>
+        
+        <button class="test-button" @onclick="ThrowAsyncError">
+            Throw Async Error
+        </button>
+        
+        <button class="test-button" @onclick="DivideByZero">
+            Divide By Zero
+        </button>
+    </div>
+    
+    @if (showMessage)
+    {
+        <div class="success-message">
+            If you're seeing this, the error boundary is not triggered yet!
+        </div>
+    }
+</div>
+
+<style>
+    .test-container {
+        padding: 2rem;
+        max-width: 800px;
+    }
+    
+    .test-container h2 {
+        color: #333;
+        margin-bottom: 1rem;
+    }
+    
+    .test-container p {
+        color: #666;
+        margin-bottom: 2rem;
+    }
+    
+    .button-group {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .test-button {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 1rem;
+        border-radius: 8px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .test-button:hover {
+        background: #5a67d8;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .success-message {
+        background: #48bb78;
+        color: white;
+        padding: 1rem;
+        border-radius: 8px;
+        text-align: center;
+        margin-top: 2rem;
+    }
+</style>
+
+@code {
+    private bool showMessage = true;
+    
+    private void ThrowNullReference()
+    {
+        string? nullString = null;
+        // This will throw a NullReferenceException
+        var length = nullString!.Length;
+    }
+    
+    private void ThrowInvalidOperation()
+    {
+        throw new InvalidOperationException("This is a test InvalidOperationException. The operation cannot be performed in the current state.");
+    }
+    
+    private void ThrowCustomError()
+    {
+        throw new ApplicationException("This is a custom application error for testing the error boundary component!");
+    }
+    
+    private void ThrowWithInnerException()
+    {
+        try
+        {
+            throw new InvalidOperationException("This is the inner exception");
+        }
+        catch (Exception inner)
+        {
+            throw new ApplicationException("This is the outer exception with an inner exception", inner);
+        }
+    }
+    
+    private async Task ThrowAsyncError()
+    {
+        await Task.Delay(100);
+        throw new InvalidOperationException("This error occurred in an async method after a delay");
+    }
+    
+    private void DivideByZero()
+    {
+        int zero = 0;
+        var result = 42 / zero;
+    }
+}

@@ -15,7 +15,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="Localization\*.json" />
+    <!-- Include all JSON files from Localization folder and subdirectories -->
+    <EmbeddedResource Include="Localization\**\*.json" />
   </ItemGroup>
 
 </Project>

@@ -94,7 +94,7 @@ public class BlazorLocalizationService
                         Expires = DateTimeOffset.UtcNow.AddYears(1),
                         HttpOnly = true,
                         SameSite = SameSiteMode.Lax,
-                        Path = "/console"
+                        Path = "/"
                     });
                 }
                 catch

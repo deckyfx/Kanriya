@@ -1,7 +1,10 @@
 using Kanriya.Server.Program;
 using Kanriya.Shared;
 using Kanriya.Server.Services.System;
+using Kanriya.Server.Blazor.Services;
 using MudBlazor.Services;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Server.Circuits;
 using Serilog;
 using Serilog.Events;
 using System.Reflection;
@@ -48,7 +51,7 @@ try
         // Keep console output enabled - we'll handle deduplication in LogService
         EnableConsole = true,
         EnableFile = true,
-        ConsoleMinimumLevel = LogEventLevel.Information,
+        ConsoleMinimumLevel = LogEventLevel.Debug, // Changed to Debug for more logging
         FileMinimumLevel = LogEventLevel.Debug,
         // Enable Seq for centralized logging (doesn't output to console)
         EnableSeq = true,
@@ -106,6 +109,12 @@ try
     builder.Services.AddServerSideBlazor();
     builder.Services.AddMudServices();
     
+    // Add authentication state provider for Blazor
+    builder.Services.AddScoped<SimpleAuthStateProvider>();
+    builder.Services.AddScoped<AuthenticationStateProvider>(provider => provider.GetRequiredService<SimpleAuthStateProvider>());
+    builder.Services.AddAuthorizationCore();
+    builder.Services.AddCascadingAuthenticationState();
+    
     // Add HTTP context accessor for cookie access
     builder.Services.AddHttpContextAccessor();
     
@@ -120,8 +129,7 @@ try
         options.Cookie.Path = "/";
     });
     
-    // Add authentication state provider
-    builder.Services.AddScoped<Microsoft.AspNetCore.Components.Authorization.AuthenticationStateProvider, Kanriya.Server.Blazor.Services.CustomAuthenticationStateProvider>();
+    // Removed duplicate - using SimpleAuthStateProvider instead
     
     // Add localization support
     builder.Services.AddScoped<Kanriya.Server.Blazor.Services.BlazorLocalizationService>();
@@ -162,13 +170,23 @@ try
     // Step 14: Configure middleware pipeline
     LogService.LogSection("Middleware Configuration");
     
-    // Configure HTTP endpoints first (includes static files, routing, swagger, and Blazor)
+    // Serve static files first
+    app.UseStaticFiles();
+    
+    // Enable routing
+    app.UseRouting();
+    
+    // Configure authentication middleware BEFORE endpoints
+    app.UseAuthentication();
+    app.UseAuthorization();
+    
+    // Configure HTTP endpoints (includes swagger and Blazor)
     HttpEndpointsConfig.ConfigureHttpMiddleware(app);
     
     // Configure Hangfire middleware
     HangfireConfig.ConfigureHangfireMiddleware(app);
     
-    // Then configure GraphQL middleware
+    // Then configure GraphQL middleware (without re-adding authentication)
     GraphQLConfig.ConfigureGraphQLMiddleware(app);
 
     // Step 15: Run the application

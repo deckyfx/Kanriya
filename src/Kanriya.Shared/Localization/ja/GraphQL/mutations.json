@@ -1,0 +1,46 @@
+{
+  "GraphQL": {
+    "mutation": {
+      "signIn": {
+        "invalidCredentials": "メールアドレスまたはパスワードが無効です",
+        "success": "ログイン成功",
+        "accountLocked": "アカウントがロックされています。サポートにお問い合わせください。",
+        "emailNotVerified": "メールが確認されていません。受信トレイをご確認ください。",
+        "tooManyAttempts": "失敗回数が多すぎます。後でもう一度お試しください。"
+      },
+      "signUp": {
+        "invalidEmail": "無効なメール形式",
+        "invalidPassword": "パスワードは大文字、小文字、数字を含む8文字以上である必要があります",
+        "emailAlreadyExists": "メールアドレスは既に登録されています",
+        "pendingVerification": "メールアドレスは既に確認待ちです。メールをご確認ください。",
+        "success": "確認メールを送信しました。受信トレイをご確認ください。"
+      },
+      "verifyEmail": {
+        "invalidToken": "無効な確認トークン",
+        "tokenExpired": "確認トークンの有効期限が切れています",
+        "alreadyVerified": "メールアドレスは既に確認済みです",
+        "success": "メールアドレスの確認が完了しました"
+      },
+      "resendVerification": {
+        "emailNotFound": "メールアドレスが見つかりません",
+        "alreadyVerified": "メールアドレスは既に確認済みです",
+        "success": "確認メールを再送信しました。受信トレイをご確認ください。"
+      },
+      "requestPasswordReset": {
+        "success": "メールアドレスが存在する場合、パスワードリセットリンクが送信されました",
+        "userNotFound": "ユーザーが見つかりません"
+      },
+      "resetPassword": {
+        "invalidToken": "無効または期限切れのリセットトークン",
+        "invalidPassword": "パスワードは大文字、小文字、数字を含む8文字以上である必要があります",
+        "success": "パスワードのリセットが完了しました"
+      },
+      "changePassword": {
+        "invalidCurrentPassword": "現在のパスワードが正しくありません",
+        "invalidPassword": "パスワードは大文字、小文字、数字を含む8文字以上である必要があります",
+        "userNotFound": "ユーザーが見つかりません",
+        "success": "パスワードの変更が完了しました"
+      }
+    }
+  }
+}

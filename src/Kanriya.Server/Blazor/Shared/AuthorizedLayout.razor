@@ -1,0 +1,141 @@
+@inherits LayoutComponentBase
+@using Kanriya.Server.Blazor.Services
+@using Microsoft.AspNetCore.Components.Authorization
+@inject NavigationManager Navigation
+@inject SimpleAuthStateProvider AuthStateProvider
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<CascadingAuthenticationState>
+    <AuthorizeView>
+        <Authorized>
+            <div class="page">
+                <div class="sidebar">
+                    <NavMenu />
+                </div>
+
+                <main>
+                    <div class="top-row">
+                        <div class="top-row-content">
+                            <span class="welcome-text">Welcome, @(context.User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value ?? context.User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "User")</span>
+                            <button class="logout-btn" @onclick="Logout">Logout</button>
+                        </div>
+                    </div>
+
+                    <article class="content">
+                        <CustomErrorBoundary>
+                            @Body
+                        </CustomErrorBoundary>
+                    </article>
+                </main>
+            </div>
+        </Authorized>
+        <NotAuthorized>
+            @* Only redirect if we're not already on the signin page *@
+            @if (!Navigation.Uri.Contains("/signin", StringComparison.OrdinalIgnoreCase))
+            {
+                <RedirectToLogin />
+            }
+            else
+            {
+                <div>Loading...</div>
+            }
+        </NotAuthorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+
+@code {
+    
+    private async Task Logout()
+    {
+        await AuthStateProvider.MarkUserAsLoggedOut();
+        Navigation.NavigateTo("/signin");
+    }
+}
+
+<style>
+    .page {
+        display: flex;
+        height: 100vh;
+        position: relative;
+        margin: 0;
+        padding: 0;
+    }
+
+    .sidebar {
+        width: 250px;
+        background: #2c3e50;
+        flex-shrink: 0;
+        overflow-y: auto;
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+    }
+
+    main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: #f5f5f5;
+        overflow: hidden;
+        margin-left: 250px;
+        min-height: 100vh;
+    }
+
+    .top-row {
+        background: white;
+        border-bottom: 1px solid #dee2e6;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+
+    .top-row-content {
+        width: 100%;
+        padding: 0 2rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .welcome-text {
+        color: #333;
+        font-size: 0.95rem;
+    }
+
+    .logout-btn {
+        background: transparent;
+        border: 1px solid #dc3545;
+        color: #dc3545;
+        padding: 0.375rem 1rem;
+        border-radius: 4px;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .logout-btn:hover {
+        background: #dc3545;
+        color: white;
+    }
+
+    .content {
+        flex: 1;
+        padding: 2rem;
+        overflow-y: auto;
+    }
+
+    @@media (max-width: 767.98px) {
+        .sidebar {
+            display: none;
+        }
+        
+        main {
+            margin-left: 0;
+        }
+    }
+</style>

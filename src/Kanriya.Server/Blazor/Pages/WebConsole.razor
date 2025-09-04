@@ -1,7 +1,17 @@
 @page "/console"
 @namespace Kanriya.Server.Blazor.Pages
-@layout MainLayout
+@layout AuthorizedLayout
 @inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Components.Authorization
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+@code {
+    protected override void OnInitialized()
+    {
+        Console.WriteLine($"[WebConsole Page] Initialized - URL: {Navigation.Uri}");
+        base.OnInitialized();
+    }
+}
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
     <MudGrid>

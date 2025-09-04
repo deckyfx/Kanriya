@@ -92,6 +92,7 @@ public class LocalizationService : IStringLocalizer
     
     /// <summary>
     /// Load all translation files from embedded resources
+    /// Merges multiple JSON files from folder structure
     /// </summary>
     private void LoadTranslations()
     {
@@ -100,12 +101,23 @@ public class LocalizationService : IStringLocalizer
         
         foreach (var language in _supportedLanguages)
         {
-            var resourceName = $"Kanriya.Shared.Localization.{language}.json";
-            var fullResourceName = resourceNames.FirstOrDefault(r => r.EndsWith($"Localization.{language}.json"));
+            var mergedTranslations = new Dictionary<string, object>();
             
-            if (fullResourceName != null)
+            // Find all JSON files for this language
+            var languageResources = resourceNames
+                .Where(r => r.Contains($"Localization.{language}.") && r.EndsWith(".json"))
+                .ToList();
+            
+            // Also check for the old single file format for backward compatibility
+            var singleFileResource = resourceNames.FirstOrDefault(r => r.EndsWith($"Localization.{language}.json"));
+            if (singleFileResource != null && !languageResources.Contains(singleFileResource))
             {
-                using var stream = assembly.GetManifestResourceStream(fullResourceName);
+                languageResources.Add(singleFileResource);
+            }
+            
+            foreach (var resourceName in languageResources)
+            {
+                using var stream = assembly.GetManifestResourceStream(resourceName);
                 if (stream != null)
                 {
                     using var reader = new StreamReader(stream);
@@ -114,11 +126,58 @@ public class LocalizationService : IStringLocalizer
                     
                     if (translations != null)
                     {
-                        // Flatten nested JSON structure into dot notation keys
-                        var flattenedTranslations = FlattenJson(translations);
-                        _translations[language] = flattenedTranslations;
+                        // Merge this file's translations into the merged dictionary
+                        MergeTranslations(mergedTranslations, translations);
                     }
                 }
+            }
+            
+            if (mergedTranslations.Count > 0)
+            {
+                // Flatten the merged translations into dot notation keys
+                var flattenedTranslations = FlattenJson(mergedTranslations);
+                _translations[language] = flattenedTranslations;
+            }
+        }
+    }
+    
+    /// <summary>
+    /// Merge source translations into target dictionary
+    /// </summary>
+    private void MergeTranslations(Dictionary<string, object> target, Dictionary<string, object> source)
+    {
+        foreach (var kvp in source)
+        {
+            if (kvp.Value is JsonElement element && element.ValueKind == JsonValueKind.Object)
+            {
+                // If the key exists and is also an object, merge recursively
+                if (target.TryGetValue(kvp.Key, out var existingValue) && 
+                    existingValue is JsonElement existingElement && 
+                    existingElement.ValueKind == JsonValueKind.Object)
+                {
+                    // Convert both to dictionaries and merge
+                    var existingDict = JsonSerializer.Deserialize(existingElement.GetRawText(), LocalizationJsonContext.Default.DictionaryStringObject) ?? new Dictionary<string, object>();
+                    var newDict = JsonSerializer.Deserialize(element.GetRawText(), LocalizationJsonContext.Default.DictionaryStringObject) ?? new Dictionary<string, object>();
+                    MergeTranslations(existingDict, newDict);
+                    
+                    // Convert back to JsonElement and update target
+                    var mergedJson = JsonSerializer.Serialize(existingDict);
+                    var mergedElement = JsonSerializer.Deserialize<object>(mergedJson);
+                    if (mergedElement != null)
+                    {
+                        target[kvp.Key] = mergedElement;
+                    }
+                }
+                else
+                {
+                    // Key doesn't exist or isn't an object, just set it
+                    target[kvp.Key] = kvp.Value;
+                }
+            }
+            else
+            {
+                // Simple value, just set or overwrite
+                target[kvp.Key] = kvp.Value;
             }
         }
     }

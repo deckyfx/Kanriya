@@ -1,0 +1,46 @@
+{
+  "GraphQL": {
+    "mutation": {
+      "signIn": {
+        "invalidCredentials": "Email atau kata sandi salah",
+        "success": "Berhasil masuk",
+        "accountLocked": "Akun dikunci. Silakan hubungi dukungan.",
+        "emailNotVerified": "Email belum diverifikasi. Silakan periksa kotak masuk Anda.",
+        "tooManyAttempts": "Terlalu banyak percobaan gagal. Silakan coba lagi nanti."
+      },
+      "signUp": {
+        "invalidEmail": "Format email tidak valid",
+        "invalidPassword": "Kata sandi minimal 8 karakter dengan huruf besar, huruf kecil, dan angka",
+        "emailAlreadyExists": "Email sudah terdaftar",
+        "pendingVerification": "Email sudah menunggu verifikasi. Periksa email Anda.",
+        "success": "Email verifikasi telah dikirim. Silakan periksa kotak masuk Anda."
+      },
+      "verifyEmail": {
+        "invalidToken": "Token verifikasi tidak valid",
+        "tokenExpired": "Token verifikasi telah kedaluwarsa",
+        "alreadyVerified": "Email sudah diverifikasi",
+        "success": "Email berhasil diverifikasi"
+      },
+      "resendVerification": {
+        "emailNotFound": "Email tidak ditemukan",
+        "alreadyVerified": "Email sudah diverifikasi",
+        "success": "Email verifikasi telah dikirim ulang. Silakan periksa kotak masuk Anda."
+      },
+      "requestPasswordReset": {
+        "success": "Jika email terdaftar, tautan reset kata sandi telah dikirim",
+        "userNotFound": "Pengguna tidak ditemukan"
+      },
+      "resetPassword": {
+        "invalidToken": "Token reset tidak valid atau kedaluwarsa",
+        "invalidPassword": "Kata sandi minimal 8 karakter dengan huruf besar, huruf kecil, dan angka",
+        "success": "Kata sandi berhasil direset"
+      },
+      "changePassword": {
+        "invalidCurrentPassword": "Kata sandi saat ini salah",
+        "invalidPassword": "Kata sandi minimal 8 karakter dengan huruf besar, huruf kecil, dan angka",
+        "userNotFound": "Pengguna tidak ditemukan",
+        "success": "Kata sandi berhasil diubah"
+      }
+    }
+  }
+}

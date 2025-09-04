@@ -104,13 +104,7 @@ public static class HttpEndpointsConfig
             LogService.LogSuccess("Swagger UI enabled at /swagger");
         }
         
-        // Serve static files (css, js, images, etc.)
-        app.UseStaticFiles();
-        
-        // Enable routing
-        app.UseRouting();
-        
-        // Add session middleware (must be after UseRouting and before UseEndpoints)
+        // Add session middleware
         app.UseSession();
         
         // Configure endpoints

@@ -1,0 +1,472 @@
+@page "/signin"
+@layout EmptyLayout
+@inject NavigationManager Navigation
+@inject IUserService UserService
+@inject IJSRuntime JS
+@inject SimpleAuthStateProvider AuthStateProvider
+@using Kanriya.Server.Services.Data
+@using Kanriya.Server.Blazor.Services
+@using Kanriya.Shared.Models
+@using Kanriya.Shared.Services
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Components.Authorization
+
+<PageTitle>Sign In</PageTitle>
+
+<div class="auth-container">
+    <div class="auth-card">
+        <h2>@LocalizationService.Instance.t("auth.signIn")</h2>
+        
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger">
+                @errorMessage
+            </div>
+        }
+        
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <div class="alert alert-success">
+                @successMessage
+            </div>
+        }
+        
+        <EditForm Model="@model" OnValidSubmit="@HandleSignIn">
+            <DataAnnotationsValidator />
+            
+            @* Hidden fields for query parameters *@
+            @if (mockMode)
+            {
+                <input type="hidden" name="mock" value="true" />
+            }
+            @if (!string.IsNullOrEmpty(selectedLang) && selectedLang != "en")
+            {
+                <input type="hidden" name="lang" value="@selectedLang" />
+            }
+            
+            <div class="form-group">
+                <label>@LocalizationService.Instance.t("auth.email")</label>
+                <InputText @bind-Value="model.Email" class="form-control" placeholder="@LocalizationService.Instance.t("auth.email")" disabled="@isSubmitting" />
+                <ValidationMessage For="@(() => model.Email)" />
+            </div>
+            
+            <div class="form-group">
+                <label>@LocalizationService.Instance.t("auth.password")</label>
+                <div class="password-input-wrapper">
+                    <InputText type="@(showPassword ? "text" : "password")" @bind-Value="model.Password" class="form-control" placeholder="@LocalizationService.Instance.t("auth.password")" disabled="@isSubmitting" />
+                    <button type="button" class="password-toggle" @onclick="() => showPassword = !showPassword" disabled="@isSubmitting">
+                        @if (showPassword)
+                        {
+                            <span>👁️</span>
+                        }
+                        else
+                        {
+                            <span>👁️‍🗨️</span>
+                        }
+                    </button>
+                </div>
+                <ValidationMessage For="@(() => model.Password)" />
+            </div>
+            
+            <div class="form-options">
+                <div class="form-check">
+                    <InputCheckbox @bind-Value="model.RememberMe" class="form-check-input" id="rememberMe" disabled="@isSubmitting" />
+                    <label class="form-check-label" for="rememberMe">
+                        @LocalizationService.Instance.t("auth.rememberMe")
+                    </label>
+                </div>
+                
+                <a href="/request-reset-password" class="forgot-password-link">
+                    @LocalizationService.Instance.t("auth.forgotPassword")
+                </a>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-block" disabled="@isSubmitting">
+                @if (isSubmitting)
+                {
+                    <span class="spinner-border spinner-border-sm mr-2"></span>
+                    <span>@LocalizationService.Instance.t("auth.signIn")...</span>
+                }
+                else
+                {
+                    <span>@LocalizationService.Instance.t("auth.signIn")</span>
+                }
+            </button>
+        </EditForm>
+        
+        <div class="auth-footer">
+            <p>
+                Don't have an account? 
+                <a href="/signup@(GetQueryString())">Sign Up</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+    .auth-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .auth-card {
+        background: white;
+        border-radius: 10px;
+        padding: 2rem;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        width: 100%;
+        max-width: 400px;
+    }
+    
+    .auth-card h2 {
+        margin-bottom: 1.5rem;
+        color: #333;
+        text-align: center;
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #666;
+        font-size: 0.9rem;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 1rem;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .form-options {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .btn-primary {
+        background: #667eea;
+        color: white;
+        border: none;
+        padding: 0.75rem;
+        border-radius: 5px;
+        font-size: 1rem;
+        cursor: pointer;
+        width: 100%;
+    }
+    
+    .btn-primary:hover:not(:disabled) {
+        background: #5a67d8;
+    }
+    
+    .btn-primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    .auth-footer {
+        text-align: center;
+        margin-top: 1.5rem;
+        color: #666;
+    }
+    
+    .auth-footer a {
+        color: #667eea;
+        text-decoration: none;
+    }
+    
+    .auth-footer a:hover {
+        text-decoration: underline;
+    }
+    
+    .alert {
+        padding: 0.75rem;
+        border-radius: 5px;
+        margin-bottom: 1rem;
+    }
+    
+    .alert-danger {
+        background: #fed7d7;
+        color: #c53030;
+        border: 1px solid #fc8181;
+    }
+    
+    .alert-success {
+        background: #c6f6d5;
+        color: #276749;
+        border: 1px solid #9ae6b4;
+    }
+    
+    
+    .spinner-border-sm {
+        width: 1rem;
+        height: 1rem;
+        border-width: 0.2rem;
+    }
+    
+    .forgot-password-link {
+        color: #667eea;
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+    
+    .forgot-password-link:hover {
+        text-decoration: underline;
+    }
+    
+    .password-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
+    }
+    
+    .password-input-wrapper .form-control {
+        padding-right: 2.5rem;
+    }
+    
+    .password-toggle {
+        position: absolute;
+        right: 0.75rem;
+        background: transparent;
+        border: none;
+        padding: 0.5rem;
+        cursor: pointer;
+        color: #666;
+        font-size: 1.2rem;
+        line-height: 1;
+    }
+    
+    .password-toggle:hover:not(:disabled) {
+        color: #333;
+    }
+    
+    .password-toggle:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+</style>
+
+@code {
+    private SignInModel model = new();
+    private bool isSubmitting = false;
+    private string? errorMessage;
+    private string? successMessage;
+    private bool mockMode = false;
+    private string selectedLang = "en";
+    private bool showPassword = false;
+    
+    public class SignInModel
+    {
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email address")]
+        public string Email { get; set; } = string.Empty;
+        
+        [Required(ErrorMessage = "Password is required")]
+        public string Password { get; set; } = string.Empty;
+        
+        public bool RememberMe { get; set; }
+    }
+    
+    protected override void OnInitialized()
+    {
+        // Check for query parameters
+        var uri = new Uri(Navigation.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        
+        if (query["mock"] == "true")
+        {
+            mockMode = true;
+        }
+        
+        if (!string.IsNullOrEmpty(query["lang"]))
+        {
+            selectedLang = query["lang"];
+            LocalizationService.Instance.SetLanguage(selectedLang);
+        }
+    }
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Check if user is already authenticated
+            var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+            if (authState.User.Identity?.IsAuthenticated == true)
+            {
+                Navigation.NavigateTo("/console", forceLoad: true);
+            }
+        }
+        
+        await base.OnAfterRenderAsync(firstRender);
+    }
+    
+    private async Task HandleSignIn()
+    {
+        if (isSubmitting) return;
+        
+        isSubmitting = true;
+        errorMessage = null;
+        successMessage = null;
+        
+        try
+        {
+            if (mockMode)
+            {
+                // Mock mode - simulate successful sign in
+                await Task.Delay(1000); // Simulate network delay
+                
+                // Set language for mock mode
+                var currentLang = LocalizationService.Instance.CurrentLanguage;
+                if (!string.IsNullOrEmpty(selectedLang) && selectedLang != currentLang)
+                {
+                    LocalizationService.Instance.SetLanguage(selectedLang);
+                }
+                
+                successMessage = LocalizationService.Instance.t("GraphQL.mutation.signIn.success");
+                
+                // Create a mock JWT token (in real scenario, this would come from backend)
+                var mockToken = GenerateMockJwtToken(model.Email);
+                
+                // Mark user as authenticated
+                await AuthStateProvider.MarkUserAsAuthenticated(mockToken);
+                
+                // Force a state change notification and wait for it to propagate
+                StateHasChanged();
+                
+                // Wait longer to ensure cookie is set
+                await Task.Delay(1000);
+                
+                // Check for return URL
+                var uri = new Uri(Navigation.Uri);
+                var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+                var returnUrl = query["returnUrl"];
+                
+                if (!string.IsNullOrEmpty(returnUrl))
+                {
+                    // Force a full page reload to ensure authentication is recognized
+                    Navigation.NavigateTo(Uri.UnescapeDataString(returnUrl), forceLoad: true);
+                }
+                else
+                {
+                    // Force a full page reload to ensure authentication is recognized
+                    Navigation.NavigateTo("/console", forceLoad: true);
+                }
+            }
+            else
+            {
+                // Real sign in with query parameters
+                var options = new RequestOptions
+                {
+                    Lang = selectedLang,
+                    SkipEmail = false // SignIn doesn't use skipEmail but keeping for consistency
+                };
+                
+                var result = await UserService.SignInAsync(
+                    model.Email,
+                    model.Password,
+                    null, // No brand ID for principal sign in
+                    options
+                );
+                
+                if (result.Success && !string.IsNullOrEmpty(result.Token))
+                {
+                    successMessage = result.Message;
+                    
+                    // Mark user as authenticated
+                    await AuthStateProvider.MarkUserAsAuthenticated(result.Token);
+                    
+                    if (model.RememberMe)
+                    {
+                        // Store remember me preference
+                        await JS.InvokeVoidAsync("localStorage.setItem", "rememberMe", "true");
+                    }
+                    
+                    // Force a state change notification and wait for it to propagate
+                    StateHasChanged();
+                    
+                    // Wait longer to ensure cookie is set
+                    await Task.Delay(1000);
+                    
+                    // Check for return URL
+                    var uri = new Uri(Navigation.Uri);
+                    var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+                    var returnUrl = query["returnUrl"];
+                    
+                    if (!string.IsNullOrEmpty(returnUrl))
+                    {
+                        // Force a full page reload to ensure authentication is recognized
+                        Navigation.NavigateTo(Uri.UnescapeDataString(returnUrl), forceLoad: true);
+                    }
+                    else
+                    {
+                        // Force a full page reload to ensure authentication is recognized
+                        Navigation.NavigateTo("/console", forceLoad: true);
+                    }
+                }
+                else
+                {
+                    errorMessage = result.Message;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+    
+    
+    private string GetQueryString()
+    {
+        var parameters = new List<string>();
+        
+        if (mockMode)
+            parameters.Add("mock=true");
+            
+        if (selectedLang != "en")
+            parameters.Add($"lang={selectedLang}");
+        
+        return parameters.Any() ? "?" + string.Join("&", parameters) : "";
+    }
+    
+    private string GenerateMockJwtToken(string email)
+    {
+        // This is a mock JWT token for development
+        // In production, this would come from the server
+        var header = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("{\"alg\":\"HS256\",\"typ\":\"JWT\"}"));
+        
+        var payloadObj = new
+        {
+            sub = "mock-user-id",
+            email = email,
+            nameid = "mock-user-id",
+            exp = DateTimeOffset.UtcNow.AddHours(24).ToUnixTimeSeconds(),
+            iat = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+        };
+        
+        var payloadJson = System.Text.Json.JsonSerializer.Serialize(payloadObj);
+        var payload = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(payloadJson));
+        var signature = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("mock-signature"));
+        
+        return $"{header}.{payload}.{signature}";
+    }
+}

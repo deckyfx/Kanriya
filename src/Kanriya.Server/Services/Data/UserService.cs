@@ -6,6 +6,8 @@ using System.Text.RegularExpressions;
 using Kanriya.Server.Data;
 using Kanriya.Server.Program;
 using Kanriya.Shared;
+using Kanriya.Shared.Models;
+using Kanriya.Shared.Services;
 using Kanriya.Server.Types.Outputs;
 using HotChocolate.Subscriptions;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +25,7 @@ public class UserService : IUserService
     private readonly IConfiguration _configuration;
     private readonly IMailerService _mailerService;
     private readonly IOutletService _outletService;
+    private readonly LocalizationService _localizationService;
     
     public UserService(
         IServiceProvider serviceProvider,
@@ -36,23 +39,43 @@ public class UserService : IUserService
         _configuration = configuration;
         _mailerService = mailerService;
         _outletService = outletService;
+        _localizationService = LocalizationService.Instance; // Use singleton instance
     }
     
     private IServiceScope CreateScope() => _serviceProvider.CreateScope();
+    
+    /// <summary>
+    /// Get localized message for GraphQL mutations
+    /// </summary>
+    private string L(string key, RequestOptions? options = null, params object[] args)
+    {
+        // If options specify a language, temporarily switch to it
+        if (!string.IsNullOrEmpty(options?.Lang))
+        {
+            var currentLang = _localizationService.CurrentLanguage;
+            _localizationService.SetLanguage(options.Lang);
+            var message = _localizationService.t(key, args);
+            _localizationService.SetLanguage(currentLang); // Restore original language
+            return message;
+        }
+        
+        return _localizationService.t(key, args);
+    }
     
     // ==================== AUTHENTICATION ====================
     
     public async Task<(bool Success, string Message, string? VerificationToken)> SignUpAsync(
         string email,
         string password,
+        RequestOptions? options = null,
         CancellationToken cancellationToken = default)
     {
         // Validate input
         if (!IsEmailValid(email))
-            return (false, "Invalid email format", null);
+            return (false, L("GraphQL.mutation.signUp.invalidEmail", options), null);
         
         if (!IsPasswordValid(password))
-            return (false, "Password must be at least 8 characters with uppercase, lowercase, and number", null);
+            return (false, L("GraphQL.mutation.signUp.invalidPassword", options), null);
         
         using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -62,7 +85,7 @@ public class UserService : IUserService
             .AnyAsync(u => u.Email == email.ToLower(), cancellationToken);
         
         if (existingUser)
-            return (false, "Email already registered", null);
+            return (false, L("GraphQL.mutation.signUp.emailAlreadyExists", options), null);
         
         // Check if email exists in pending users
         var existingPending = await dbContext.PendingUsers
@@ -79,10 +102,10 @@ public class UserService : IUserService
                 await dbContext.SaveChangesAsync(cancellationToken);
                 
                 _logger.LogInformation("Updated expired verification token for {Email}", email);
-                return (true, "Verification email resent", existingPending.VerificationToken);
+                return (true, L("GraphQL.mutation.signUp.success", options), existingPending.VerificationToken);
             }
             
-            return (false, "Email already pending verification. Check your email.", null);
+            return (false, L("GraphQL.mutation.signUp.pendingVerification", options), null);
         }
         
         // Create pending user
@@ -113,15 +136,22 @@ public class UserService : IUserService
         
         _logger.LogInformation("Created pending user for {Email}", email);
         
-        // Send activation email
-        await SendActivationEmailAsync(pendingUser, cancellationToken);
+        // Send activation email unless skipped
+        if (options?.SkipEmail != true)
+        {
+            await SendActivationEmailAsync(pendingUser, cancellationToken);
+        }
+        else
+        {
+            _logger.LogInformation("Skipping activation email for {Email} as requested", email);
+        }
         
-        return (true, "Verification email sent. Please check your inbox.", pendingUser.VerificationToken);
+        return (true, L("GraphQL.mutation.signUp.success", options), pendingUser.VerificationToken);
     }
     
     public async Task<(bool Success, string Message, User? User)> VerifyEmailAsync(
         string verificationToken,
-        bool skipEmail = false,
+        RequestOptions? options = null,
         CancellationToken cancellationToken = default)
     {
         using var scope = CreateScope();
@@ -132,11 +162,11 @@ public class UserService : IUserService
             .FirstOrDefaultAsync(p => p.VerificationToken == verificationToken, cancellationToken);
         
         if (pendingUser == null)
-            return (false, "Invalid verification token", null);
+            return (false, L("GraphQL.mutation.verifyEmail.invalidToken", options), null);
         
         // Check if token expired
         if (pendingUser.TokenExpiresAt < DateTime.UtcNow)
-            return (false, "Verification token expired", null);
+            return (false, L("GraphQL.mutation.verifyEmail.tokenExpired", options), null);
         
         // Check if email already exists (race condition check)
         var existingUser = await dbContext.Users
@@ -147,7 +177,7 @@ public class UserService : IUserService
             // Remove pending user
             dbContext.PendingUsers.Remove(pendingUser);
             await dbContext.SaveChangesAsync(cancellationToken);
-            return (false, "Email already verified", null);
+            return (false, L("GraphQL.mutation.verifyEmail.alreadyVerified", options), null);
         }
         
         // Create verified user with default User role
@@ -202,7 +232,7 @@ public class UserService : IUserService
         _logger.LogInformation("Verified and activated user {Email}", user.Email);
         
         // Send welcome email unless skipped
-        if (!skipEmail)
+        if (options?.SkipEmail != true)
         {
             await SendWelcomeEmailAsync(user, cancellationToken);
         }
@@ -211,19 +241,20 @@ public class UserService : IUserService
             _logger.LogInformation("Skipping welcome email for {Email} as requested", user.Email);
         }
         
-        return (true, "Email verified successfully", user);
+        return (true, L("GraphQL.mutation.verifyEmail.success", options), user);
     }
     
     public async Task<(bool Success, string Message, User? User, string? Token, string? TokenType)> SignInAsync(
         string emailOrApiSecret,
         string password,
         string? brandId = null,
+        RequestOptions? options = null,
         CancellationToken cancellationToken = default)
     {
         // If brandId is provided, use brand authentication
         if (!string.IsNullOrEmpty(brandId))
         {
-            return await SignInBrandAsync(emailOrApiSecret, password, brandId, cancellationToken);
+            return await SignInBrandAsync(emailOrApiSecret, password, brandId, options, cancellationToken);
         }
         
         // Otherwise, use principal authentication
@@ -236,11 +267,11 @@ public class UserService : IUserService
             .FirstOrDefaultAsync(u => u.Email == emailOrApiSecret.ToLower(), cancellationToken);
         
         if (user == null)
-            return (false, "Invalid email or password", null, null, null);
+            return (false, L("GraphQL.mutation.signIn.invalidCredentials", options), null, null, null);
         
         // Verify password
         if (!VerifyPassword(password, user.PasswordHash))
-            return (false, "Invalid email or password", null, null, null);
+            return (false, L("GraphQL.mutation.signIn.invalidCredentials", options), null, null, null);
         
         // Update last login
         user.LastLoginAt = DateTime.UtcNow;
@@ -252,7 +283,7 @@ public class UserService : IUserService
         
         _logger.LogInformation("User {Email} signed in successfully", user.Email);
         
-        return (true, "Sign in successful", user, token, "PRINCIPAL");
+        return (true, L("GraphQL.mutation.signIn.success", options), user, token, "PRINCIPAL");
     }
     
     /// <summary>
@@ -262,6 +293,7 @@ public class UserService : IUserService
         string apiSecret,
         string apiPassword,
         string brandId,
+        RequestOptions? options = null,
         CancellationToken cancellationToken = default)
     {
         using var scope = CreateScope();
@@ -292,7 +324,7 @@ public class UserService : IUserService
         
         using var reader = await findUserCommand.ExecuteReaderAsync(cancellationToken);
         if (!await reader.ReadAsync(cancellationToken))
-            return (false, "Invalid API credentials", null, null, null);
+            return (false, L("GraphQL.mutation.signIn.invalidCredentials", options), null, null, null);
         
         var brandUserId = reader.GetGuid(0).ToString();
         var storedApiSecret = reader.GetString(1);
@@ -304,7 +336,7 @@ public class UserService : IUserService
         
         // Verify API password
         if (!apiCredentialService.VerifyApiPassword(apiPassword, apiPasswordHash))
-            return (false, "Invalid API credentials", null, null, null);
+            return (false, L("GraphQL.mutation.signIn.invalidCredentials", options), null, null, null);
         
         // Get user roles from brand schema
         var roles = new List<string>();
@@ -348,12 +380,12 @@ public class UserService : IUserService
             UpdatedAt = DateTime.UtcNow
         };
         
-        return (true, "Brand sign in successful", pseudoUser, token, "BRAND");
+        return (true, L("GraphQL.mutation.signIn.success", options), pseudoUser, token, "BRAND");
     }
     
     public async Task<(bool Success, string Message, string? NewToken)> ResendVerificationAsync(
         string email,
-        bool skipEmail = false,
+        RequestOptions? options = null,
         CancellationToken cancellationToken = default)
     {
         using var scope = CreateScope();
@@ -363,7 +395,7 @@ public class UserService : IUserService
             .FirstOrDefaultAsync(p => p.Email == email.ToLower(), cancellationToken);
         
         if (pendingUser == null)
-            return (false, "Email not found or already verified", null);
+            return (false, L("GraphQL.mutation.resendVerification.emailNotFound", options), null);
         
         // Generate new token
         pendingUser.VerificationToken = Guid.NewGuid().ToString();
@@ -372,7 +404,7 @@ public class UserService : IUserService
         await dbContext.SaveChangesAsync(cancellationToken);
         
         // Send new activation email unless skipped
-        if (!skipEmail)
+        if (options?.SkipEmail != true)
         {
             await SendActivationEmailAsync(pendingUser, cancellationToken);
             _logger.LogInformation("Resent verification email for {Email}", email);
@@ -382,7 +414,7 @@ public class UserService : IUserService
             _logger.LogInformation("Skipping activation email resend for {Email} as requested", email);
         }
         
-        return (true, "Verification email resent. Please check your inbox.", pendingUser.VerificationToken);
+        return (true, L("GraphQL.mutation.resendVerification.success", options), pendingUser.VerificationToken);
     }
     
     // ==================== USER MANAGEMENT ====================
@@ -470,10 +502,11 @@ public class UserService : IUserService
         string userId,
         string currentPassword,
         string newPassword,
+        RequestOptions? options = null,
         CancellationToken cancellationToken = default)
     {
         if (!IsPasswordValid(newPassword))
-            return (false, "New password must be at least 8 characters with uppercase, lowercase, and number");
+            return (false, L("GraphQL.mutation.changePassword.invalidPassword", options));
         
         using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -482,10 +515,10 @@ public class UserService : IUserService
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
         
         if (user == null)
-            return (false, "User not found");
+            return (false, L("GraphQL.mutation.changePassword.userNotFound", options));
         
         if (!VerifyPassword(currentPassword, user.PasswordHash))
-            return (false, "Current password is incorrect");
+            return (false, L("GraphQL.mutation.changePassword.invalidCurrentPassword", options));
         
         // Store previous state for event
         var previousUser = new User
@@ -521,12 +554,12 @@ public class UserService : IUserService
         
         _logger.LogInformation("Password changed for user {UserId}", userId);
         
-        return (true, "Password changed successfully");
+        return (true, L("GraphQL.mutation.changePassword.success", options));
     }
     
     public async Task<(bool Success, string Message, string? ResetToken)> RequestPasswordResetAsync(
         string email,
-        bool skipEmail = false,
+        RequestOptions? options = null,
         CancellationToken cancellationToken = default)
     {
         using var scope = CreateScope();
@@ -539,7 +572,7 @@ public class UserService : IUserService
         {
             // Don't reveal if email exists for security
             _logger.LogWarning("Password reset requested for non-existent email: {Email}", email);
-            return (true, "If the email exists, a password reset link has been sent", null);
+            return (true, L("GraphQL.mutation.requestPasswordReset.success", options), null);
         }
         
         // Generate reset token
@@ -551,7 +584,7 @@ public class UserService : IUserService
         await dbContext.SaveChangesAsync(cancellationToken);
         
         // Send email with reset token unless skipped
-        if (!skipEmail)
+        if (options?.SkipEmail != true)
         {
             var resetLink = $"{Shared.EnvironmentConfig.Server.BaseUrl}/reset-password?token={resetToken}";
             await _mailerService.SendPasswordResetEmailAsync(email, resetToken, resetLink);
@@ -563,17 +596,17 @@ public class UserService : IUserService
         }
         
         // Return token for testing purposes (in production, only send via email)
-        return (true, "If the email exists, a password reset link has been sent", resetToken);
+        return (true, L("GraphQL.mutation.requestPasswordReset.success", options), resetToken);
     }
     
     public async Task<(bool Success, string Message)> ResetPasswordAsync(
         string resetToken,
         string newPassword,
-        bool skipEmail = false,
+        RequestOptions? options = null,
         CancellationToken cancellationToken = default)
     {
         if (!IsPasswordValid(newPassword))
-            return (false, "New password must be at least 8 characters with uppercase, lowercase, and number");
+            return (false, L("GraphQL.mutation.resetPassword.invalidPassword", options));
         
         using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -586,7 +619,7 @@ public class UserService : IUserService
                 cancellationToken);
         
         if (user == null)
-            return (false, "Invalid or expired reset token");
+            return (false, L("GraphQL.mutation.resetPassword.invalidToken", options));
         
         // Store previous state for event
         var previousUser = new User
@@ -625,7 +658,7 @@ public class UserService : IUserService
         
         _logger.LogInformation("Password reset completed for user {UserId}", user.Id);
         
-        return (true, "Password has been reset successfully");
+        return (true, L("GraphQL.mutation.resetPassword.success", options));
     }
     
     public async Task<IEnumerable<User>> GetAllUsersAsync(
