@@ -1,0 +1,249 @@
+@page "/console/create-brand"
+@namespace Kanriya.Server.Blazor.Pages.WebConsole
+@layout AuthorizedLayout
+@inject NavigationManager Navigation
+@inject IBrandService BrandService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject BlazorLocalizationService L
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+@using Microsoft.AspNetCore.Components.Authorization
+@using Kanriya.Server.Services.Data
+@using Kanriya.Server.Blazor.Services
+@using System.Web
+@using System.ComponentModel.DataAnnotations
+@using Kanriya.Shared.Services
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+<MudContainer MaxWidth="MaxWidth.Small" Class="mt-4">
+    <MudPaper Class="pa-6">
+        <div style="display: flex; align-items: center; margin-bottom: 2rem;">
+            <MudIconButton Icon="@Icons.Material.Filled.ArrowBack" 
+                           Color="Color.Default" 
+                           @onclick='() => Navigation.NavigateTo($"/console{(string.IsNullOrEmpty(selectedLang) ? "" : $"?lang={selectedLang}")}")' />
+            <MudText Typo="Typo.h4" Style="margin-left: 0.5rem;">
+                @L.T("Blazor.console.createBrand.title")
+            </MudText>
+        </div>
+        
+        <MudText Typo="Typo.body1" Style="color: var(--mud-palette-text-secondary); margin-bottom: 2rem;">
+            @L.T("Blazor.console.createBrand.description")
+        </MudText>
+        
+        @if (success)
+        {
+            <MudAlert Severity="Severity.Success" Icon="@Icons.Material.Filled.CheckCircle" Class="mb-4">
+                <MudText Typo="Typo.h6">@L.T("Blazor.console.createBrand.successTitle")</MudText>
+                <MudText Typo="Typo.body2" Class="mt-2">@L.T("Blazor.console.createBrand.successMessage")</MudText>
+            </MudAlert>
+            
+            <MudCard Class="mb-4" Style="background-color: var(--mud-palette-background-grey);">
+                <MudCardContent>
+                    <MudText Typo="Typo.subtitle2" Style="color: var(--mud-palette-text-secondary);">
+                        @L.T("Blazor.console.createBrand.apiCredentials")
+                    </MudText>
+                    
+                    <div style="margin-top: 1rem;">
+                        <MudText Typo="Typo.caption">@L.T("Blazor.console.createBrand.apiKey")</MudText>
+                        <MudTextField Value="@apiKey" 
+                                      ReadOnly="true" 
+                                      Variant="Variant.Outlined" 
+                                      Margin="Margin.Dense"
+                                      Adornment="Adornment.End"
+                                      AdornmentIcon="@Icons.Material.Filled.ContentCopy"
+                                      OnAdornmentClick="() => CopyToClipboard(apiKey)" />
+                    </div>
+                    
+                    <div style="margin-top: 1rem;">
+                        <MudText Typo="Typo.caption">@L.T("Blazor.console.createBrand.apiPassword")</MudText>
+                        <MudTextField Value="@apiPassword" 
+                                      ReadOnly="true" 
+                                      Variant="Variant.Outlined" 
+                                      Margin="Margin.Dense"
+                                      Adornment="Adornment.End"
+                                      AdornmentIcon="@Icons.Material.Filled.ContentCopy"
+                                      OnAdornmentClick="() => CopyToClipboard(apiPassword)" />
+                    </div>
+                    
+                    <MudAlert Severity="Severity.Warning" Icon="@Icons.Material.Filled.Warning" Class="mt-3">
+                        @L.T("Blazor.console.createBrand.credentialsWarning")
+                    </MudAlert>
+                </MudCardContent>
+            </MudCard>
+            
+            <MudButton Color="Color.Primary" 
+                       Variant="Variant.Filled" 
+                       FullWidth="true"
+                       @onclick='() => Navigation.NavigateTo($"/console{(string.IsNullOrEmpty(selectedLang) ? "" : $"?lang={selectedLang}")}")'>
+                @L.T("Blazor.console.createBrand.backToBrands")
+            </MudButton>
+        }
+        else
+        {
+            <EditForm Model="@model" OnValidSubmit="@HandleValidSubmit">
+                <DataAnnotationsValidator />
+                
+                <MudTextField @bind-Value="model.BrandName" 
+                              Label="@L.T("Blazor.console.createBrand.brandNameLabel")" 
+                              HelperText="@L.T("Blazor.console.createBrand.brandNameHelper")"
+                              Variant="Variant.Outlined" 
+                              FullWidth="true"
+                              Required="true"
+                              Class="mb-4" />
+                
+                <ValidationSummary />
+                
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <MudAlert Severity="Severity.Error" Class="mb-4">
+                        @errorMessage
+                    </MudAlert>
+                }
+                
+                @if (mockMode)
+                {
+                    <input type="hidden" name="mock" value="true" />
+                }
+                
+                <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                    <MudButton Color="Color.Default" 
+                               Variant="Variant.Outlined"
+                               FullWidth="true"
+                               @onclick='() => Navigation.NavigateTo($"/console{(string.IsNullOrEmpty(selectedLang) ? "" : $"?lang={selectedLang}")}")'>
+                        @L.T("Blazor.console.createBrand.cancel")
+                    </MudButton>
+                    <MudButton Color="Color.Primary" 
+                               Variant="Variant.Filled"
+                               FullWidth="true"
+                               ButtonType="ButtonType.Submit"
+                               Disabled="@isProcessing">
+                        @if (isProcessing)
+                        {
+                            <MudProgressCircular Size="Size.Small" Indeterminate="true" Style="margin-right: 0.5rem;" />
+                            @L.T("Blazor.console.createBrand.creating")
+                        }
+                        else
+                        {
+                            @L.T("Blazor.console.createBrand.createButton")
+                        }
+                    </MudButton>
+                </div>
+            </EditForm>
+        }
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private CreateBrandModel model = new();
+    private bool isProcessing = false;
+    private bool success = false;
+    private string? errorMessage;
+    private string? selectedLang;
+    private bool mockMode = false;
+    private string? apiKey;
+    private string? apiPassword;
+    
+    public class CreateBrandModel
+    {
+        [Required(ErrorMessage = "Brand name is required")]
+        [StringLength(100, MinimumLength = 3, ErrorMessage = "Brand name must be between 3 and 100 characters")]
+        public string BrandName { get; set; } = "";
+    }
+    
+    protected override void OnInitialized()
+    {
+        // Extract parameters from query string
+        var uri = new Uri(Navigation.Uri);
+        var query = HttpUtility.ParseQueryString(uri.Query);
+        
+        if (!string.IsNullOrEmpty(query["lang"]))
+        {
+            selectedLang = query["lang"]!;
+            LocalizationService.Instance.SetLanguage(selectedLang);
+        }
+        
+        if (query["mock"] != null)
+        {
+            mockMode = true;
+        }
+        
+        // Initialize localization
+        L.Initialize();
+    }
+    
+    private async Task HandleValidSubmit()
+    {
+        isProcessing = true;
+        errorMessage = null;
+        
+        try
+        {
+            if (mockMode)
+            {
+                // Simulate processing
+                await Task.Delay(1500);
+                
+                // Mock success
+                success = true;
+                apiKey = "test_api_key_" + Guid.NewGuid().ToString("N").Substring(0, 16);
+                apiPassword = "test_password_" + Guid.NewGuid().ToString("N").Substring(0, 16);
+                
+                Snackbar.Add(L.T("Blazor.console.createBrand.successSnackbar"), Severity.Success);
+            }
+            else
+            {
+                // Get current user
+                var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+                var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                
+                if (string.IsNullOrEmpty(userId))
+                {
+                    errorMessage = L.T("Blazor.console.createBrand.userNotAuthenticated");
+                    return;
+                }
+                
+                // Create the brand
+                var (brand, apiSecret, apiPass) = await BrandService.CreateBrandAsync(model.BrandName, userId);
+                
+                // Store credentials for display
+                apiKey = apiSecret;
+                apiPassword = apiPass;
+                success = true;
+                
+                Snackbar.Add(L.T("Blazor.console.createBrand.successSnackbar"), Severity.Success);
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+            Snackbar.Add(L.T("Blazor.console.createBrand.errorSnackbar"), Severity.Error);
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+    
+    private async Task CopyToClipboard(string? text)
+    {
+        if (!string.IsNullOrEmpty(text))
+        {
+            try
+            {
+                var success = await JSRuntime.InvokeAsync<bool>("clipboardFunctions.copyToClipboard", text);
+                if (success)
+                {
+                    Snackbar.Add(L.T("Blazor.console.createBrand.copiedToClipboard"), Severity.Success);
+                }
+                else
+                {
+                    Snackbar.Add("Failed to copy to clipboard", Severity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Copy failed: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+}

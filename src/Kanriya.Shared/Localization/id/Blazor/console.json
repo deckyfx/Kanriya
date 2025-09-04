@@ -1,6 +1,46 @@
 {
   "Blazor": {
     "console": {
+      "navigation": {
+        "appName": "Kanriya",
+        "dashboard": "Dasbor",
+        "profile": "Profil",
+        "welcome": "Selamat datang",
+        "user": "Pengguna",
+        "logout": "Keluar"
+      },
+      "index": {
+        "title": "Brand Saya",
+        "subtitle": "Kelola brand Anda dan akses dasbor mereka",
+        "createBrand": "Buat Brand",
+        "noBrands": "Anda belum memiliki brand",
+        "noBrandsTitle": "Tidak Ada Brand",
+        "noBrandsDescription": "Mulai dengan membuat brand pertama Anda",
+        "createFirstBrand": "Buat Brand Pertama Anda",
+        "brandId": "ID",
+        "createdAt": "Dibuat",
+        "manage": "Kelola"
+      },
+      "createBrand": {
+        "title": "Buat Brand Baru",
+        "description": "Siapkan brand baru dengan ruang kerja dan kredensial API sendiri",
+        "brandNameLabel": "Nama Brand",
+        "brandNameHelper": "Masukkan nama unik untuk brand Anda",
+        "cancel": "Batal",
+        "createButton": "Buat Brand",
+        "creating": "Membuat...",
+        "successTitle": "Brand Berhasil Dibuat!",
+        "successMessage": "Brand Anda telah dibuat dengan kredensial API.",
+        "apiCredentials": "Kredensial API",
+        "apiKey": "Kunci API",
+        "apiPassword": "Kata Sandi API",
+        "credentialsWarning": "Simpan kredensial ini sekarang - tidak akan ditampilkan lagi!",
+        "backToBrands": "Kembali ke Brand",
+        "copiedToClipboard": "Disalin ke clipboard",
+        "successSnackbar": "Brand berhasil dibuat",
+        "errorSnackbar": "Gagal membuat brand",
+        "userNotAuthenticated": "Pengguna tidak terautentikasi"
+      },
       "profile": {
         "title": "Profil Pengguna",
         "personalInfo": "Informasi Pribadi",

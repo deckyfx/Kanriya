@@ -4,6 +4,7 @@
 @inject NavigationManager Navigation
 @inject SimpleAuthStateProvider AuthStateProvider
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject BlazorLocalizationService L
 
 <CascadingAuthenticationState>
     <AuthorizeView>
@@ -16,8 +17,8 @@
                 <main>
                     <div class="top-row">
                         <div class="top-row-content">
-                            <span class="welcome-text">Welcome, @(context.User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value ?? context.User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "User")</span>
-                            <button class="logout-btn" @onclick="Logout">Logout</button>
+                            <span class="welcome-text">@L.T("Blazor.console.navigation.welcome"), @(context.User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value ?? context.User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? L.T("Blazor.console.navigation.user"))</span>
+                            <button class="logout-btn" @onclick="Logout">@L.T("Blazor.console.navigation.logout")</button>
                         </div>
                     </div>
 
@@ -44,6 +45,10 @@
 </CascadingAuthenticationState>
 
 @code {
+    protected override void OnInitialized()
+    {
+        L.Initialize();
+    }
     
     private async Task Logout()
     {

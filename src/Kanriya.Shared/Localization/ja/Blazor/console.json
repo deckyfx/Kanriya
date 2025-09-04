@@ -1,6 +1,46 @@
 {
   "Blazor": {
     "console": {
+      "navigation": {
+        "appName": "Kanriya",
+        "dashboard": "ダッシュボード",
+        "profile": "プロフィール",
+        "welcome": "ようこそ",
+        "user": "ユーザー",
+        "logout": "ログアウト"
+      },
+      "index": {
+        "title": "マイブランド",
+        "subtitle": "ブランドを管理し、ダッシュボードにアクセスします",
+        "createBrand": "ブランドを作成",
+        "noBrands": "まだブランドがありません",
+        "noBrandsTitle": "ブランドが見つかりません",
+        "noBrandsDescription": "最初のブランドを作成して始めましょう",
+        "createFirstBrand": "最初のブランドを作成",
+        "brandId": "ID",
+        "createdAt": "作成日",
+        "manage": "管理"
+      },
+      "createBrand": {
+        "title": "新しいブランドを作成",
+        "description": "独自のワークスペースとAPIクレデンシャルを持つ新しいブランドを設定します",
+        "brandNameLabel": "ブランド名",
+        "brandNameHelper": "ブランドのユニークな名前を入力してください",
+        "cancel": "キャンセル",
+        "createButton": "ブランドを作成",
+        "creating": "作成中...",
+        "successTitle": "ブランドが正常に作成されました！",
+        "successMessage": "APIクレデンシャルとともにブランドが作成されました。",
+        "apiCredentials": "APIクレデンシャル",
+        "apiKey": "APIキー",
+        "apiPassword": "APIパスワード",
+        "credentialsWarning": "これらのクレデンシャルを今すぐ保存してください - 再度表示されることはありません！",
+        "backToBrands": "ブランドに戻る",
+        "copiedToClipboard": "クリップボードにコピーしました",
+        "successSnackbar": "ブランドが正常に作成されました",
+        "errorSnackbar": "ブランドの作成に失敗しました",
+        "userNotAuthenticated": "ユーザーが認証されていません"
+      },
       "profile": {
         "title": "ユーザープロファイル",
         "personalInfo": "個人情報",

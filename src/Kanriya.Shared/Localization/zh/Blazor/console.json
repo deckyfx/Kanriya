@@ -1,6 +1,46 @@
 {
   "Blazor": {
     "console": {
+      "navigation": {
+        "appName": "Kanriya",
+        "dashboard": "儀表板",
+        "profile": "個人資料",
+        "welcome": "歡迎",
+        "user": "使用者",
+        "logout": "登出"
+      },
+      "index": {
+        "title": "我的品牌",
+        "subtitle": "管理您的品牌並訪問其儀表板",
+        "createBrand": "建立品牌",
+        "noBrands": "您還沒有任何品牌",
+        "noBrandsTitle": "未找到品牌",
+        "noBrandsDescription": "建立您的第一個品牌開始",
+        "createFirstBrand": "建立您的第一個品牌",
+        "brandId": "ID",
+        "createdAt": "建立時間",
+        "manage": "管理"
+      },
+      "createBrand": {
+        "title": "建立新品牌",
+        "description": "設置具有自己工作空間和API憑據的新品牌",
+        "brandNameLabel": "品牌名稱",
+        "brandNameHelper": "為您的品牌輸入唯一名稱",
+        "cancel": "取消",
+        "createButton": "建立品牌",
+        "creating": "建立中...",
+        "successTitle": "品牌建立成功！",
+        "successMessage": "您的品牌已使用API憑據建立。",
+        "apiCredentials": "API憑據",
+        "apiKey": "API金鑰",
+        "apiPassword": "API密碼",
+        "credentialsWarning": "立即保存這些憑據 - 它們不會再次顯示！",
+        "backToBrands": "返回品牌列表",
+        "copiedToClipboard": "已複製到剪貼簿",
+        "successSnackbar": "品牌建立成功",
+        "errorSnackbar": "建立品牌失敗",
+        "userNotAuthenticated": "使用者未認證"
+      },
       "profile": {
         "title": "用戶資料",
         "personalInfo": "個人資訊",

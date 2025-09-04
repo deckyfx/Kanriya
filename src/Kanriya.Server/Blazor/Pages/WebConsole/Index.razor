@@ -2,165 +2,144 @@
 @namespace Kanriya.Server.Blazor.Pages.WebConsole
 @layout AuthorizedLayout
 @inject NavigationManager Navigation
+@inject IBrandService BrandService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject BlazorLocalizationService L
 @using Microsoft.AspNetCore.Components.Authorization
+@using Kanriya.Server.Services.Data
+@using Kanriya.Server.Blazor.Services
+@using Kanriya.Server.Data
+@using System.Web
+@using Kanriya.Shared.Services
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
-
-@code {
-    protected override void OnInitialized()
-    {
-        System.Console.WriteLine($"[WebConsole Page] Initialized - URL: {Navigation.Uri}");
-        base.OnInitialized();
-    }
-}
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
     <MudGrid>
         <MudItem xs="12">
             <MudPaper Class="pa-4">
-                <MudText Typo="Typo.h4" Class="mb-4">Admin Console</MudText>
-                <MudText Typo="Typo.body1" Class="mb-4">
-                    Welcome to the Kanriya Admin Console. Use the menu on the left to navigate through different sections.
-                </MudText>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <div>
+                        <MudText Typo="Typo.h4">@L.T("Blazor.console.index.title")</MudText>
+                        <MudText Typo="Typo.body2" Style="color: var(--mud-palette-text-secondary);">
+                            @L.T("Blazor.console.index.subtitle")
+                        </MudText>
+                    </div>
+                    <MudButton 
+                        Color="Color.Primary" 
+                        Variant="Variant.Filled"
+                        StartIcon="@Icons.Material.Filled.Add"
+                        @onclick='() => Navigation.NavigateTo($"/console/create-brand{(string.IsNullOrEmpty(selectedLang) ? "" : $"?lang={selectedLang}")}")'>
+                        @L.T("Blazor.console.index.createBrand")
+                    </MudButton>
+                </div>
                 
-                <MudGrid Class="mt-4">
-                    <MudItem xs="12" sm="6" md="3">
-                        <MudCard>
-                            <MudCardContent>
-                                <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Large" Color="Color.Primary" />
-                                <MudText Typo="Typo.h6" Class="mt-2">Users</MudText>
-                                <MudText Typo="Typo.body2">Manage system users</MudText>
-                            </MudCardContent>
-                            <MudCardActions>
-                                <MudButton Color="Color.Primary" Variant="Variant.Text" @onclick='() => Navigation.NavigateTo("/console/users")'>
-                                    View
-                                </MudButton>
-                            </MudCardActions>
-                        </MudCard>
-                    </MudItem>
+                @if (isLoading)
+                {
+                    <div style="display: flex; justify-content: center; padding: 3rem;">
+                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                    </div>
+                }
+                else if (brands == null || !brands.Any())
+                {
+                    <MudAlert Severity="Severity.Info" Icon="@Icons.Material.Filled.Business" Class="mb-4">
+                        @L.T("Blazor.console.index.noBrands")
+                    </MudAlert>
                     
-                    <MudItem xs="12" sm="6" md="3">
-                        <MudCard>
-                            <MudCardContent>
-                                <MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Large" Color="Color.Secondary" />
-                                <MudText Typo="Typo.h6" Class="mt-2">Brands</MudText>
-                                <MudText Typo="Typo.body2">Manage brands</MudText>
-                            </MudCardContent>
-                            <MudCardActions>
-                                <MudButton Color="Color.Secondary" Variant="Variant.Text" @onclick='() => Navigation.NavigateTo("/console/brands")'>
-                                    View
-                                </MudButton>
-                            </MudCardActions>
-                        </MudCard>
-                    </MudItem>
-                    
-                    <MudItem xs="12" sm="6" md="3">
-                        <MudCard>
-                            <MudCardContent>
-                                <MudIcon Icon="@Icons.Material.Filled.Settings" Size="Size.Large" Color="Color.Tertiary" />
-                                <MudText Typo="Typo.h6" Class="mt-2">Settings</MudText>
-                                <MudText Typo="Typo.body2">System settings</MudText>
-                            </MudCardContent>
-                            <MudCardActions>
-                                <MudButton Color="Color.Tertiary" Variant="Variant.Text" @onclick='() => Navigation.NavigateTo("/console/settings")'>
-                                    View
-                                </MudButton>
-                            </MudCardActions>
-                        </MudCard>
-                    </MudItem>
-                    
-                    <MudItem xs="12" sm="6" md="3">
-                        <MudCard>
-                            <MudCardContent>
-                                <MudIcon Icon="@Icons.Material.Filled.BarChart" Size="Size.Large" Color="Color.Info" />
-                                <MudText Typo="Typo.h6" Class="mt-2">Analytics</MudText>
-                                <MudText Typo="Typo.body2">View system metrics</MudText>
-                            </MudCardContent>
-                            <MudCardActions>
-                                <MudButton Color="Color.Info" Variant="Variant.Text" @onclick='() => Navigation.NavigateTo("/console/analytics")'>
-                                    View
-                                </MudButton>
-                            </MudCardActions>
-                        </MudCard>
-                    </MudItem>
-                </MudGrid>
-                
-                <MudDivider Class="my-4" />
-                
-                <MudText Typo="Typo.h5" Class="mb-3">Authentication Pages (Documentation)</MudText>
-                <MudText Typo="Typo.body2" Class="mb-3">
-                    These pages handle authentication flows for the system. They're typically accessed via email links or sign-in page redirects.
-                </MudText>
-                
-                <MudGrid>
-                    <MudItem xs="12" sm="6" md="3">
-                        <MudCard>
-                            <MudCardContent>
-                                <MudIcon Icon="@Icons.Material.Filled.Email" Size="Size.Large" Color="Color.Success" />
-                                <MudText Typo="Typo.h6" Class="mt-2">Email Verification</MudText>
-                                <MudText Typo="Typo.body2">Verify email from activation link</MudText>
-                            </MudCardContent>
-                            <MudCardActions>
-                                <MudButton Color="Color.Success" Variant="Variant.Text" @onclick='() => Navigation.NavigateTo("/activate-account?mock=1")'>
-                                    Test Mock
-                                </MudButton>
-                            </MudCardActions>
-                        </MudCard>
-                    </MudItem>
-                    
-                    <MudItem xs="12" sm="6" md="3">
-                        <MudCard>
-                            <MudCardContent>
-                                <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Large" Color="Color.Warning" />
-                                <MudText Typo="Typo.h6" Class="mt-2">Reset Password</MudText>
-                                <MudText Typo="Typo.body2">Reset password from email link</MudText>
-                            </MudCardContent>
-                            <MudCardActions>
-                                <MudButton Color="Color.Warning" Variant="Variant.Text" @onclick='() => Navigation.NavigateTo("/reset-password?mock=1")'>
-                                    Test Mock
-                                </MudButton>
-                            </MudCardActions>
-                        </MudCard>
-                    </MudItem>
-                    
-                    <MudItem xs="12" sm="6" md="3">
-                        <MudCard>
-                            <MudCardContent>
-                                <MudIcon Icon="@Icons.Material.Filled.Send" Size="Size.Large" Color="Color.Info" />
-                                <MudText Typo="Typo.h6" Class="mt-2">Request Activation</MudText>
-                                <MudText Typo="Typo.body2">Send activation email</MudText>
-                            </MudCardContent>
-                            <MudCardActions>
-                                <MudButton Color="Color.Info" Variant="Variant.Text" @onclick='() => Navigation.NavigateTo("/request-activation?mock=1")'>
-                                    Test Mock
-                                </MudButton>
-                            </MudCardActions>
-                        </MudCard>
-                    </MudItem>
-                    
-                    <MudItem xs="12" sm="6" md="3">
-                        <MudCard>
-                            <MudCardContent>
-                                <MudIcon Icon="@Icons.Material.Filled.LockReset" Size="Size.Large" Color="Color.Error" />
-                                <MudText Typo="Typo.h6" Class="mt-2">Request Password Reset</MudText>
-                                <MudText Typo="Typo.body2">Send password reset email</MudText>
-                            </MudCardContent>
-                            <MudCardActions>
-                                <MudButton Color="Color.Error" Variant="Variant.Text" @onclick='() => Navigation.NavigateTo("/request-reset-password?mock=1")'>
-                                    Test Mock
-                                </MudButton>
-                            </MudCardActions>
-                        </MudCard>
-                    </MudItem>
-                </MudGrid>
-                
-                <MudAlert Severity="Severity.Info" Class="mt-3">
-                    <strong>Note:</strong> All authentication pages support mock mode by adding <code>?mock=1</code> to the URL for testing purposes.
-                </MudAlert>
+                    <div style="text-align: center; padding: 3rem;">
+                        <MudIcon Icon="@Icons.Material.Filled.Business" 
+                                 Size="Size.Large" 
+                                 Style="font-size: 4rem; color: var(--mud-palette-text-disabled); margin-bottom: 1rem;" />
+                        <MudText Typo="Typo.h6" Style="color: var(--mud-palette-text-secondary); margin-bottom: 0.5rem;">
+                            @L.T("Blazor.console.index.noBrandsTitle")
+                        </MudText>
+                        <MudText Typo="Typo.body2" Style="color: var(--mud-palette-text-disabled); margin-bottom: 2rem;">
+                            @L.T("Blazor.console.index.noBrandsDescription")
+                        </MudText>
+                        <MudButton 
+                            Color="Color.Primary" 
+                            Variant="Variant.Filled"
+                            Size="Size.Large"
+                            StartIcon="@Icons.Material.Filled.Add"
+                            @onclick='() => Navigation.NavigateTo($"/console/create-brand{(string.IsNullOrEmpty(selectedLang) ? "" : $"?lang={selectedLang}")}")'>
+                            @L.T("Blazor.console.index.createFirstBrand")
+                        </MudButton>
+                    </div>
+                }
+                else
+                {
+                    <MudGrid>
+                        @foreach (var brand in brands)
+                        {
+                            <MudItem xs="12" sm="6" md="4">
+                                <MudCard>
+                                    <MudCardContent>
+                                        <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                                            <MudIcon Icon="@Icons.Material.Filled.Business" 
+                                                     Color="Color.Primary" 
+                                                     Size="Size.Medium" 
+                                                     Style="margin-right: 0.5rem;" />
+                                            <MudText Typo="Typo.h6">@brand.Name</MudText>
+                                        </div>
+                                        <MudText Typo="Typo.body2" Style="color: var(--mud-palette-text-secondary);">
+                                            @L.T("Blazor.console.index.brandId"): @brand.Id
+                                        </MudText>
+                                        <MudText Typo="Typo.caption" Style="color: var(--mud-palette-text-disabled); margin-top: 0.5rem;">
+                                            @L.T("Blazor.console.index.createdAt"): @brand.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+                                        </MudText>
+                                    </MudCardContent>
+                                    <MudCardActions>
+                                        <MudButton Color="Color.Primary" Variant="Variant.Text">
+                                            @L.T("Blazor.console.index.manage")
+                                        </MudButton>
+                                    </MudCardActions>
+                                </MudCard>
+                            </MudItem>
+                        }
+                    </MudGrid>
+                }
             </MudPaper>
         </MudItem>
     </MudGrid>
 </MudContainer>
 
 @code {
+    private List<Brand>? brands;
+    private bool isLoading = true;
+    private string? selectedLang;
     
+    protected override async Task OnInitializedAsync()
+    {
+        // Extract language from query string
+        var uri = new Uri(Navigation.Uri);
+        var query = HttpUtility.ParseQueryString(uri.Query);
+        
+        if (!string.IsNullOrEmpty(query["lang"]))
+        {
+            selectedLang = query["lang"]!;
+            LocalizationService.Instance.SetLanguage(selectedLang);
+        }
+        
+        // Initialize localization
+        L.Initialize();
+        
+        // Get current user
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        
+        if (!string.IsNullOrEmpty(userId))
+        {
+            try
+            {
+                // Get user's brands
+                brands = await BrandService.GetUserBrandsAsync(userId);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error loading brands: {ex.Message}");
+                brands = new List<Brand>();
+            }
+        }
+        
+        isLoading = false;
+    }
 }

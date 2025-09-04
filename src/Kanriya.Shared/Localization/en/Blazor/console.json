@@ -1,6 +1,46 @@
 {
   "Blazor": {
     "console": {
+      "navigation": {
+        "appName": "Kanriya",
+        "dashboard": "Dashboard",
+        "profile": "Profile",
+        "welcome": "Welcome",
+        "user": "User",
+        "logout": "Logout"
+      },
+      "index": {
+        "title": "My Brands",
+        "subtitle": "Manage your brands and access their dashboards",
+        "createBrand": "Create Brand",
+        "noBrands": "You don't have any brands yet",
+        "noBrandsTitle": "No Brands Found",
+        "noBrandsDescription": "Get started by creating your first brand",
+        "createFirstBrand": "Create Your First Brand",
+        "brandId": "ID",
+        "createdAt": "Created",
+        "manage": "Manage"
+      },
+      "createBrand": {
+        "title": "Create New Brand",
+        "description": "Set up a new brand with its own workspace and API credentials",
+        "brandNameLabel": "Brand Name",
+        "brandNameHelper": "Enter a unique name for your brand",
+        "cancel": "Cancel",
+        "createButton": "Create Brand",
+        "creating": "Creating...",
+        "successTitle": "Brand Created Successfully!",
+        "successMessage": "Your brand has been created with API credentials.",
+        "apiCredentials": "API Credentials",
+        "apiKey": "API Key",
+        "apiPassword": "API Password",
+        "credentialsWarning": "Save these credentials now - they won't be shown again!",
+        "backToBrands": "Back to Brands",
+        "copiedToClipboard": "Copied to clipboard",
+        "successSnackbar": "Brand created successfully",
+        "errorSnackbar": "Failed to create brand",
+        "userNotAuthenticated": "User not authenticated"
+      },
       "profile": {
         "title": "User Profile",
         "personalInfo": "Personal Information",
