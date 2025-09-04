@@ -107,21 +107,18 @@ public static class HttpEndpointsConfig
         // Add session middleware
         app.UseSession();
         
-        // Configure endpoints
-        app.UseEndpoints(endpoints =>
-        {
-            // Map API Controllers for RESTful endpoints
-            endpoints.MapControllers();
-            
-            // Map Razor Pages (only for _Host which hosts Blazor)
-            endpoints.MapRazorPages();
-            
-            // Map Blazor Server SignalR hub
-            endpoints.MapBlazorHub();
-            
-            // Fallback to Blazor host for all routes except API and static files
-            endpoints.MapFallbackToPage("/{*path:nonfile}", "/_Host");
-        });
+        // Configure endpoints using top-level route registrations
+        // Map API Controllers for RESTful endpoints
+        app.MapControllers();
+        
+        // Map Razor Pages (only for _Host which hosts Blazor)
+        app.MapRazorPages();
+        
+        // Map Blazor Server SignalR hub
+        app.MapBlazorHub();
+        
+        // Fallback to Blazor host for all routes except API and static files
+        app.MapFallbackToPage("/{*path:nonfile}", "/_Host");
         
         LogService.LogSuccess("Blazor application configured at root path");
     }

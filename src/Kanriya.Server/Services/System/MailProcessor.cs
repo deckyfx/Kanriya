@@ -297,32 +297,32 @@ public class MailProcessor : IMailProcessor
         }
     }
 
-    private async Task<IMailDriver?> GetMailDriverAsync(EmailOutbox email, IServiceProvider serviceProvider, AppDbContext dbContext)
+    private Task<IMailDriver?> GetMailDriverAsync(EmailOutbox email, IServiceProvider serviceProvider, AppDbContext dbContext)
     {
         switch (email.MailDriver)
         {
             case MailDriver.SystemSmtp:
-                return serviceProvider.GetService<SystemSmtpMailDriver>();
+                return Task.FromResult<IMailDriver?>(serviceProvider.GetService<SystemSmtpMailDriver>());
                 
             case MailDriver.UserSmtp:
                 // TODO: Implement UserSmtpMailDriver that uses user's SMTP settings
                 // For now, fallback to system SMTP
-                return serviceProvider.GetService<SystemSmtpMailDriver>();
+                return Task.FromResult<IMailDriver?>(serviceProvider.GetService<SystemSmtpMailDriver>());
                 
             case MailDriver.SendGrid:
                 // TODO: Implement SendGridMailDriver
-                return null;
+                return Task.FromResult<IMailDriver?>(null);
                 
             case MailDriver.Mailgun:
                 // TODO: Implement MailgunMailDriver
-                return null;
+                return Task.FromResult<IMailDriver?>(null);
                 
             case MailDriver.AwsSes:
                 // TODO: Implement AwsSesMailDriver
-                return null;
+                return Task.FromResult<IMailDriver?>(null);
                 
             default:
-                return serviceProvider.GetService<SystemSmtpMailDriver>();
+                return Task.FromResult<IMailDriver?>(serviceProvider.GetService<SystemSmtpMailDriver>());
         }
     }
 

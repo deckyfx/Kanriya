@@ -52,8 +52,6 @@ public class Outlet
     /// </summary>
     public ICollection<UserOutlet> UserOutlets { get; set; } = new List<UserOutlet>();
     
-    /// <summary>
-    /// Navigation property for outlet employees (future implementation)
-    /// </summary>
+    // TODO: Navigation property for outlet employees (future implementation)
     // public ICollection<OutletEmployee> OutletEmployees { get; set; } = new List<OutletEmployee>();
 }

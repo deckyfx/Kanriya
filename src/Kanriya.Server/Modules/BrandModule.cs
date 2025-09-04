@@ -137,9 +137,19 @@ public class BrandMutations
             };
         }
 
+        // Validate input
+        if (string.IsNullOrWhiteSpace(input.Name))
+        {
+            return new CreateBrandOutput
+            {
+                Success = false,
+                Message = "Brand name is required"
+            };
+        }
+
         logger.LogDebug("CreateBrand called with name: '{Name}' (length: {Length})", 
             input.Name, 
-            input.Name?.Length ?? -1);
+            input.Name.Length);
 
         try
         {

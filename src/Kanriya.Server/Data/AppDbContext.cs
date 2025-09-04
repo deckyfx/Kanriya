@@ -108,11 +108,11 @@ public class AppDbContext : DbContext
         return base.SaveChangesAsync(cancellationToken);
     }
     
+    /*
     /// <summary>
     /// Example method for updating audit fields (CreatedAt, UpdatedAt, etc.)
     /// Uncomment and modify when you add auditable entities
     /// </summary>
-    /*
     private void UpdateAuditFields()
     {
         var entries = ChangeTracker.Entries()

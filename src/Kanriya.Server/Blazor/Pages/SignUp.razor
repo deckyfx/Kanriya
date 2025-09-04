@@ -420,7 +420,7 @@
         
         if (!string.IsNullOrEmpty(query["lang"]))
         {
-            selectedLang = query["lang"];
+            selectedLang = query["lang"]!;
             LocalizationService.Instance.SetLanguage(selectedLang);
         }
     }
