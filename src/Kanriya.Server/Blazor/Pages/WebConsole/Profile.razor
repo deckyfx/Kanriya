@@ -1,0 +1,389 @@
+@page "/console/profile"
+@namespace Kanriya.Server.Blazor.Pages.WebConsole
+@layout AuthorizedLayout
+@inject NavigationManager Navigation
+@inject IUserService UserService
+@inject BlazorLocalizationService L
+@inject IJSRuntime JS
+@inject IDialogService DialogService
+@using Kanriya.Server.Services.Data
+@using MudBlazor
+@using Kanriya.Server.Blazor.Services
+@using Kanriya.Server.Data
+@using Kanriya.Shared.Models
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Web
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4">
+    <MudGrid>
+        <MudItem xs="12">
+            <MudPaper Class="pa-6">
+                <MudText Typo="Typo.h4" Class="mb-4">@L.T("Blazor.console.profile.title")</MudText>
+                
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <MudAlert Severity="Severity.Error" Class="mb-4">@errorMessage</MudAlert>
+                }
+                
+                @if (!string.IsNullOrEmpty(successMessage))
+                {
+                    <MudAlert Severity="Severity.Success" Class="mb-4">@successMessage</MudAlert>
+                }
+                
+                @if (isLoading)
+                {
+                    <div class="d-flex justify-center">
+                        <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                    </div>
+                }
+                else if (user != null)
+                {
+                    <MudGrid>
+                        <!-- Profile Information Section -->
+                        <MudItem xs="12">
+                            <MudText Typo="Typo.h6" Class="mb-3">@L.T("Blazor.console.profile.personalInfo")</MudText>
+                        </MudItem>
+                        
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="@L.T("Blazor.console.profile.email")" 
+                                          Value="@user.Email" 
+                                          ReadOnly="true" 
+                                          Variant="Variant.Outlined" />
+                        </MudItem>
+                        
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="@L.T("Blazor.console.profile.fullName")" 
+                                          Value="@user.FullName" 
+                                          ReadOnly="true" 
+                                          Variant="Variant.Outlined" />
+                        </MudItem>
+                        
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="@L.T("Blazor.console.profile.userId")" 
+                                          Value="@user.Id" 
+                                          ReadOnly="true" 
+                                          Variant="Variant.Outlined" />
+                        </MudItem>
+                        
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="@L.T("Blazor.console.profile.createdAt")" 
+                                          Value="@user.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss UTC")" 
+                                          ReadOnly="true" 
+                                          Variant="Variant.Outlined" />
+                        </MudItem>
+                        
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="@L.T("Blazor.console.profile.lastLogin")" 
+                                          Value="@(user.LastLoginAt?.ToString("yyyy-MM-dd HH:mm:ss UTC") ?? "N/A")" 
+                                          ReadOnly="true" 
+                                          Variant="Variant.Outlined" />
+                        </MudItem>
+                        
+                        <MudItem xs="12" sm="6">
+                            <MudTextField Label="@L.T("Blazor.console.profile.updatedAt")" 
+                                          Value="@user.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss UTC")" 
+                                          ReadOnly="true" 
+                                          Variant="Variant.Outlined" />
+                        </MudItem>
+                        
+                        @if (debugMode)
+                        {
+                            <MudItem xs="12">
+                                <MudAlert Severity="Severity.Info" Class="mt-3">
+                                    <MudText>@L.T("Blazor.console.profile.debugInfo")</MudText>
+                                    <MudText Typo="Typo.caption">Mock Mode: @isMockMode</MudText>
+                                    <MudText Typo="Typo.caption">Language: @selectedLang</MudText>
+                                    <MudText Typo="Typo.caption">Debug: @debugMode</MudText>
+                                </MudAlert>
+                            </MudItem>
+                        }
+                        
+                        <!-- Danger Zone Section -->
+                        <MudItem xs="12" Class="mt-6">
+                            <MudDivider />
+                            <MudText Typo="Typo.h6" Class="mt-4 mb-3" Color="Color.Error">
+                                @L.T("Blazor.console.profile.dangerZone")
+                            </MudText>
+                            <MudPaper Outlined="true" Class="pa-4" Style="border-color: #f44336;">
+                                <MudText Class="mb-3">
+                                    @L.T("Blazor.console.profile.deleteAccountWarning")
+                                </MudText>
+                                <MudButton Variant="Variant.Filled" 
+                                           Color="Color.Error" 
+                                           StartIcon="@Icons.Material.Filled.DeleteForever"
+                                           OnClick="OpenDeleteDialog"
+                                           Disabled="@isDeleting">
+                                    @L.T("Blazor.console.profile.deleteAccountButton")
+                                </MudButton>
+                            </MudPaper>
+                        </MudItem>
+                    </MudGrid>
+                }
+                else
+                {
+                    <MudText>@L.T("Blazor.console.profile.userNotFound")</MudText>
+                }
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+<!-- Delete Account Confirmation Dialog -->
+@if (showDeleteDialog)
+{
+    <MudOverlay Visible="true" DarkBackground="true" AutoClose="false" />
+    <MudPaper Class="pa-4" Style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1400; max-width: 500px; width: 90%;">
+        <MudText Typo="Typo.h6" Class="d-flex align-center mb-4">
+            <MudIcon Icon="@Icons.Material.Filled.Warning" Color="Color.Error" Class="mr-2" />
+            @L.T("Blazor.console.profile.deleteDialog.title")
+        </MudText>
+        <MudText Class="mb-4">
+            @L.T("Blazor.console.profile.deleteDialog.message")
+        </MudText>
+        <MudTextField @bind-Value="deletePassword" 
+                      Label="@L.T("Blazor.console.profile.deleteDialog.passwordLabel")" 
+                      Variant="Variant.Outlined" 
+                      InputType="@deletePasswordInputType" 
+                      Adornment="Adornment.End" 
+                      AdornmentIcon="@deletePasswordIcon" 
+                      OnAdornmentClick="ToggleDeletePasswordVisibility"
+                      HelperText="@L.T("Blazor.console.profile.deleteDialog.passwordHelper")"
+                      Disabled="@isDeleting" 
+                      Class="mb-4" />
+        <div class="d-flex justify-end gap-2">
+            <MudButton OnClick="CloseDeleteDialog" Disabled="@isDeleting">
+                @L.T("Blazor.console.profile.deleteDialog.cancelButton")
+            </MudButton>
+            <MudButton Color="Color.Error" 
+                       Variant="Variant.Filled" 
+                       OnClick="DeleteAccount" 
+                       Disabled="@(isDeleting || string.IsNullOrEmpty(deletePassword))">
+                @if (isDeleting)
+                {
+                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                    <MudText Class="ms-2">@L.T("Blazor.console.profile.deleteDialog.deletingButton")</MudText>
+                }
+                else
+                {
+                    @L.T("Blazor.console.profile.deleteDialog.confirmButton")
+                }
+            </MudButton>
+        </div>
+    </MudPaper>
+}
+
+@code {
+    private User? user;
+    private bool isLoading = true;
+    private bool isDeleting = false;
+    private string? errorMessage;
+    private string? successMessage;
+    private bool showDeleteDialog = false;
+    private string deletePassword = "";
+    private InputType deletePasswordInputType = InputType.Password;
+    private string deletePasswordIcon = Icons.Material.Filled.Visibility;
+    
+    // Query parameters
+    private bool isMockMode = false;
+    private bool debugMode = false;
+    private string selectedLang = "en";
+    
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        // Parse query parameters
+        var uri = new Uri(Navigation.Uri);
+        var query = HttpUtility.ParseQueryString(uri.Query);
+        
+        if (query["mock"] != null)
+        {
+            isMockMode = true;
+        }
+        
+        if (query["debug"] != null)
+        {
+            debugMode = true;
+        }
+        
+        if (!string.IsNullOrEmpty(query["lang"]))
+        {
+            selectedLang = query["lang"];
+        }
+        
+        // Initialize localization with language parameter
+        L.Initialize();
+        
+        try
+        {
+            if (isMockMode)
+            {
+                // Mock mode - create fake user data
+                await Task.Delay(500); // Simulate loading
+                user = new User
+                {
+                    Id = "mock-user-id-12345",
+                    Email = "test@example.com",
+                    FullName = "Test User",
+                    CreatedAt = DateTime.UtcNow.AddDays(-30),
+                    UpdatedAt = DateTime.UtcNow.AddHours(-2),
+                    LastLoginAt = DateTime.UtcNow.AddMinutes(-15)
+                };
+            }
+            else
+            {
+                // Get the actual authenticated user
+                if (authenticationState != null)
+                {
+                    var authState = await authenticationState;
+                    if (authState.User.Identity?.IsAuthenticated == true)
+                    {
+                        // Debug: Log all claims if in debug mode
+                        if (debugMode)
+                        {
+                            foreach (var claim in authState.User.Claims)
+                            {
+                                System.Console.WriteLine($"Claim: {claim.Type} = {claim.Value}");
+                            }
+                        }
+                        
+                        // Get user ID from JWT claims - using the same ClaimTypes.NameIdentifier that UserService.GenerateJwtToken uses
+                        var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                        
+                        if (!string.IsNullOrEmpty(userId))
+                        {
+                            if (debugMode)
+                            {
+                                System.Console.WriteLine($"Found user ID from JWT: {userId}");
+                            }
+                            user = await UserService.GetByIdAsync(userId);
+                        }
+                        else
+                        {
+                            // Fallback: try to get by email if user ID not found
+                            var email = authState.User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+                            
+                            if (!string.IsNullOrEmpty(email))
+                            {
+                                if (debugMode)
+                                {
+                                    System.Console.WriteLine($"No user ID found, trying email: {email}");
+                                }
+                                user = await UserService.GetByEmailAsync(email);
+                            }
+                            else if (debugMode)
+                            {
+                                System.Console.WriteLine("No user ID or email found in JWT claims");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to load profile: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+    
+    private void OpenDeleteDialog()
+    {
+        deletePassword = "";
+        showDeleteDialog = true;
+    }
+    
+    private void CloseDeleteDialog()
+    {
+        deletePassword = "";
+        showDeleteDialog = false;
+    }
+    
+    private void ToggleDeletePasswordVisibility()
+    {
+        if (deletePasswordInputType == InputType.Password)
+        {
+            deletePasswordInputType = InputType.Text;
+            deletePasswordIcon = Icons.Material.Filled.VisibilityOff;
+        }
+        else
+        {
+            deletePasswordInputType = InputType.Password;
+            deletePasswordIcon = Icons.Material.Filled.Visibility;
+        }
+    }
+    
+    private async Task DeleteAccount()
+    {
+        if (string.IsNullOrEmpty(deletePassword))
+        {
+            errorMessage = L.T("Blazor.console.profile.deleteDialog.passwordRequired");
+            return;
+        }
+        
+        isDeleting = true;
+        errorMessage = null;
+        
+        try
+        {
+            if (isMockMode)
+            {
+                // Mock mode - simulate deletion
+                await Task.Delay(2000);
+                
+                // Show success and redirect
+                successMessage = L.T("Blazor.console.profile.deleteSuccess");
+                StateHasChanged();
+                await Task.Delay(1500);
+                
+                // Clear authentication and redirect to signin
+                Navigation.NavigateTo("/signin", forceLoad: true);
+            }
+            else
+            {
+                // Real account deletion - first verify password
+                var passwordValid = UserService.VerifyPassword(deletePassword, user!.PasswordHash);
+                
+                if (!passwordValid)
+                {
+                    errorMessage = L.T("Blazor.console.profile.deleteDialog.passwordRequired");
+                    CloseDeleteDialog();
+                    return;
+                }
+                
+                // Password is correct, proceed with deletion
+                var deleted = await UserService.DeleteUserAsync(user!.Id);
+                
+                if (deleted)
+                {
+                    successMessage = L.T("Blazor.console.profile.deleteSuccess");
+                    StateHasChanged();
+                    await Task.Delay(1500);
+                    
+                    // Clear authentication and redirect to signin
+                    await JS.InvokeVoidAsync("localStorage.removeItem", "authToken");
+                    Navigation.NavigateTo("/signin", forceLoad: true);
+                }
+                else
+                {
+                    errorMessage = "Failed to delete account. Please try again.";
+                    CloseDeleteDialog();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Failed to delete account: {ex.Message}";
+            CloseDeleteDialog();
+        }
+        finally
+        {
+            isDeleting = false;
+        }
+    }
+}

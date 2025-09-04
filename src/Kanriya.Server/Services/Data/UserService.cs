@@ -1043,7 +1043,7 @@ public class UserService : IUserService
         {
             // Generate activation URL using public-facing URL
             var baseUrl = Shared.EnvironmentConfig.Server.PublicUrl;
-            var activationUrl = $"{baseUrl}/api/auth/activate?token={pendingUser.VerificationToken}";
+            var activationUrl = $"{baseUrl}/activate-account?token={pendingUser.VerificationToken}";
             
             // Prepare template data
             var templateData = new Dictionary<string, object>

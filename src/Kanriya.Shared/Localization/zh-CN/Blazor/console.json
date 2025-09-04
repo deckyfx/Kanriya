@@ -1,0 +1,32 @@
+{
+  "Blazor": {
+    "console": {
+      "profile": {
+        "title": "用户资料",
+        "personalInfo": "个人信息",
+        "email": "电子邮件地址",
+        "fullName": "全名",
+        "userId": "用户ID",
+        "createdAt": "账户创建时间",
+        "lastLogin": "最后登录",
+        "updatedAt": "最后更新",
+        "dangerZone": "危险区域",
+        "deleteAccountWarning": "一旦您删除账户，就无法恢复。您的所有数据，包括品牌和相关信息，都将被永久删除。此操作无法撤销。",
+        "deleteAccountButton": "删除我的账户",
+        "userNotFound": "找不到用户信息",
+        "debugInfo": "调试信息",
+        "deleteSuccess": "您的账户已成功删除。正在重定向...",
+        "deleteDialog": {
+          "title": "删除账户",
+          "message": "此操作将永久删除您的账户和所有相关数据。您将失去对所有品牌、门店和相关信息的访问权限。此操作无法撤销。",
+          "passwordLabel": "输入密码以确认",
+          "passwordHelper": "输入您的当前密码以确认删除账户",
+          "passwordRequired": "删除账户需要密码",
+          "cancelButton": "取消",
+          "confirmButton": "删除我的账户",
+          "deletingButton": "删除中..."
+        }
+      }
+    }
+  }
+}

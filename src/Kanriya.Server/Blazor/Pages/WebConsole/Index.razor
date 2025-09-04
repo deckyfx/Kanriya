@@ -1,5 +1,5 @@
 @page "/console"
-@namespace Kanriya.Server.Blazor.Pages
+@namespace Kanriya.Server.Blazor.Pages.WebConsole
 @layout AuthorizedLayout
 @inject NavigationManager Navigation
 @using Microsoft.AspNetCore.Components.Authorization
@@ -8,7 +8,7 @@
 @code {
     protected override void OnInitialized()
     {
-        Console.WriteLine($"[WebConsole Page] Initialized - URL: {Navigation.Uri}");
+        System.Console.WriteLine($"[WebConsole Page] Initialized - URL: {Navigation.Uri}");
         base.OnInitialized();
     }
 }
@@ -100,7 +100,7 @@
                                 <MudText Typo="Typo.body2">Verify email from activation link</MudText>
                             </MudCardContent>
                             <MudCardActions>
-                                <MudButton Color="Color.Success" Variant="Variant.Text" @onclick='() => Navigation.NavigateTo("/verify-email?mock=1")'>
+                                <MudButton Color="Color.Success" Variant="Variant.Text" @onclick='() => Navigation.NavigateTo("/activate-account?mock=1")'>
                                     Test Mock
                                 </MudButton>
                             </MudCardActions>

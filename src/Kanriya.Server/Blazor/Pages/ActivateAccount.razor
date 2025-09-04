@@ -1,4 +1,4 @@
-@page "/verify-email"
+@page "/activate-account"
 @namespace Kanriya.Server.Blazor.Pages
 @layout EmptyLayout
 @inject NavigationManager Navigation
@@ -15,30 +15,30 @@
         {
             <div style="display: flex; flex-direction: column; align-items: center;">
                 <div style="width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                <p style="color: #666; margin-top: 1rem;">@L.T("Blazor.VerifyEmail.verifying")</p>
+                <p style="color: #666; margin-top: 1rem;">@L.T("Blazor.ActivateAccount.verifying")</p>
             </div>
         }
         else if (success)
         {
             <div>
                 <div style="font-size: 4rem; margin-bottom: 1rem;">✅</div>
-                <h2 style="color: #333; margin: 1rem 0;">@L.T("Blazor.VerifyEmail.success.title")</h2>
+                <h2 style="color: #333; margin: 1rem 0;">@L.T("Blazor.ActivateAccount.success.title")</h2>
                 <p style="color: #666; margin: 1rem 0; line-height: 1.6;">
-                    @L.T("Blazor.VerifyEmail.success.message")
+                    @L.T("Blazor.ActivateAccount.success.message")
                 </p>
                 @if (!string.IsNullOrEmpty(userEmail))
                 {
                     <p style="color: #555; margin: 1rem 0;">
-                        @L.T("Blazor.VerifyEmail.success.emailLabel") <strong>@userEmail</strong>
+                        @L.T("Blazor.ActivateAccount.success.emailLabel") <strong>@userEmail</strong>
                     </p>
                 }
                 <div style="margin-top: 2rem;">
                     <a href="/signin" 
                        style="display: inline-block; padding: 0.75rem 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 6px; text-decoration: none; font-weight: 500;">
-                        @L.T("Blazor.VerifyEmail.success.signInButton")
+                        @L.T("Blazor.ActivateAccount.success.signInButton")
                     </a>
                     <p style="color: #777; margin-top: 1rem; font-size: 0.9rem;">
-                        @L.T("Blazor.VerifyEmail.success.signInHint")
+                        @L.T("Blazor.ActivateAccount.success.signInHint")
                     </p>
                 </div>
             </div>
@@ -47,14 +47,14 @@
         {
             <div>
                 <div style="font-size: 4rem; margin-bottom: 1rem;">❌</div>
-                <h2 style="color: #333; margin: 1rem 0;">@L.T("Blazor.VerifyEmail.failure.title")</h2>
+                <h2 style="color: #333; margin: 1rem 0;">@L.T("Blazor.ActivateAccount.failure.title")</h2>
                 <p style="color: #666; margin: 1rem 0; line-height: 1.6;">
                     @message
                 </p>
                 <div style="margin-top: 2rem;">
                     <a href="/signin" 
                        style="display: inline-block; padding: 0.75rem 2rem; background: #2196F3; color: white; border-radius: 6px; text-decoration: none; font-weight: 500;">
-                        @L.T("Blazor.VerifyEmail.failure.goToSignIn")
+                        @L.T("Blazor.ActivateAccount.failure.goToSignIn")
                     </a>
                 </div>
             </div>
@@ -76,9 +76,21 @@
     private string? userEmail = null;
     private string? token = null;
     private bool skipEmail = false;
+    
+    // Static fields to persist state across component re-initializations
+    private static string? lastProcessedToken = null;
+    private static bool lastProcessedSuccess = false;
+    private static string? lastProcessedMessage = null;
+    private static string? lastProcessedEmail = null;
+    private static int renderCount = 0;
+    
+    private bool hasProcessedThisToken = false;
 
     protected override async Task OnInitializedAsync()
     {
+        // Increment render count
+        renderCount++;
+        
         // Initialize localization with lang parameter support
         L.Initialize();
         
@@ -86,6 +98,36 @@
         var uri = new Uri(Navigation.Uri);
         var query = HttpUtility.ParseQueryString(uri.Query);
         token = query["token"];
+        
+        // Skip first render - just show loading
+        if (renderCount == 1)
+        {
+            return; // Keep isLoading = true
+        }
+        
+        // Check if we already processed this exact token
+        if (!string.IsNullOrEmpty(token) && token == lastProcessedToken)
+        {
+            // Restore the previous state
+            success = lastProcessedSuccess;
+            message = lastProcessedMessage ?? "";
+            userEmail = lastProcessedEmail;
+            isLoading = false;
+            return;
+        }
+        
+        // Reset render count if this is a different token
+        if (!string.IsNullOrEmpty(token) && token != lastProcessedToken && renderCount > 2)
+        {
+            renderCount = 2; // Reset to 2 since we're on the second render
+        }
+        
+        // Check if we're already processing this token in this instance
+        if (hasProcessedThisToken)
+        {
+            return;
+        }
+        hasProcessedThisToken = true;
         
         // Check for skip-email parameter
         if (query["skip-email"] != null)
@@ -97,16 +139,17 @@
         if (query["mock"] != null)
         {
             success = true;
-            message = L.T("Blazor.VerifyEmail.success.message");
+            message = L.T("Blazor.ActivateAccount.success.message");
             userEmail = "test@example.com";
             isLoading = false;
+            lastProcessedToken = "mock"; // Mark as processed
             return;
         }
         
         if (string.IsNullOrEmpty(token))
         {
             success = false;
-            message = L.T("Blazor.VerifyEmail.failure.invalidLink");
+            message = L.T("Blazor.ActivateAccount.failure.invalidLink");
             isLoading = false;
             return;
         }
@@ -116,15 +159,27 @@
             // Call UserService to verify email
             var options = skipEmail ? new RequestOptions { SkipEmail = true } : null;
             var result = await UserService.VerifyEmailAsync(token, options);
+            
             success = result.Success;
             message = result.Message;
             userEmail = result.User?.Email;
+            
+            // Store the state for future re-initializations
+            lastProcessedToken = token;
+            lastProcessedSuccess = success;
+            lastProcessedMessage = message;
+            lastProcessedEmail = userEmail;
         }
         catch (Exception ex)
         {
             success = false;
             message = "An error occurred during verification. Please try again or contact support.";
-            System.Console.WriteLine($"Email verification error: {ex.Message}");
+            
+            // Store the state even on error
+            lastProcessedToken = token;
+            lastProcessedSuccess = success;
+            lastProcessedMessage = message;
+            lastProcessedEmail = userEmail;
         }
         finally
         {

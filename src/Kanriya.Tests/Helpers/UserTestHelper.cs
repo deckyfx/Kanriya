@@ -94,7 +94,7 @@ public class UserTestHelper
     /// </summary>
     public async Task<bool> VerifyEmailAsync(string verificationToken)
     {
-        var verifyUrl = $"{_baseUrl}/verify-email?token={verificationToken}";
+        var verifyUrl = $"{_baseUrl}/activate-account?token={verificationToken}";
         var response = await _client.GetAsync(verifyUrl);
         
         if (response.IsSuccessStatusCode)

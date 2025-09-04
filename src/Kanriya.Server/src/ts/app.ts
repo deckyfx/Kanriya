@@ -47,7 +47,7 @@ class GQLServerApp {
     const path = window.location.pathname;
     if (path === '/') return 'home';
     if (path === '/about') return 'about';
-    if (path.startsWith('/verify-email')) return 'verify-email';
+    if (path.startsWith('/activate-account')) return 'activate-account';
     return 'unknown';
   }
 

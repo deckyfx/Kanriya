@@ -1,0 +1,32 @@
+{
+  "Blazor": {
+    "console": {
+      "profile": {
+        "title": "User Profile",
+        "personalInfo": "Personal Information",
+        "email": "Email Address",
+        "fullName": "Full Name",
+        "userId": "User ID",
+        "createdAt": "Account Created",
+        "lastLogin": "Last Login",
+        "updatedAt": "Last Updated",
+        "dangerZone": "Danger Zone",
+        "deleteAccountWarning": "Once you delete your account, there is no going back. All your data, including brands and associated information, will be permanently deleted. This action cannot be undone.",
+        "deleteAccountButton": "Delete My Account",
+        "userNotFound": "User information not found",
+        "debugInfo": "Debug Information",
+        "deleteSuccess": "Your account has been successfully deleted. Redirecting...",
+        "deleteDialog": {
+          "title": "Delete Account",
+          "message": "This action will permanently delete your account and all associated data. You will lose access to all brands, outlets, and related information. This action cannot be undone.",
+          "passwordLabel": "Enter your password to confirm",
+          "passwordHelper": "Type your current password to confirm account deletion",
+          "passwordRequired": "Password is required to delete your account",
+          "cancelButton": "Cancel",
+          "confirmButton": "Delete My Account",
+          "deletingButton": "Deleting..."
+        }
+      }
+    }
+  }
+}

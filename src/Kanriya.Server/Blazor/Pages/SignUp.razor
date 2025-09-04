@@ -16,24 +16,47 @@
 
 <div class="auth-container">
     <div class="auth-card">
-        <h2>@LocalizationService.Instance.t("auth.signUp")</h2>
-        
-        @if (!string.IsNullOrEmpty(errorMessage))
+        @if (isSuccess)
         {
-            <div class="alert alert-danger">
-                @errorMessage
+            <div style="text-align: center;">
+                <div style="font-size: 4rem; margin-bottom: 1rem;">✅</div>
+                <h2 style="color: #333; margin: 1rem 0;">@LocalizationService.Instance.t("auth.signUpSuccess")</h2>
+                <p style="color: #666; margin: 1rem 0; line-height: 1.6;">
+                    @LocalizationService.Instance.t("auth.activationEmailSent")
+                </p>
+                @if (!string.IsNullOrEmpty(model.Email))
+                {
+                    <p style="color: #555; margin: 1rem 0;">
+                        <strong>@model.Email</strong>
+                    </p>
+                }
+                <p style="color: #777; margin-top: 1rem; font-size: 0.9rem;">
+                    @LocalizationService.Instance.t("auth.checkSpamFolder")
+                </p>
+                @if (skipEmail)
+                {
+                    <div style="background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 1rem; margin: 1rem 0; color: #1976d2;">
+                        @LocalizationService.Instance.t("auth.emailDisabledInfo")
+                    </div>
+                }
+                <a href="/signin@(GetQueryString())" 
+                   style="display: inline-block; padding: 0.75rem 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 6px; text-decoration: none; font-weight: 500; margin-top: 1.5rem;">
+                    @LocalizationService.Instance.t("auth.goToSignIn")
+                </a>
             </div>
         }
-        
-        @if (!string.IsNullOrEmpty(successMessage))
+        else
         {
-            <div class="alert alert-success">
-                @successMessage
-            </div>
-        }
-        
-        <EditForm Model="@model" OnValidSubmit="@HandleSignUp">
-            <DataAnnotationsValidator />
+            <h2>@LocalizationService.Instance.t("auth.signUp")</h2>
+            
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger">
+                    @errorMessage
+                </div>
+            }
+            
+            <EditForm Model="@model" OnSubmit="@HandleSignUp">
             
             @* Hidden fields for query parameters *@
             @if (mockMode)
@@ -52,7 +75,18 @@
             <div class="form-group">
                 <label>@LocalizationService.Instance.t("auth.email")</label>
                 <InputText @bind-Value="model.Email" class="form-control" placeholder="@LocalizationService.Instance.t("auth.email")" disabled="@isSubmitting" />
-                <ValidationMessage For="@(() => model.Email)" />
+                @if (showValidation && string.IsNullOrEmpty(model.Email))
+                {
+                    <div class="validation-message">
+                        @LocalizationService.Instance.t("validation.required").Replace("{field}", LocalizationService.Instance.t("auth.email"))
+                    </div>
+                }
+                else if (showValidation && !IsValidEmail(model.Email))
+                {
+                    <div class="validation-message">
+                        @LocalizationService.Instance.t("validation.email")
+                    </div>
+                }
             </div>
             
             <div class="form-group">
@@ -70,16 +104,30 @@
                         }
                     </button>
                 </div>
-                <ValidationMessage For="@(() => model.Password)" />
-                <small class="form-text text-muted">
-                    Password must be at least 8 characters with uppercase, lowercase, and number
-                </small>
+                @if (showValidation && string.IsNullOrEmpty(model.Password))
+                {
+                    <div class="validation-message">
+                        @LocalizationService.Instance.t("validation.required").Replace("{field}", LocalizationService.Instance.t("auth.password"))
+                    </div>
+                }
+                else if (showValidation && model.Password.Length < 8)
+                {
+                    <div class="validation-message">
+                        @LocalizationService.Instance.t("validation.min").Replace("{field}", LocalizationService.Instance.t("auth.password")).Replace("{min}", "8")
+                    </div>
+                }
+                else if (showValidation && !IsPasswordComplex(model.Password))
+                {
+                    <div class="validation-message">
+                        @LocalizationService.Instance.t("validation.passwordComplexity")
+                    </div>
+                }
             </div>
             
             <div class="form-group">
-                <label>Confirm Password</label>
+                <label>@LocalizationService.Instance.t("auth.confirmPassword")</label>
                 <div class="password-input-wrapper">
-                    <InputText type="@(showConfirmPassword ? "text" : "password")" @bind-Value="model.ConfirmPassword" class="form-control" placeholder="Confirm password" disabled="@isSubmitting" />
+                    <InputText type="@(showConfirmPassword ? "text" : "password")" @bind-Value="model.ConfirmPassword" class="form-control" placeholder="@LocalizationService.Instance.t("auth.confirmPassword")" disabled="@isSubmitting" />
                     <button type="button" class="password-toggle" @onclick="() => showConfirmPassword = !showConfirmPassword" disabled="@isSubmitting">
                         @if (showConfirmPassword)
                         {
@@ -91,36 +139,53 @@
                         }
                     </button>
                 </div>
-                <ValidationMessage For="@(() => model.ConfirmPassword)" />
+                @if (showValidation && string.IsNullOrEmpty(model.ConfirmPassword))
+                {
+                    <div class="validation-message">
+                        @LocalizationService.Instance.t("validation.required").Replace("{field}", LocalizationService.Instance.t("auth.confirmPassword"))
+                    </div>
+                }
+                else if (showValidation && model.Password != model.ConfirmPassword)
+                {
+                    <div class="validation-message">
+                        @LocalizationService.Instance.t("validation.passwordMismatch")
+                    </div>
+                }
             </div>
             
             <div class="form-check mb-3">
                 <InputCheckbox @bind-Value="model.AgreeToTerms" class="form-check-input" id="agreeToTerms" disabled="@isSubmitting" />
                 <label class="form-check-label" for="agreeToTerms">
-                    I agree to the <a href="/terms" target="_blank">Terms of Service</a> and <a href="/privacy" target="_blank">Privacy Policy</a>
+                    @((MarkupString)LocalizationService.Instance.t("auth.agreeToTerms").Replace("{terms}", "<a href='/terms' target='_blank'>" + LocalizationService.Instance.t("auth.termsOfService") + "</a>").Replace("{privacy}", "<a href='/privacy' target='_blank'>" + LocalizationService.Instance.t("auth.privacyPolicy") + "</a>"))
                 </label>
-                <ValidationMessage For="@(() => model.AgreeToTerms)" />
+                @if (showValidation && !model.AgreeToTerms)
+                {
+                    <div class="validation-message">
+                        @LocalizationService.Instance.t("validation.termsRequired")
+                    </div>
+                }
             </div>
             
             <button type="submit" class="btn btn-primary btn-block" disabled="@isSubmitting">
                 @if (isSubmitting)
                 {
-                    <span class="spinner-border spinner-border-sm mr-2"></span>
-                    <span>Creating Account...</span>
+                    <span class="spinner" style="display: inline-block; width: 1rem; height: 1rem; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 0.5rem;"></span>
+                    <span>@LocalizationService.Instance.t("auth.creatingAccount")...</span>
                 }
                 else
                 {
                     <span>@LocalizationService.Instance.t("auth.signUp")</span>
                 }
             </button>
-        </EditForm>
-        
-        <div class="auth-footer">
-            <p>
-                Already have an account? 
-                <a href="/signin@(GetQueryString())">Sign In</a>
-            </p>
-        </div>
+            </EditForm>
+            
+            <div class="auth-footer">
+                <p>
+                    @LocalizationService.Instance.t("auth.alreadyHaveAccount") 
+                    <a href="/signin@(GetQueryString())">@LocalizationService.Instance.t("auth.signIn")</a>
+                </p>
+            </div>
+        }
     </div>
 </div>
 
@@ -280,57 +345,61 @@
         cursor: not-allowed;
         opacity: 0.5;
     }
+    
+    /* Validation error styles */
+    .validation-message {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+    
+    .validation-errors {
+        color: #dc3545;
+    }
+    
+    .validation-summary {
+        color: #dc3545;
+    }
+    
+    @@keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
 </style>
 
 @code {
     private SignUpModel model = new();
     private bool isSubmitting = false;
     private string? errorMessage;
-    private string? successMessage;
+    private bool isSuccess = false;
     private bool mockMode = false;
     private bool skipEmail = false;
     private string selectedLang = "en";
     private bool showPassword = false;
     private bool showConfirmPassword = false;
+    private bool showValidation = false;
     
-    public class SignUpModel : IValidatableObject
+    public class SignUpModel
     {
-        [Required(ErrorMessage = "Email is required")]
-        [EmailAddress(ErrorMessage = "Invalid email address")]
         public string Email { get; set; } = string.Empty;
-        
-        [Required(ErrorMessage = "Password is required")]
-        [MinLength(8, ErrorMessage = "Password must be at least 8 characters")]
         public string Password { get; set; } = string.Empty;
-        
-        [Required(ErrorMessage = "Please confirm your password")]
         public string ConfirmPassword { get; set; } = string.Empty;
-        
-        [Required(ErrorMessage = "You must agree to the terms")]
         public bool AgreeToTerms { get; set; }
-        
-        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
-        {
-            if (Password != ConfirmPassword)
-            {
-                yield return new ValidationResult("Passwords do not match", new[] { nameof(ConfirmPassword) });
-            }
-            
-            // Check password complexity
-            if (!string.IsNullOrEmpty(Password))
-            {
-                bool hasUpper = Password.Any(char.IsUpper);
-                bool hasLower = Password.Any(char.IsLower);
-                bool hasDigit = Password.Any(char.IsDigit);
-                
-                if (!hasUpper || !hasLower || !hasDigit)
-                {
-                    yield return new ValidationResult(
-                        "Password must contain at least one uppercase letter, one lowercase letter, and one number",
-                        new[] { nameof(Password) });
-                }
-            }
-        }
+    }
+    
+    private bool IsValidEmail(string email)
+    {
+        if (string.IsNullOrEmpty(email)) return false;
+        return new EmailAddressAttribute().IsValid(email);
+    }
+    
+    private bool IsPasswordComplex(string password)
+    {
+        if (string.IsNullOrEmpty(password)) return false;
+        bool hasUpper = password.Any(char.IsUpper);
+        bool hasLower = password.Any(char.IsLower);
+        bool hasDigit = password.Any(char.IsDigit);
+        return hasUpper && hasLower && hasDigit;
     }
     
     protected override void OnInitialized()
@@ -375,9 +444,20 @@
     {
         if (isSubmitting) return;
         
+        showValidation = true;
+        
+        // Client-side validation
+        if (string.IsNullOrEmpty(model.Email) || !IsValidEmail(model.Email) ||
+            string.IsNullOrEmpty(model.Password) || model.Password.Length < 8 || !IsPasswordComplex(model.Password) ||
+            string.IsNullOrEmpty(model.ConfirmPassword) || model.Password != model.ConfirmPassword ||
+            !model.AgreeToTerms)
+        {
+            return;
+        }
+        
         isSubmitting = true;
         errorMessage = null;
-        successMessage = null;
+        isSuccess = false;
         
         try
         {
@@ -393,7 +473,7 @@
                     LocalizationService.Instance.SetLanguage(selectedLang);
                 }
                 
-                successMessage = LocalizationService.Instance.t("GraphQL.mutation.signUp.success");
+                isSuccess = true;
             }
             else
             {
@@ -412,12 +492,7 @@
                 
                 if (result.Success)
                 {
-                    successMessage = result.Message;
-                    
-                    if (!skipEmail)
-                    {
-                        successMessage = LocalizationService.Instance.t("GraphQL.mutation.signUp.success");
-                    }
+                    isSuccess = true;
                 }
                 else
                 {

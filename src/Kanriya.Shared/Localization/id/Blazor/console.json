@@ -1,0 +1,32 @@
+{
+  "Blazor": {
+    "console": {
+      "profile": {
+        "title": "Profil Pengguna",
+        "personalInfo": "Informasi Pribadi",
+        "email": "Alamat Email",
+        "fullName": "Nama Lengkap",
+        "userId": "ID Pengguna",
+        "createdAt": "Akun Dibuat",
+        "lastLogin": "Login Terakhir",
+        "updatedAt": "Terakhir Diperbarui",
+        "dangerZone": "Zona Berbahaya",
+        "deleteAccountWarning": "Setelah Anda menghapus akun Anda, tidak ada jalan kembali. Semua data Anda, termasuk brand dan informasi terkait, akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.",
+        "deleteAccountButton": "Hapus Akun Saya",
+        "userNotFound": "Informasi pengguna tidak ditemukan",
+        "debugInfo": "Informasi Debug",
+        "deleteSuccess": "Akun Anda telah berhasil dihapus. Mengalihkan...",
+        "deleteDialog": {
+          "title": "Hapus Akun",
+          "message": "Tindakan ini akan menghapus akun Anda dan semua data terkait secara permanen. Anda akan kehilangan akses ke semua brand, outlet, dan informasi terkait. Tindakan ini tidak dapat dibatalkan.",
+          "passwordLabel": "Masukkan kata sandi Anda untuk konfirmasi",
+          "passwordHelper": "Ketik kata sandi Anda saat ini untuk mengonfirmasi penghapusan akun",
+          "passwordRequired": "Kata sandi diperlukan untuk menghapus akun Anda",
+          "cancelButton": "Batal",
+          "confirmButton": "Hapus Akun Saya",
+          "deletingButton": "Menghapus..."
+        }
+      }
+    }
+  }
+}

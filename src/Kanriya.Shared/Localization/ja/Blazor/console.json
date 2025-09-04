@@ -1,0 +1,32 @@
+{
+  "Blazor": {
+    "console": {
+      "profile": {
+        "title": "ユーザープロファイル",
+        "personalInfo": "個人情報",
+        "email": "メールアドレス",
+        "fullName": "フルネーム",
+        "userId": "ユーザーID",
+        "createdAt": "アカウント作成日",
+        "lastLogin": "最終ログイン",
+        "updatedAt": "最終更新日",
+        "dangerZone": "危険ゾーン",
+        "deleteAccountWarning": "アカウントを削除すると、元に戻すことはできません。ブランドや関連情報を含むすべてのデータが完全に削除されます。この操作は取り消すことができません。",
+        "deleteAccountButton": "アカウントを削除",
+        "userNotFound": "ユーザー情報が見つかりません",
+        "debugInfo": "デバッグ情報",
+        "deleteSuccess": "アカウントが正常に削除されました。リダイレクト中...",
+        "deleteDialog": {
+          "title": "アカウント削除",
+          "message": "この操作により、アカウントとすべての関連データが完全に削除されます。すべてのブランド、アウトレット、および関連情報へのアクセスを失います。この操作は取り消すことができません。",
+          "passwordLabel": "確認のためパスワードを入力してください",
+          "passwordHelper": "アカウント削除を確認するために現在のパスワードを入力してください",
+          "passwordRequired": "アカウントを削除するにはパスワードが必要です",
+          "cancelButton": "キャンセル",
+          "confirmButton": "アカウントを削除",
+          "deletingButton": "削除中..."
+        }
+      }
+    }
+  }
+}
