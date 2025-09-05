@@ -16,6 +16,8 @@ public interface IUserService
     Task<(bool Success, string Message, string? VerificationToken)> SignUpAsync(
         string email, 
         string password,
+        string firstName,
+        string lastName,
         RequestOptions? options = null,
         CancellationToken cancellationToken = default);
     

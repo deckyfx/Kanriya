@@ -20,4 +20,20 @@ public class SignUpInput
     [Required]
     [MinLength(8)]
     public string Password { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// User's first name
+    /// </summary>
+    [Required]
+    [MinLength(1)]
+    [MaxLength(100)]
+    public string FirstName { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// User's last name
+    /// </summary>
+    [Required]
+    [MinLength(1)]
+    [MaxLength(100)]
+    public string LastName { get; set; } = string.Empty;
 }

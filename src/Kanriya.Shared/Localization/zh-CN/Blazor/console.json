@@ -120,7 +120,10 @@
         "resetButton": "重置凭证",
         "resetWarning": "重置凭证将使当前API密钥和密码失效。使用它们的应用程序将停止工作。",
         "resetSuccess": "凭证已成功重置。保存这些新凭证 - 它们不会再次显示！",
-        "notAuthenticated": "用户未认证"
+        "notAuthenticated": "用户未认证",
+        "signInWithCredentials": "使用品牌凭证登录",
+        "signingIn": "登录中...",
+        "signedInWithCredentials": "成功使用品牌凭证登录"
       },
       "profile": {
         "title": "用户资料",

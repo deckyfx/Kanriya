@@ -6,6 +6,7 @@
 @inject BlazorLocalizationService L
 @inject IJSRuntime JS
 @inject IDialogService DialogService
+@inject ICredentialManager CredentialManager
 @using Kanriya.Server.Services.Data
 @using MudBlazor
 @using Kanriya.Server.Blazor.Services
@@ -54,7 +55,7 @@
                         
                         <MudItem xs="12" sm="6">
                             <MudTextField Label="@L.T("Blazor.console.profile.fullName")" 
-                                          Value="@user.FullName" 
+                                          Value="@($"{user.FirstName} {user.LastName}".Trim())" 
                                           ReadOnly="true" 
                                           Variant="Variant.Outlined" />
                         </MudItem>
@@ -226,7 +227,8 @@
                 {
                     Id = "mock-user-id-12345",
                     Email = "test@example.com",
-                    FullName = "Test User",
+                    FirstName = "Test",
+                    LastName = "User",
                     CreatedAt = DateTime.UtcNow.AddDays(-30),
                     UpdatedAt = DateTime.UtcNow.AddHours(-2),
                     LastLoginAt = DateTime.UtcNow.AddMinutes(-15)
@@ -365,7 +367,8 @@
                     StateHasChanged();
                     await Task.Delay(1500);
                     
-                    // Clear authentication and redirect to signin
+                    // Clear all credentials and authentication, then redirect to signin
+                    await CredentialManager.ClearAllCredentialsAsync();
                     await JS.InvokeVoidAsync("localStorage.removeItem", "authToken");
                     Navigation.NavigateTo("/signin", forceLoad: true);
                 }

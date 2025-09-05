@@ -120,7 +120,10 @@
         "resetButton": "重設憑證",
         "resetWarning": "重設憑證將使當前API金鑰和密碼失效。使用它們的應用程式將停止工作。",
         "resetSuccess": "憑證已成功重設。保存這些新憑證 - 它們不會再次顯示！",
-        "notAuthenticated": "用戶未認證"
+        "notAuthenticated": "用戶未認證",
+        "signInWithCredentials": "使用品牌憑證登入",
+        "signingIn": "登入中...",
+        "signedInWithCredentials": "成功使用品牌憑證登入"
       },
       "profile": {
         "title": "用戶資料",

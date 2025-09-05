@@ -67,6 +67,8 @@ public class UserService : IUserService
     public async Task<(bool Success, string Message, string? VerificationToken)> SignUpAsync(
         string email,
         string password,
+        string firstName,
+        string lastName,
         RequestOptions? options = null,
         CancellationToken cancellationToken = default)
     {
@@ -113,6 +115,8 @@ public class UserService : IUserService
         {
             Email = email.ToLower(),
             PasswordHash = HashPassword(password),
+            FirstName = firstName,
+            LastName = lastName,
             VerificationToken = Guid.NewGuid().ToString(),
             TokenExpiresAt = DateTime.UtcNow.AddHours(24)
         };
@@ -185,7 +189,8 @@ public class UserService : IUserService
         {
             Email = pendingUser.Email,
             PasswordHash = pendingUser.PasswordHash,
-            FullName = pendingUser.Email,  // Use email as default name until user updates profile
+            FirstName = pendingUser.FirstName,
+            LastName = pendingUser.LastName,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -375,7 +380,8 @@ public class UserService : IUserService
         {
             Id = brandUserId,
             Email = $"{apiSecret}@{brandId}",
-            FullName = displayName ?? "Brand User",
+            FirstName = displayName ?? "Brand",
+            LastName = "User",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -462,15 +468,16 @@ public class UserService : IUserService
             Id = user.Id,
             Email = user.Email,
             PasswordHash = user.PasswordHash,
-            FullName = user.FullName,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
             ProfilePictureUrl = user.ProfilePictureUrl,
             CreatedAt = user.CreatedAt,
             UpdatedAt = user.UpdatedAt,
             LastLoginAt = user.LastLoginAt
         };
         
-        if (!string.IsNullOrWhiteSpace(fullName))
-            user.FullName = fullName.Trim();
+        // Note: FirstName and LastName updates should be handled separately
+        // This code block was for FullName which no longer exists
         
         if (profilePictureUrl != null)
             user.ProfilePictureUrl = profilePictureUrl;
@@ -526,7 +533,8 @@ public class UserService : IUserService
             Id = user.Id,
             Email = user.Email,
             PasswordHash = user.PasswordHash,
-            FullName = user.FullName,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
             ProfilePictureUrl = user.ProfilePictureUrl,
             CreatedAt = user.CreatedAt,
             UpdatedAt = user.UpdatedAt,
@@ -627,7 +635,8 @@ public class UserService : IUserService
             Id = user.Id,
             Email = user.Email,
             PasswordHash = user.PasswordHash,
-            FullName = user.FullName,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
             ProfilePictureUrl = user.ProfilePictureUrl,
             CreatedAt = user.CreatedAt,
             UpdatedAt = user.UpdatedAt,
@@ -845,7 +854,8 @@ public class UserService : IUserService
         {
             Email = pendingUser.Email,
             PasswordHash = pendingUser.PasswordHash,
-            FullName = pendingUser.Email, // Use email as default name
+            FirstName = "User",
+            LastName = pendingUser.Email.Split('@')[0], // Use email prefix as last name
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -926,7 +936,9 @@ public class UserService : IUserService
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id),
             new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Name, user.FullName),
+            new Claim(ClaimTypes.Name, $"{user.FirstName} {user.LastName}"),
+            new Claim("FirstName", user.FirstName),
+            new Claim("LastName", user.LastName),
             new Claim("email_verified", "true")
         };
         
@@ -1049,7 +1061,7 @@ public class UserService : IUserService
             var templateData = new Dictionary<string, object>
             {
                 { "appName", "Kanriya" },
-                { "userName", pendingUser.Email.Split('@')[0] }, // Use email username as display name
+                { "userName", $"{pendingUser.FirstName} {pendingUser.LastName}".Trim() }, // Use full name as display name
                 { "activationUrl", activationUrl },
                 { "year", DateTime.UtcNow.Year }
             };
@@ -1093,7 +1105,7 @@ public class UserService : IUserService
             var templateData = new Dictionary<string, object>
             {
                 { "appName", "Kanriya" },
-                { "userName", user.FullName ?? user.Email.Split('@')[0] },
+                { "userName", $"{user.FirstName} {user.LastName}" },
                 { "loginUrl", loginUrl },
                 { "year", DateTime.UtcNow.Year }
             };
@@ -1142,6 +1154,7 @@ public class UserService : IUserService
                     <body style='font-family: Arial, sans-serif;'>
                         <div style='max-width: 600px; margin: 0 auto; padding: 20px;'>
                             <h2 style='color: #333;'>Password Reset Request</h2>
+                            <p>Hi {user.FirstName} {user.LastName},</p>
                             <p>We received a request to reset your password. Click the button below to set a new password:</p>
                             <div style='text-align: center; margin: 30px 0;'>
                                 <a href='{resetUrl}' 
@@ -1162,6 +1175,8 @@ public class UserService : IUserService
                     </html>",
                 TextBody = $@"
 Password Reset Request
+
+Hi {user.FirstName} {user.LastName},
 
 We received a request to reset your password. Click the link below to set a new password:
 

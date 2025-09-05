@@ -1,9 +1,94 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 
-<div class="text-center p-5">
-    <p>Redirecting to sign in...</p>
+<div class="redirect-container">
+    <div class="redirect-content">
+        <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+        <MudText Typo="Typo.h5" Class="mt-4 redirect-text">
+            Redirecting to sign in
+        </MudText>
+        <div class="loading-dots">
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+        </div>
+    </div>
 </div>
+
+<style>
+    .redirect-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+    
+    .redirect-content {
+        text-align: center;
+        padding: 3rem;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+        animation: fadeIn 0.5s ease-in-out;
+    }
+    
+    .redirect-text {
+        color: #667eea;
+        font-weight: 500;
+    }
+    
+    .loading-dots {
+        display: inline-block;
+        margin-top: 1rem;
+    }
+    
+    .dot {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #667eea;
+        margin: 0 5px;
+        animation: bounce 1.4s infinite ease-in-out both;
+    }
+    
+    .dot:nth-child(1) {
+        animation-delay: -0.32s;
+    }
+    
+    .dot:nth-child(2) {
+        animation-delay: -0.16s;
+    }
+    
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    
+    @@keyframes bounce {
+        0%, 80%, 100% {
+            transform: scale(0);
+            opacity: 0.5;
+        }
+        40% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+</style>
 
 @code {
     protected override void OnInitialized()

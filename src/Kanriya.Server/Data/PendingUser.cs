@@ -28,6 +28,18 @@ public class PendingUser
     public string PasswordHash { get; set; } = string.Empty;
     
     /// <summary>
+    /// User's first name
+    /// </summary>
+    [Required]
+    public string FirstName { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// User's last name
+    /// </summary>
+    [Required]
+    public string LastName { get; set; } = string.Empty;
+    
+    /// <summary>
     /// When the pending user was created
     /// </summary>
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

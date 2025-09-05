@@ -285,13 +285,13 @@
         
         try
         {
-            // Get current user's email from auth state
+            // Get current user's email from auth state (for storing in credential)
             var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
             var email = authState.User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value 
                 ?? authState.User.Identity?.Name 
                 ?? "user@example.com";
             
-            // Sign in with brand context
+            // Sign in with brand context using API credentials
             var options = new RequestOptions
             {
                 Lang = selectedLang ?? "en",
@@ -299,9 +299,9 @@
             };
             
             var result = await UserService.SignInAsync(
-                email,
-                apiPassword, // Use the API password
-                brandId, // Pass brand ID for brand context
+                apiKey,      // Use API key as username
+                apiPassword, // Use API password as password
+                brandId,     // Pass brand ID for brand context
                 options
             );
             

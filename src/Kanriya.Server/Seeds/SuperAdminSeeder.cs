@@ -71,7 +71,8 @@ public class SuperAdminSeeder : ISeeder
             Id = Guid.NewGuid().ToString(),
             Email = adminEmail,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(adminPassword),
-            FullName = "System Administrator",
+            FirstName = EnvironmentConfig.Admin.FirstName,
+            LastName = EnvironmentConfig.Admin.LastName,
             ProfilePictureUrl = null,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow

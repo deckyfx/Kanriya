@@ -1,0 +1,100 @@
+@using Kanriya.Server.Blazor.Services
+@inject NavigationManager Navigation
+@inject BlazorLocalizationService L
+
+<div class="brand-nav-menu">
+    <div class="brand-nav-header">
+        <MudIcon Icon="@Icons.Material.Filled.Business" Size="Size.Large" Style="color: white;" />
+        <MudText Typo="Typo.h6" Style="color: white; margin-left: 0.5rem;">
+            Brand Portal
+        </MudText>
+    </div>
+    
+    <MudNavMenu Color="Color.Inherit" Class="brand-nav-items">
+        <MudNavLink Href="/console/brand" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">
+            Dashboard
+        </MudNavLink>
+        
+        <MudNavGroup Title="Operations" Icon="@Icons.Material.Filled.WorkOutline" Expanded="true">
+            <MudNavLink Href="/console/brand/users" Icon="@Icons.Material.Filled.People">
+                Users
+            </MudNavLink>
+            <MudNavLink Href="/console/brand/api-logs" Icon="@Icons.Material.Filled.History">
+                API Logs
+            </MudNavLink>
+            <MudNavLink Href="/console/brand/webhooks" Icon="@Icons.Material.Filled.WebAsset">
+                Webhooks
+            </MudNavLink>
+        </MudNavGroup>
+        
+        <MudNavGroup Title="Settings" Icon="@Icons.Material.Filled.Settings">
+            <MudNavLink Href="/console/brand/settings" Icon="@Icons.Material.Filled.Tune">
+                General Settings
+            </MudNavLink>
+            <MudNavLink Href="/console/brand/api-keys" Icon="@Icons.Material.Filled.VpnKey">
+                API Keys
+            </MudNavLink>
+            <MudNavLink Href="/console/brand/billing" Icon="@Icons.Material.Filled.CreditCard">
+                Billing
+            </MudNavLink>
+        </MudNavGroup>
+        
+        <MudDivider Style="margin: 1rem 0;" />
+        
+        <MudNavLink Href="/console" Icon="@Icons.Material.Filled.ArrowBack">
+            Back to Console
+        </MudNavLink>
+    </MudNavMenu>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        L.Initialize();
+    }
+}
+
+<style>
+    .brand-nav-menu {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .brand-nav-header {
+        display: flex;
+        align-items: center;
+        padding: 1.5rem 1rem;
+        background: rgba(0, 0, 0, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .brand-nav-items {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem 0;
+    }
+    
+    .brand-nav-items .mud-nav-link {
+        color: rgba(255, 255, 255, 0.9) !important;
+        margin: 0.25rem 0.5rem;
+        border-radius: 8px;
+    }
+    
+    .brand-nav-items .mud-nav-link:hover {
+        background: rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    .brand-nav-items .mud-nav-link.active {
+        background: rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+    }
+    
+    .brand-nav-items .mud-nav-group-header {
+        color: rgba(255, 255, 255, 0.9) !important;
+    }
+    
+    .brand-nav-items .mud-divider {
+        background: rgba(255, 255, 255, 0.2);
+    }
+</style>

@@ -28,10 +28,16 @@ public class User
     public string PasswordHash { get; set; } = string.Empty;
     
     /// <summary>
-    /// User's full name
+    /// User's first name
     /// </summary>
     [Required]
-    public string FullName { get; set; } = string.Empty;
+    public string FirstName { get; set; } = string.Empty;
+    
+    /// <summary>
+    /// User's last name
+    /// </summary>
+    [Required]
+    public string LastName { get; set; } = string.Empty;
     
     /// <summary>
     /// When the user account was created (verified)

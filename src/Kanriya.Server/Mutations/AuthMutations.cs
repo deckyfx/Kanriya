@@ -29,6 +29,8 @@ public class AuthMutations
         var result = await userService.SignUpAsync(
             input.Email,
             input.Password,
+            input.FirstName,
+            input.LastName,
             options?.ToRequestOptions(),
             cancellationToken);
         

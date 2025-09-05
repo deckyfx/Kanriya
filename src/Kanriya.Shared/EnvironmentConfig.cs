@@ -176,6 +176,12 @@ public static class EnvironmentConfig
         public static string? Password => 
             Environment.GetEnvironmentVariable("SERVER_ADMIN_PASSWORD");
             
+        public static string FirstName => 
+            Environment.GetEnvironmentVariable("SERVER_ADMIN_FIRST_NAME") ?? "Super";
+            
+        public static string LastName => 
+            Environment.GetEnvironmentVariable("SERVER_ADMIN_LAST_NAME") ?? "Admin";
+            
         public static bool HasAdminConfig => 
             !string.IsNullOrEmpty(Username) && !string.IsNullOrEmpty(Password);
     }

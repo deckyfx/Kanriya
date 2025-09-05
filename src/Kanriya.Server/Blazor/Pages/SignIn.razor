@@ -4,6 +4,7 @@
 @inject IUserService UserService
 @inject IJSRuntime JS
 @inject SimpleAuthStateProvider AuthStateProvider
+@inject ICredentialManager CredentialManager
 @using Kanriya.Server.Services.Data
 @using Kanriya.Server.Blazor.Services
 @using Kanriya.Shared.Models
@@ -27,6 +28,12 @@
                 {
                     <p style="color: #555; margin: 1rem 0;">
                         <strong>Brand: @brandModel.BrandId</strong>
+                    </p>
+                }
+                else if (!string.IsNullOrEmpty(userFullName))
+                {
+                    <p style="color: #555; margin: 1rem 0;">
+                        <strong>@userFullName</strong>
                     </p>
                 }
                 else if (!string.IsNullOrEmpty(principalModel.Email))
@@ -447,6 +454,7 @@
     private string selectedLang = "en";
     private bool showPassword = false;
     private bool showValidation = false;
+    private string? userFullName = null;
     
     public class PrincipalSignInModel
     {
@@ -573,6 +581,12 @@
                 
                 if (result.Success && !string.IsNullOrEmpty(result.Token))
                 {
+                    // Store user's full name if available
+                    if (result.User != null)
+                    {
+                        userFullName = $"{result.User.FirstName} {result.User.LastName}".Trim();
+                    }
+                    
                     // Show success view
                     isSuccess = true;
                     StateHasChanged();
@@ -582,6 +596,17 @@
                     
                     // Mark user as authenticated
                     await AuthStateProvider.MarkUserAsAuthenticated(result.Token);
+                    
+                    // Store the principal credential
+                    var principalCredential = new StoredCredential
+                    {
+                        Type = "principal",
+                        DisplayName = result.User != null ? $"{result.User.FirstName} {result.User.LastName}".Trim() : principalModel.Email,
+                        Email = result.User?.Email ?? principalModel.Email,
+                        Token = result.Token,
+                        IsActive = true
+                    };
+                    await CredentialManager.AddCredentialAsync(principalCredential);
                     
                     if (principalModel.RememberMe)
                     {
@@ -655,10 +680,59 @@
             }
             else
             {
-                // Real brand sign in - need to call brand authentication
-                // TODO: Implement brand authentication API call
-                // For now, show error
-                errorMessage = "Brand authentication is not yet implemented in the backend";
+                // Real brand sign in with query parameters
+                var options = new RequestOptions
+                {
+                    Lang = selectedLang,
+                    SkipEmail = false
+                };
+                
+                var result = await UserService.SignInAsync(
+                    brandModel.ApiKey,      // API key as username
+                    brandModel.ApiPassword, // API password
+                    brandModel.BrandId,     // Brand ID for context
+                    options
+                );
+                
+                if (result.Success && !string.IsNullOrEmpty(result.Token))
+                {
+                    // Show success view
+                    isSuccess = true;
+                    StateHasChanged();
+                    
+                    // Wait a moment to show the success message
+                    await Task.Delay(1500);
+                    
+                    // Mark user as authenticated
+                    await AuthStateProvider.MarkUserAsAuthenticated(result.Token);
+                    
+                    // Store the brand credential
+                    var brandCredential = new StoredCredential
+                    {
+                        Type = "brand",
+                        DisplayName = brandModel.BrandId, // Will be updated with brand name later
+                        Email = "", // Brand credentials don't have email
+                        BrandId = brandModel.BrandId,
+                        BrandName = brandModel.BrandId, // Will be updated with actual name later
+                        ApiKey = brandModel.ApiKey,
+                        ApiPassword = brandModel.ApiPassword,
+                        Token = result.Token,
+                        IsActive = true
+                    };
+                    await CredentialManager.AddCredentialAsync(brandCredential);
+                    
+                    if (brandModel.RememberMe)
+                    {
+                        // Store remember me preference
+                        await JS.InvokeVoidAsync("localStorage.setItem", "rememberMe", "true");
+                    }
+                    
+                    NavigateAfterSignIn();
+                }
+                else
+                {
+                    errorMessage = result.Message;
+                }
             }
         }
         catch (Exception ex)

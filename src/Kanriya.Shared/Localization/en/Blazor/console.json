@@ -120,7 +120,10 @@
         "resetButton": "Reset Credentials",
         "resetWarning": "Resetting credentials will invalidate the current API key and password. Any applications using them will stop working.",
         "resetSuccess": "Credentials have been reset successfully. Save these new credentials - they won't be shown again!",
-        "notAuthenticated": "User not authenticated"
+        "notAuthenticated": "User not authenticated",
+        "signInWithCredentials": "Sign in with Brand Credentials",
+        "signingIn": "Signing in...",
+        "signedInWithCredentials": "Successfully signed in with brand credentials"
       },
       "profile": {
         "title": "User Profile",

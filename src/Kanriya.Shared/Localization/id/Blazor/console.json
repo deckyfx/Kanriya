@@ -120,7 +120,10 @@
         "resetButton": "Reset Kredensial",
         "resetWarning": "Mereset kredensial akan membatalkan kunci API dan kata sandi saat ini. Aplikasi yang menggunakannya akan berhenti bekerja.",
         "resetSuccess": "Kredensial berhasil direset. Simpan kredensial baru ini - tidak akan ditampilkan lagi!",
-        "notAuthenticated": "Pengguna tidak terautentikasi"
+        "notAuthenticated": "Pengguna tidak terautentikasi",
+        "signInWithCredentials": "Masuk dengan Kredensial Brand",
+        "signingIn": "Sedang masuk...",
+        "signedInWithCredentials": "Berhasil masuk dengan kredensial brand"
       },
       "profile": {
         "title": "Profil Pengguna",

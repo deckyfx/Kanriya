@@ -119,7 +119,7 @@ public class UserAuthMutations
         RequestOptionsInput? options = null,
         CancellationToken cancellationToken = default)
     {
-        var result = await userService.SignUpAsync(input.Email, input.Password, options?.ToRequestOptions(), cancellationToken);
+        var result = await userService.SignUpAsync(input.Email, input.Password, input.FirstName, input.LastName, options?.ToRequestOptions(), cancellationToken);
         
         // Note: PendingUser creation event could be published here if we had access to the PendingUser
         // For now, we rely on the service to handle this internally

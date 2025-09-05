@@ -120,7 +120,10 @@
         "resetButton": "認証情報をリセット",
         "resetWarning": "認証情報をリセットすると、現在のAPIキーとパスワードが無効になります。それらを使用しているアプリケーションは動作しなくなります。",
         "resetSuccess": "認証情報が正常にリセットされました。新しい認証情報を保存してください - 再度表示されません！",
-        "notAuthenticated": "ユーザーが認証されていません"
+        "notAuthenticated": "ユーザーが認証されていません",
+        "signInWithCredentials": "ブランド認証情報でサインイン",
+        "signingIn": "サインイン中...",
+        "signedInWithCredentials": "ブランド認証情報でのサインインに成功しました"
       },
       "profile": {
         "title": "ユーザープロファイル",

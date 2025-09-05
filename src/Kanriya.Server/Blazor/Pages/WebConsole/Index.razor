@@ -109,10 +109,12 @@
         </MudGrid>
     }
     
-    @* Managed Brands Section - Show for all users *@
-    <MudGrid>
-        <MudItem xs="12">
-            <MudPaper Class="pa-4">
+    @* Managed Brands Section - Show only for principal users *@
+    @if (isPrincipalUser)
+    {
+        <MudGrid>
+            <MudItem xs="12">
+                <MudPaper Class="pa-4">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                     <div>
                         <MudText Typo="Typo.h5">@L.T("Blazor.console.index.managedBrandsTitle")</MudText>
@@ -178,6 +180,7 @@
             </MudPaper>
         </MudItem>
     </MudGrid>
+    }
 </MudContainer>
 
 <style>
@@ -227,6 +230,13 @@
         // Check if user is principal (not brand context)
         isPrincipalUser = string.IsNullOrEmpty(tokenType) || tokenType != "BRAND";
         
+        // If user is in brand context, redirect to brand console
+        if (!isPrincipalUser)
+        {
+            Navigation.NavigateTo("/console/brand");
+            return;
+        }
+        
         if (isPrincipalUser)
         {
             // Get current user ID for principal users
@@ -236,10 +246,10 @@
             {
                 await LoadOwnedBrands();
             }
+            
+            // Load managed brands only for principal users
+            await LoadManagedBrands();
         }
-        
-        // Load managed brands for all users
-        await LoadManagedBrands();
     }
     
     private async Task LoadOwnedBrands()
@@ -269,8 +279,10 @@
         
         try
         {
-            // Get all stored brand credentials
+            // Get all stored brand credentials (only called for principal users)
             var allCredentials = await CredentialManager.GetAllCredentialsAsync();
+            
+            // Principal users see all brand credentials (excluding principal credentials)
             managedBrands = allCredentials.Where(c => c.Type == "brand").ToList();
         }
         catch (Exception ex)

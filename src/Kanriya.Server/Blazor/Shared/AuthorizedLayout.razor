@@ -43,7 +43,12 @@
             }
             else
             {
-                <div>Loading...</div>
+                <div class="loading-container">
+                    <div class="loading-content">
+                        <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+                        <MudText Typo="Typo.h6" Class="mt-3">Loading...</MudText>
+                    </div>
+                </div>
             }
         </NotAuthorized>
     </AuthorizeView>
@@ -57,8 +62,14 @@
     
     private async Task Logout()
     {
+        // Clear all stored credentials from local storage
+        await CredentialManager.ClearAllCredentialsAsync();
+        
+        // Clear authentication state
         await AuthStateProvider.MarkUserAsLoggedOut();
-        Navigation.NavigateTo("/signin");
+        
+        // Navigate to sign in page
+        Navigation.NavigateTo("/signin", true);
     }
 }
 
@@ -146,6 +157,27 @@
         flex: 1;
         padding: 2rem;
         overflow-y: auto;
+    }
+    
+    .loading-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .loading-content {
+        text-align: center;
+        padding: 3rem;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        color: #3b82f6;
     }
 
     @@media (max-width: 767.98px) {

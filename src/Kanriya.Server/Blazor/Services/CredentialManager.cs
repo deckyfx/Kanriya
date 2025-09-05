@@ -174,6 +174,7 @@ namespace Kanriya.Server.Blazor.Services
         public async Task SwitchCredentialAsync(string credentialId)
         {
             var credentials = await GetAllCredentialsAsync();
+            StoredCredential? activeCredential = null;
             
             foreach (var cred in credentials)
             {
@@ -181,11 +182,19 @@ namespace Kanriya.Server.Blazor.Services
                 if (cred.IsActive)
                 {
                     cred.LastUsedAt = DateTime.UtcNow;
+                    activeCredential = cred;
                 }
             }
             
             await SaveCredentialsAsync(credentials);
             await _jsRuntime.InvokeVoidAsync("localStorage.setItem", ACTIVE_KEY, credentialId);
+            
+            // IMPORTANT: Update the auth token with the new credential's token
+            if (activeCredential != null && !string.IsNullOrEmpty(activeCredential.Token))
+            {
+                // Update the authentication token used by SimpleAuthStateProvider
+                await _jsRuntime.InvokeVoidAsync("localStorage.setItem", "authToken", activeCredential.Token);
+            }
             
             OnCredentialChanged?.Invoke();
         }
