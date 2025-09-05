@@ -7,12 +7,15 @@
 @inject BlazorLocalizationService L
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
+@inject ICredentialManager CredentialManager
+@inject IUserService UserService
 @using Microsoft.AspNetCore.Components.Authorization
 @using Kanriya.Server.Services.Data
 @using Kanriya.Server.Blazor.Services
 @using System.Web
 @using System.ComponentModel.DataAnnotations
 @using Kanriya.Shared.Services
+@using Kanriya.Shared.Models
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
 <MudContainer MaxWidth="MaxWidth.Small" Class="mt-4">
@@ -71,12 +74,31 @@
                 </MudCardContent>
             </MudCard>
             
-            <MudButton Color="Color.Primary" 
-                       Variant="Variant.Filled" 
-                       FullWidth="true"
-                       @onclick='() => Navigation.NavigateTo($"/console{(string.IsNullOrEmpty(selectedLang) ? "" : $"?lang={selectedLang}")}")'>
-                @L.T("Blazor.console.createBrand.backToBrands")
-            </MudButton>
+            <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                <MudButton Color="Color.Default" 
+                           Variant="Variant.Outlined" 
+                           FullWidth="true"
+                           @onclick='() => Navigation.NavigateTo($"/console{(string.IsNullOrEmpty(selectedLang) ? "" : $"?lang={selectedLang}")}")'>
+                    @L.T("Blazor.console.createBrand.backToBrands")
+                </MudButton>
+                
+                <MudButton Color="Color.Primary" 
+                           Variant="Variant.Filled" 
+                           FullWidth="true"
+                           StartIcon="@Icons.Material.Filled.Login"
+                           @onclick="SignInWithBrandCredential"
+                           Disabled="@isSigningIn">
+                    @if (isSigningIn)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Style="margin-right: 0.5rem;" />
+                        @L.T("Blazor.console.createBrand.signingIn")
+                    }
+                    else
+                    {
+                        @L.T("Blazor.console.createBrand.signInWithCredentials")
+                    }
+                </MudButton>
+            </div>
         }
         else
         {
@@ -142,6 +164,8 @@
     private bool mockMode = false;
     private string? apiKey;
     private string? apiPassword;
+    private string? brandId;
+    private bool isSigningIn = false;
     
     public class CreateBrandModel
     {
@@ -185,6 +209,7 @@
                 
                 // Mock success
                 success = true;
+                brandId = Guid.NewGuid().ToString();
                 apiKey = "test_api_key_" + Guid.NewGuid().ToString("N").Substring(0, 16);
                 apiPassword = "test_password_" + Guid.NewGuid().ToString("N").Substring(0, 16);
                 
@@ -206,6 +231,7 @@
                 var (brand, apiSecret, apiPass) = await BrandService.CreateBrandAsync(model.BrandName, userId);
                 
                 // Store credentials for display
+                brandId = brand.Id.ToString();
                 apiKey = apiSecret;
                 apiPassword = apiPass;
                 success = true;
@@ -244,6 +270,77 @@
             {
                 Snackbar.Add($"Copy failed: {ex.Message}", Severity.Error);
             }
+        }
+    }
+    
+    private async Task SignInWithBrandCredential()
+    {
+        if (string.IsNullOrEmpty(brandId) || string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(apiPassword))
+        {
+            Snackbar.Add("Missing credentials", Severity.Error);
+            return;
+        }
+        
+        isSigningIn = true;
+        
+        try
+        {
+            // Get current user's email from auth state
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var email = authState.User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value 
+                ?? authState.User.Identity?.Name 
+                ?? "user@example.com";
+            
+            // Sign in with brand context
+            var options = new RequestOptions
+            {
+                Lang = selectedLang ?? "en",
+                SkipEmail = false
+            };
+            
+            var result = await UserService.SignInAsync(
+                email,
+                apiPassword, // Use the API password
+                brandId, // Pass brand ID for brand context
+                options
+            );
+            
+            if (result.Success && !string.IsNullOrEmpty(result.Token))
+            {
+                // Create and store the credential
+                var credential = new StoredCredential
+                {
+                    Type = "brand",
+                    DisplayName = model.BrandName,
+                    Email = email,
+                    BrandName = model.BrandName,
+                    BrandId = brandId,
+                    Token = result.Token,
+                    IsActive = false
+                };
+                
+                await CredentialManager.AddCredentialAsync(credential);
+                
+                // Switch to the new credential
+                await CredentialManager.SwitchCredentialAsync(credential.Id);
+                
+                Snackbar.Add(L.T("Blazor.console.createBrand.signedInWithCredentials"), Severity.Success);
+                
+                // Navigate to console with force reload
+                Navigation.NavigateTo("/console", forceLoad: true);
+            }
+            else
+            {
+                Snackbar.Add(result.Message ?? "Failed to sign in with brand credentials", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error signing in: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            isSigningIn = false;
         }
     }
 }

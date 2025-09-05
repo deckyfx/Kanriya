@@ -3,95 +3,173 @@
 @layout AuthorizedLayout
 @inject NavigationManager Navigation
 @inject IBrandService BrandService
+@inject ICredentialManager CredentialManager
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject BlazorLocalizationService L
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
 @using Microsoft.AspNetCore.Components.Authorization
 @using Kanriya.Server.Services.Data
 @using Kanriya.Server.Blazor.Services
+@using Kanriya.Server.Blazor.Dialogs
 @using Kanriya.Server.Data
 @using System.Web
 @using Kanriya.Shared.Services
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    @* Owned Brands Section - Only show for principal users *@
+    @if (isPrincipalUser)
+    {
+        <MudGrid>
+            <MudItem xs="12">
+                <MudPaper Class="pa-4 mb-4">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <div>
+                            <MudText Typo="Typo.h4">@L.T("Blazor.console.index.title")</MudText>
+                            <MudText Typo="Typo.body2" Style="color: var(--mud-palette-text-secondary);">
+                                @L.T("Blazor.console.index.subtitle")
+                            </MudText>
+                        </div>
+                        <MudButton 
+                            Color="Color.Primary" 
+                            Variant="Variant.Filled"
+                            StartIcon="@Icons.Material.Filled.Add"
+                            @onclick='() => Navigation.NavigateTo($"/console/create-brand{(string.IsNullOrEmpty(selectedLang) ? "" : $"?lang={selectedLang}")}")'>
+                            @L.T("Blazor.console.index.createBrand")
+                        </MudButton>
+                    </div>
+                    
+                    @if (isLoadingOwned)
+                    {
+                        <div style="display: flex; justify-content: center; padding: 3rem;">
+                            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+                        </div>
+                    }
+                    else if (ownedBrands == null || !ownedBrands.Any())
+                    {
+                        <MudAlert Severity="Severity.Info" Icon="@Icons.Material.Filled.Business" Class="mb-4">
+                            @L.T("Blazor.console.index.noBrands")
+                        </MudAlert>
+                        
+                        <div style="text-align: center; padding: 3rem;">
+                            <MudIcon Icon="@Icons.Material.Filled.Business" 
+                                     Size="Size.Large" 
+                                     Style="font-size: 4rem; color: var(--mud-palette-text-disabled); margin-bottom: 1rem;" />
+                            <MudText Typo="Typo.h6" Style="color: var(--mud-palette-text-secondary); margin-bottom: 0.5rem;">
+                                @L.T("Blazor.console.index.noBrandsTitle")
+                            </MudText>
+                            <MudText Typo="Typo.body2" Style="color: var(--mud-palette-text-disabled); margin-bottom: 2rem;">
+                                @L.T("Blazor.console.index.noBrandsDescription")
+                            </MudText>
+                            <MudButton 
+                                Color="Color.Primary" 
+                                Variant="Variant.Filled"
+                                Size="Size.Large"
+                                StartIcon="@Icons.Material.Filled.Add"
+                                @onclick='() => Navigation.NavigateTo($"/console/create-brand{(string.IsNullOrEmpty(selectedLang) ? "" : $"?lang={selectedLang}")}")'>
+                                @L.T("Blazor.console.index.createFirstBrand")
+                            </MudButton>
+                        </div>
+                    }
+                    else
+                    {
+                        <MudGrid>
+                            @foreach (var brand in ownedBrands)
+                            {
+                                <MudItem xs="12" sm="6" md="4">
+                                    <MudCard Class="clickable-card" @onclick="() => ShowBrandCredentials(brand)">
+                                        <MudCardContent>
+                                            <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
+                                                <MudIcon Icon="@Icons.Material.Filled.Business" 
+                                                         Color="Color.Primary" 
+                                                         Size="Size.Medium" 
+                                                         Style="margin-right: 0.5rem;" />
+                                                <MudText Typo="Typo.h6">@brand.Name</MudText>
+                                            </div>
+                                            <MudText Typo="Typo.body2" Style="color: var(--mud-palette-text-secondary);">
+                                                @L.T("Blazor.console.index.brandId"): @TruncateBrandId(brand.Id)
+                                            </MudText>
+                                            <MudText Typo="Typo.caption" Style="color: var(--mud-palette-text-disabled); margin-top: 0.5rem;">
+                                                @L.T("Blazor.console.index.createdAt"): @brand.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+                                            </MudText>
+                                            <MudText Typo="Typo.caption" Style="color: var(--mud-palette-info); margin-top: 0.5rem;">
+                                                <MudIcon Icon="@Icons.Material.Filled.VpnKey" Size="Size.Small" Style="vertical-align: text-bottom;" />
+                                                @L.T("Blazor.console.index.clickToViewCredentials")
+                                            </MudText>
+                                        </MudCardContent>
+                                    </MudCard>
+                                </MudItem>
+                            }
+                        </MudGrid>
+                    }
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    }
+    
+    @* Managed Brands Section - Show for all users *@
     <MudGrid>
         <MudItem xs="12">
             <MudPaper Class="pa-4">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                     <div>
-                        <MudText Typo="Typo.h4">@L.T("Blazor.console.index.title")</MudText>
+                        <MudText Typo="Typo.h5">@L.T("Blazor.console.index.managedBrandsTitle")</MudText>
                         <MudText Typo="Typo.body2" Style="color: var(--mud-palette-text-secondary);">
-                            @L.T("Blazor.console.index.subtitle")
+                            @L.T("Blazor.console.index.managedBrandsSubtitle")
                         </MudText>
                     </div>
-                    <MudButton 
-                        Color="Color.Primary" 
-                        Variant="Variant.Filled"
-                        StartIcon="@Icons.Material.Filled.Add"
-                        @onclick='() => Navigation.NavigateTo($"/console/create-brand{(string.IsNullOrEmpty(selectedLang) ? "" : $"?lang={selectedLang}")}")'>
-                        @L.T("Blazor.console.index.createBrand")
-                    </MudButton>
                 </div>
                 
-                @if (isLoading)
+                @if (isLoadingManaged)
                 {
                     <div style="display: flex; justify-content: center; padding: 3rem;">
                         <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
                     </div>
                 }
-                else if (brands == null || !brands.Any())
+                else if (managedBrands == null || !managedBrands.Any())
                 {
-                    <MudAlert Severity="Severity.Info" Icon="@Icons.Material.Filled.Business" Class="mb-4">
-                        @L.T("Blazor.console.index.noBrands")
+                    <MudAlert Severity="Severity.Info" Icon="@Icons.Material.Filled.AccountTree">
+                        @L.T("Blazor.console.index.noManagedBrands")
                     </MudAlert>
-                    
-                    <div style="text-align: center; padding: 3rem;">
-                        <MudIcon Icon="@Icons.Material.Filled.Business" 
-                                 Size="Size.Large" 
-                                 Style="font-size: 4rem; color: var(--mud-palette-text-disabled); margin-bottom: 1rem;" />
-                        <MudText Typo="Typo.h6" Style="color: var(--mud-palette-text-secondary); margin-bottom: 0.5rem;">
-                            @L.T("Blazor.console.index.noBrandsTitle")
-                        </MudText>
-                        <MudText Typo="Typo.body2" Style="color: var(--mud-palette-text-disabled); margin-bottom: 2rem;">
-                            @L.T("Blazor.console.index.noBrandsDescription")
-                        </MudText>
-                        <MudButton 
-                            Color="Color.Primary" 
-                            Variant="Variant.Filled"
-                            Size="Size.Large"
-                            StartIcon="@Icons.Material.Filled.Add"
-                            @onclick='() => Navigation.NavigateTo($"/console/create-brand{(string.IsNullOrEmpty(selectedLang) ? "" : $"?lang={selectedLang}")}")'>
-                            @L.T("Blazor.console.index.createFirstBrand")
-                        </MudButton>
-                    </div>
                 }
                 else
                 {
                     <MudGrid>
-                        @foreach (var brand in brands)
+                        @foreach (var credential in managedBrands)
                         {
                             <MudItem xs="12" sm="6" md="4">
-                                <MudCard>
+                                <MudCard Class="@(credential.IsActive ? "active-card" : "clickable-card")" 
+                                         @onclick="() => SwitchToCredential(credential)">
                                     <MudCardContent>
                                         <div style="display: flex; align-items: center; margin-bottom: 0.5rem;">
-                                            <MudIcon Icon="@Icons.Material.Filled.Business" 
-                                                     Color="Color.Primary" 
+                                            <MudIcon Icon="@Icons.Material.Filled.AccountTree" 
+                                                     Color="@(credential.IsActive ? Color.Success : Color.Default)" 
                                                      Size="Size.Medium" 
                                                      Style="margin-right: 0.5rem;" />
-                                            <MudText Typo="Typo.h6">@brand.Name</MudText>
+                                            <MudText Typo="Typo.h6">@credential.BrandName</MudText>
+                                            @if (credential.IsActive)
+                                            {
+                                                <MudChip T="string" Size="Size.Small" Color="Color.Success" Style="margin-left: auto;">
+                                                    @L.T("Blazor.console.credentials.active")
+                                                </MudChip>
+                                            }
                                         </div>
                                         <MudText Typo="Typo.body2" Style="color: var(--mud-palette-text-secondary);">
-                                            @L.T("Blazor.console.index.brandId"): @brand.Id
+                                            @L.T("Blazor.console.index.brandId"): @TruncateBrandId(credential.BrandId)
                                         </MudText>
                                         <MudText Typo="Typo.caption" Style="color: var(--mud-palette-text-disabled); margin-top: 0.5rem;">
-                                            @L.T("Blazor.console.index.createdAt"): @brand.CreatedAt.ToString("yyyy-MM-dd HH:mm")
+                                            @credential.Email
                                         </MudText>
+                                        @if (!credential.IsActive)
+                                        {
+                                            <MudText Typo="Typo.caption" Style="color: var(--mud-palette-info); margin-top: 0.5rem;">
+                                                <MudIcon Icon="@Icons.Material.Filled.SwapHoriz" Size="Size.Small" Style="vertical-align: text-bottom;" />
+                                                @L.T("Blazor.console.index.clickToSwitch")
+                                            </MudText>
+                                        }
                                     </MudCardContent>
-                                    <MudCardActions>
-                                        <MudButton Color="Color.Primary" Variant="Variant.Text">
-                                            @L.T("Blazor.console.index.manage")
-                                        </MudButton>
-                                    </MudCardActions>
                                 </MudCard>
                             </MudItem>
                         }
@@ -102,10 +180,30 @@
     </MudGrid>
 </MudContainer>
 
+<style>
+    .clickable-card {
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .clickable-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    }
+    
+    .active-card {
+        border: 2px solid var(--mud-palette-success);
+    }
+</style>
+
 @code {
-    private List<Brand>? brands;
-    private bool isLoading = true;
+    private List<Brand>? ownedBrands;
+    private List<StoredCredential>? managedBrands;
+    private bool isLoadingOwned = true;
+    private bool isLoadingManaged = true;
+    private bool isPrincipalUser = false;
     private string? selectedLang;
+    private string? currentUserId;
     
     protected override async Task OnInitializedAsync()
     {
@@ -122,24 +220,126 @@
         // Initialize localization
         L.Initialize();
         
-        // Get current user
+        // Get current auth state
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var userId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var tokenType = authState.User.FindFirst("token_type")?.Value;
         
-        if (!string.IsNullOrEmpty(userId))
+        // Check if user is principal (not brand context)
+        isPrincipalUser = string.IsNullOrEmpty(tokenType) || tokenType != "BRAND";
+        
+        if (isPrincipalUser)
         {
-            try
+            // Get current user ID for principal users
+            currentUserId = authState.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            
+            if (!string.IsNullOrEmpty(currentUserId))
             {
-                // Get user's brands
-                brands = await BrandService.GetUserBrandsAsync(userId);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error loading brands: {ex.Message}");
-                brands = new List<Brand>();
+                await LoadOwnedBrands();
             }
         }
         
-        isLoading = false;
+        // Load managed brands for all users
+        await LoadManagedBrands();
+    }
+    
+    private async Task LoadOwnedBrands()
+    {
+        isLoadingOwned = true;
+        
+        try
+        {
+            // Get user's owned brands
+            ownedBrands = await BrandService.GetUserBrandsAsync(currentUserId!);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading owned brands: {ex.Message}");
+            ownedBrands = new List<Brand>();
+        }
+        finally
+        {
+            isLoadingOwned = false;
+            StateHasChanged();
+        }
+    }
+    
+    private async Task LoadManagedBrands()
+    {
+        isLoadingManaged = true;
+        
+        try
+        {
+            // Get all stored brand credentials
+            var allCredentials = await CredentialManager.GetAllCredentialsAsync();
+            managedBrands = allCredentials.Where(c => c.Type == "brand").ToList();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading managed brands: {ex.Message}");
+            managedBrands = new List<StoredCredential>();
+        }
+        finally
+        {
+            isLoadingManaged = false;
+            StateHasChanged();
+        }
+    }
+    
+    private async Task ShowBrandCredentials(Brand brand)
+    {
+        // Show dialog with brand credentials
+        var parameters = new DialogParameters<BrandCredentialsDialog>
+        {
+            { x => x.Brand, brand }
+        };
+        
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
+        
+        await DialogService.ShowAsync<BrandCredentialsDialog>(
+            L.T("Blazor.console.index.brandCredentials"), 
+            parameters, 
+            options);
+    }
+    
+    private async Task SwitchToCredential(StoredCredential credential)
+    {
+        if (credential.IsActive)
+        {
+            Snackbar.Add(L.T("Blazor.console.index.alreadyActive"), Severity.Info);
+            return;
+        }
+        
+        try
+        {
+            await CredentialManager.SwitchCredentialAsync(credential.Id);
+            Snackbar.Add(L.T("Blazor.console.credentials.switchedTo") + " " + credential.BrandName, Severity.Success);
+            
+            // Reload page to apply new credentials
+            Navigation.NavigateTo(Navigation.Uri, true);
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error switching credential: {ex.Message}", Severity.Error);
+        }
+    }
+    
+    private string TruncateBrandId(string brandId)
+    {
+        if (string.IsNullOrEmpty(brandId))
+            return "";
+            
+        if (brandId.Length >= 8)
+        {
+            var first4 = brandId.Substring(0, 4);
+            var last4 = brandId.Substring(brandId.Length - 4);
+            return $"{first4}...{last4}";
+        }
+        
+        return brandId;
     }
 }

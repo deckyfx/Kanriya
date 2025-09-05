@@ -5,6 +5,8 @@ using Kanriya.Server.Program;
 using Kanriya.Shared;
 using Kanriya.Shared.Utils;
 using Npgsql;
+using System.Text;
+using System.Text.Json;
 
 namespace Kanriya.Server.Services.Data;
 
@@ -32,6 +34,15 @@ public interface IBrandService
         string brandId, 
         string key, 
         string value, 
+        CancellationToken cancellationToken = default);
+    Task<(bool success, string? token, BrandUser? brandUser, Brand? brand)> AuthenticateBrandAsync(
+        string apiKey, 
+        string apiPassword,
+        CancellationToken cancellationToken = default);
+    Task<(bool Success, string Message, string? ApiKey, string? ApiPassword)> ResetBrandCredentialsAsync(
+        string? userId,
+        string brandId,
+        string? brandUserId,
         CancellationToken cancellationToken = default);
 }
 
@@ -648,5 +659,172 @@ public class BrandService : IBrandService
         
         _logger.LogInformation("Updated brand {BrandId} info: {Key} = {Value}", brandId, key, value);
         return (true, "Brand info updated successfully");
+    }
+    
+    /// <summary>
+    /// Authenticate using brand API credentials
+    /// </summary>
+    public async Task<(bool success, string? token, BrandUser? brandUser, Brand? brand)> AuthenticateBrandAsync(
+        string apiKey, 
+        string apiPassword,
+        CancellationToken cancellationToken = default)
+    {
+        // This is a simplified implementation
+        // In production, you would need to properly verify API credentials against the brand schema
+        try
+        {
+            using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+            
+            // For now, we'll return a simple authentication failure
+            // You'll need to implement proper brand authentication logic
+            _logger.LogWarning("Brand authentication not fully implemented");
+            return (false, null, null, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during brand authentication");
+            return (false, null, null, null);
+        }
+    }
+    
+    private string GenerateBrandJwtToken(Brand brand, BrandUser? brandUser)
+    {
+        // This is a simplified token generation
+        // In production, you should use proper JWT library with claims
+        var tokenData = new
+        {
+            token_type = "BRAND",
+            brand_id = brand.Id.ToString(),
+            brand_schema = brand.SchemaName,
+            brand_name = brand.Name,
+            user_id = brandUser?.Id.ToString(),
+            exp = DateTimeOffset.UtcNow.AddDays(30).ToUnixTimeSeconds()
+        };
+        
+        // For now, return a simple base64 encoded JSON
+        // In production, use proper JWT signing
+        var json = JsonSerializer.Serialize(tokenData);
+        return Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
+    }
+    
+    /// <summary>
+    /// Reset brand API credentials - brand owner or brand-context user can reset
+    /// </summary>
+    public async Task<(bool Success, string Message, string? ApiKey, string? ApiPassword)> ResetBrandCredentialsAsync(
+        string? userId,
+        string brandId,
+        string? brandUserId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+            
+            // Get the brand
+            var brand = await context.Brands
+                .FirstOrDefaultAsync(b => b.Id == brandId, cancellationToken);
+                
+            if (brand == null)
+            {
+                return (false, "Brand not found", null, null);
+            }
+            
+            // Check authorization: either principal user (brand owner) or brand-context user
+            bool isAuthorized = false;
+            string authType = "";
+            
+            if (!string.IsNullOrEmpty(userId))
+            {
+                // Principal context - check if user is brand owner
+                if (brand.OwnerId == userId)
+                {
+                    isAuthorized = true;
+                    authType = "principal owner";
+                }
+                else
+                {
+                    _logger.LogWarning("Principal user {UserId} attempted to reset credentials for brand {BrandId} owned by {OwnerId}", 
+                        userId, brandId, brand.OwnerId);
+                }
+            }
+            else if (!string.IsNullOrEmpty(brandUserId))
+            {
+                // Brand context - user can reset their own brand's credentials
+                // TODO: Add role check here when permissions are implemented (e.g., BrandOwner role)
+                isAuthorized = true;
+                authType = "brand context";
+            }
+            
+            if (!isAuthorized)
+            {
+                return (false, "Unauthorized: Only the brand owner or brand users can reset credentials", null, null);
+            }
+            
+            // Generate new API credentials
+            var apiKey = _apiCredentialService.GenerateApiSecret();
+            var apiPassword = _apiCredentialService.GenerateApiPassword();
+            
+            // Get brand-specific connection
+            var connectionString = _brandService.BuildConnectionString(brand);
+            using var connection = new NpgsqlConnection(connectionString);
+            await connection.OpenAsync(cancellationToken);
+            
+            // Get the first brand user (owner)
+            string? targetBrandUserId = null;
+            using (var getUser = new NpgsqlCommand(@$"
+                SELECT u.id 
+                FROM {brand.SchemaName}.users u
+                INNER JOIN {brand.SchemaName}.user_roles ur ON u.id = ur.user_id
+                WHERE ur.role = 'BrandOwner'
+                ORDER BY u.created_at
+                LIMIT 1;
+            ", connection))
+            {
+                var result = await getUser.ExecuteScalarAsync(cancellationToken);
+                if (result != null)
+                {
+                    targetBrandUserId = result.ToString();
+                }
+            }
+            
+            if (string.IsNullOrEmpty(targetBrandUserId))
+            {
+                _logger.LogError("No brand owner found in brand schema {SchemaName}", brand.SchemaName);
+                return (false, "Brand owner not found in brand schema", null, null);
+            }
+            
+            // Update the API credentials
+            var hashedPassword = _apiCredentialService.HashApiPassword(apiPassword);
+            
+            using (var updateCredentials = new NpgsqlCommand(@$"
+                UPDATE {brand.SchemaName}.users 
+                SET api_secret = @apiKey, 
+                    api_password_hash = @apiPassword,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = @userId::uuid;
+            ", connection))
+            {
+                updateCredentials.Parameters.AddWithValue("apiKey", apiKey);
+                updateCredentials.Parameters.AddWithValue("apiPassword", hashedPassword);
+                updateCredentials.Parameters.AddWithValue("userId", targetBrandUserId);
+                
+                var rowsAffected = await updateCredentials.ExecuteNonQueryAsync(cancellationToken);
+                
+                if (rowsAffected == 0)
+                {
+                    return (false, "Failed to update credentials", null, null);
+                }
+            }
+            
+            _logger.LogInformation("Reset API credentials for brand {BrandId} by {AuthType} (UserId: {UserId}, BrandUserId: {BrandUserId})", 
+                brandId, authType, userId ?? "N/A", brandUserId ?? "N/A");
+            
+            return (true, "Credentials reset successfully. Save these new credentials - they won't be shown again.", apiKey, apiPassword);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resetting brand credentials for brand {BrandId}", brandId);
+            return (false, $"Error resetting credentials: {ex.Message}", null, null);
+        }
     }
 }

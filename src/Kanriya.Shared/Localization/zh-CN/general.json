@@ -75,6 +75,10 @@
     "signInSuccess": "登录成功！",
     "welcomeBack": "欢迎回来",
     "redirectingToDashboard": "正在跳转至控制台...",
+    "brandId": "品牌ID",
+    "brandIdHelp": "输入品牌ID以品牌身份登录",
+    "signInAsBrand": "品牌登录",
+    "signInAsPrincipal": "邮箱登录",
     "errors": {
       "invalidCredentials": "无效的认证信息",
       "sessionExpired": "会话已过期。请重新登录。",

@@ -75,6 +75,10 @@
     "signInSuccess": "Berhasil Masuk!",
     "welcomeBack": "Selamat Datang Kembali",
     "redirectingToDashboard": "Mengalihkan ke dashboard...",
+    "brandId": "ID Brand",
+    "brandIdHelp": "Masukkan ID Brand untuk masuk dengan konteks brand",
+    "signInAsBrand": "Masuk sebagai Brand",
+    "signInAsPrincipal": "Masuk dengan Email",
     "errors": {
       "invalidCredentials": "Kredensial tidak valid",
       "sessionExpired": "Sesi berakhir. Silakan masuk kembali.",

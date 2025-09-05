@@ -5,6 +5,7 @@
 @inject SimpleAuthStateProvider AuthStateProvider
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject BlazorLocalizationService L
+@inject ICredentialManager CredentialManager
 
 <CascadingAuthenticationState>
     <AuthorizeView>
@@ -17,8 +18,12 @@
                 <main>
                     <div class="top-row">
                         <div class="top-row-content">
-                            <span class="welcome-text">@L.T("Blazor.console.navigation.welcome"), @(context.User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress")?.Value ?? context.User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? L.T("Blazor.console.navigation.user"))</span>
-                            <button class="logout-btn" @onclick="Logout">@L.T("Blazor.console.navigation.logout")</button>
+                            <div class="top-row-left">
+                                <!-- Empty for now, can add breadcrumbs or other navigation elements -->
+                            </div>
+                            <div class="top-row-right">
+                                <CredentialSwitcher />
+                            </div>
                         </div>
                     </div>
 
@@ -104,6 +109,15 @@
         padding: 0 2rem;
         display: flex;
         justify-content: space-between;
+        align-items: center;
+    }
+
+    .top-row-left {
+        flex: 1;
+    }
+
+    .top-row-right {
+        display: flex;
         align-items: center;
     }
 

@@ -23,10 +23,16 @@
                 <p style="color: #666; margin: 1rem 0; line-height: 1.6;">
                     @LocalizationService.Instance.t("auth.welcomeBack")
                 </p>
-                @if (!string.IsNullOrEmpty(model.Email))
+                @if (isBrandMode && !string.IsNullOrEmpty(brandModel.BrandId))
                 {
                     <p style="color: #555; margin: 1rem 0;">
-                        <strong>@model.Email</strong>
+                        <strong>Brand: @brandModel.BrandId</strong>
+                    </p>
+                }
+                else if (!string.IsNullOrEmpty(principalModel.Email))
+                {
+                    <p style="color: #555; margin: 1rem 0;">
+                        <strong>@principalModel.Email</strong>
                     </p>
                 }
                 <p style="color: #777; margin-top: 1rem; font-size: 0.9rem;">
@@ -48,89 +54,188 @@
                 </div>
             }
             
-            <EditForm Model="@model" OnSubmit="@HandleSignIn">
-            
-            @* Hidden fields for query parameters *@
-            @if (mockMode)
+            @if (!isBrandMode)
             {
-                <input type="hidden" name="mock" value="true" />
-            }
-            @if (!string.IsNullOrEmpty(selectedLang) && selectedLang != "en")
-            {
-                <input type="hidden" name="lang" value="@selectedLang" />
-            }
             
-            <div class="form-group">
-                <label>@LocalizationService.Instance.t("auth.email")</label>
-                <InputText @bind-Value="model.Email" class="form-control" placeholder="@LocalizationService.Instance.t("auth.email")" disabled="@isSubmitting" />
-                @if (showValidation && string.IsNullOrEmpty(model.Email))
+                <EditForm Model="@principalModel" OnSubmit="@HandlePrincipalSignIn">
+                
+                @* Hidden fields for query parameters *@
+                @if (mockMode)
                 {
-                    <div class="validation-message">
-                        @LocalizationService.Instance.t("validation.required").Replace("{field}", LocalizationService.Instance.t("auth.email"))
-                    </div>
+                    <input type="hidden" name="mock" value="true" />
                 }
-                else if (showValidation && !IsValidEmail(model.Email))
+                @if (!string.IsNullOrEmpty(selectedLang) && selectedLang != "en")
                 {
-                    <div class="validation-message">
-                        @LocalizationService.Instance.t("validation.email")
-                    </div>
+                    <input type="hidden" name="lang" value="@selectedLang" />
                 }
-            </div>
-            
-            <div class="form-group">
-                <label>@LocalizationService.Instance.t("auth.password")</label>
-                <div class="password-input-wrapper">
-                    <InputText type="@(showPassword ? "text" : "password")" @bind-Value="model.Password" class="form-control" placeholder="@LocalizationService.Instance.t("auth.password")" disabled="@isSubmitting" />
-                    <button type="button" class="password-toggle" @onclick="() => showPassword = !showPassword" disabled="@isSubmitting">
-                        @if (showPassword)
-                        {
-                            <span>👁️</span>
-                        }
-                        else
-                        {
-                            <span>👁️‍🗨️</span>
-                        }
-                    </button>
-                </div>
-                @if (showValidation && string.IsNullOrEmpty(model.Password))
-                {
-                    <div class="validation-message">
-                        @LocalizationService.Instance.t("validation.required").Replace("{field}", LocalizationService.Instance.t("auth.password"))
-                    </div>
-                }
-            </div>
-            
-            <div class="form-options">
-                <div class="form-check">
-                    <InputCheckbox @bind-Value="model.RememberMe" class="form-check-input" id="rememberMe" disabled="@isSubmitting" />
-                    <label class="form-check-label" for="rememberMe">
-                        @LocalizationService.Instance.t("auth.rememberMe")
-                    </label>
+                
+                <div class="form-group">
+                    <label>@LocalizationService.Instance.t("auth.email")</label>
+                    <InputText @bind-Value="principalModel.Email" class="form-control" placeholder="@LocalizationService.Instance.t("auth.email")" disabled="@isSubmitting" />
+                    @if (showValidation && string.IsNullOrEmpty(principalModel.Email))
+                    {
+                        <div class="validation-message">
+                            @LocalizationService.Instance.t("validation.required").Replace("{field}", LocalizationService.Instance.t("auth.email"))
+                        </div>
+                    }
+                    else if (showValidation && !IsValidEmail(principalModel.Email))
+                    {
+                        <div class="validation-message">
+                            @LocalizationService.Instance.t("validation.email")
+                        </div>
+                    }
                 </div>
                 
-                <a href="/request-reset-password" class="forgot-password-link">
-                    @LocalizationService.Instance.t("auth.forgotPassword")
-                </a>
-            </div>
-            
-            <button type="submit" class="btn btn-primary btn-block" disabled="@isSubmitting">
-                @if (isSubmitting)
+                <div class="form-group">
+                    <label>@LocalizationService.Instance.t("auth.password")</label>
+                    <div class="password-input-wrapper">
+                        <InputText type="@(showPassword ? "text" : "password")" @bind-Value="principalModel.Password" class="form-control" placeholder="@LocalizationService.Instance.t("auth.password")" disabled="@isSubmitting" />
+                        <button type="button" class="password-toggle" @onclick="() => showPassword = !showPassword" disabled="@isSubmitting">
+                            @if (showPassword)
+                            {
+                                <span>👁️</span>
+                            }
+                            else
+                            {
+                                <span>👁️‍🗨️</span>
+                            }
+                        </button>
+                    </div>
+                    @if (showValidation && string.IsNullOrEmpty(principalModel.Password))
+                    {
+                        <div class="validation-message">
+                            @LocalizationService.Instance.t("validation.required").Replace("{field}", LocalizationService.Instance.t("auth.password"))
+                        </div>
+                    }
+                </div>
+                
+                <div class="form-options">
+                    <div class="form-check">
+                        <InputCheckbox @bind-Value="principalModel.RememberMe" class="form-check-input" id="rememberMe" disabled="@isSubmitting" />
+                        <label class="form-check-label" for="rememberMe">
+                            @LocalizationService.Instance.t("auth.rememberMe")
+                        </label>
+                    </div>
+                    
+                    <a href="/request-reset-password" class="forgot-password-link">
+                        @LocalizationService.Instance.t("auth.forgotPassword")
+                    </a>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-block" disabled="@isSubmitting">
+                    @if (isSubmitting)
+                    {
+                        <span class="spinner" style="display: inline-block; width: 1rem; height: 1rem; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 0.5rem;"></span>
+                        <span>@LocalizationService.Instance.t("auth.signIn")...</span>
+                    }
+                    else
+                    {
+                        <span>@LocalizationService.Instance.t("auth.signIn")</span>
+                    }
+                </button>
+                </EditForm>
+            }
+            else
+            {
+                <EditForm Model="@brandModel" OnSubmit="@HandleBrandSignIn">
+                
+                @* Hidden fields for query parameters *@
+                @if (mockMode)
                 {
-                    <span class="spinner" style="display: inline-block; width: 1rem; height: 1rem; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 0.5rem;"></span>
-                    <span>@LocalizationService.Instance.t("auth.signIn")...</span>
+                    <input type="hidden" name="mock" value="true" />
                 }
-                else
+                @if (!string.IsNullOrEmpty(selectedLang) && selectedLang != "en")
                 {
-                    <span>@LocalizationService.Instance.t("auth.signIn")</span>
+                    <input type="hidden" name="lang" value="@selectedLang" />
                 }
-            </button>
-            </EditForm>
+                
+                <div class="form-group">
+                    <label>@LocalizationService.Instance.t("auth.brandId")</label>
+                    <InputText @bind-Value="brandModel.BrandId" class="form-control" placeholder="@LocalizationService.Instance.t("auth.brandId")" disabled="@isSubmitting" />
+                    @if (showValidation && string.IsNullOrEmpty(brandModel.BrandId))
+                    {
+                        <div class="validation-message">
+                            @LocalizationService.Instance.t("validation.required").Replace("{field}", LocalizationService.Instance.t("auth.brandId"))
+                        </div>
+                    }
+                </div>
+                
+                <div class="form-group">
+                    <label>@LocalizationService.Instance.t("auth.apiKey")</label>
+                    <InputText @bind-Value="brandModel.ApiKey" class="form-control" placeholder="@LocalizationService.Instance.t("auth.apiKey")" disabled="@isSubmitting" />
+                    @if (showValidation && string.IsNullOrEmpty(brandModel.ApiKey))
+                    {
+                        <div class="validation-message">
+                            @LocalizationService.Instance.t("validation.required").Replace("{field}", LocalizationService.Instance.t("auth.apiKey"))
+                        </div>
+                    }
+                </div>
+                
+                <div class="form-group">
+                    <label>@LocalizationService.Instance.t("auth.apiPassword")</label>
+                    <div class="password-input-wrapper">
+                        <InputText type="@(showPassword ? "text" : "password")" @bind-Value="brandModel.ApiPassword" class="form-control" placeholder="@LocalizationService.Instance.t("auth.apiPassword")" disabled="@isSubmitting" />
+                        <button type="button" class="password-toggle" @onclick="() => showPassword = !showPassword" disabled="@isSubmitting">
+                            @if (showPassword)
+                            {
+                                <span>👁️</span>
+                            }
+                            else
+                            {
+                                <span>👁️‍🗨️</span>
+                            }
+                        </button>
+                    </div>
+                    @if (showValidation && string.IsNullOrEmpty(brandModel.ApiPassword))
+                    {
+                        <div class="validation-message">
+                            @LocalizationService.Instance.t("validation.required").Replace("{field}", LocalizationService.Instance.t("auth.apiPassword"))
+                        </div>
+                    }
+                </div>
+                
+                <div class="form-options">
+                    <div class="form-check">
+                        <InputCheckbox @bind-Value="brandModel.RememberMe" class="form-check-input" id="rememberMeBrand" disabled="@isSubmitting" />
+                        <label class="form-check-label" for="rememberMeBrand">
+                            @LocalizationService.Instance.t("auth.rememberMe")
+                        </label>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-block" disabled="@isSubmitting">
+                    @if (isSubmitting)
+                    {
+                        <span class="spinner" style="display: inline-block; width: 1rem; height: 1rem; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 0.5rem;"></span>
+                        <span>@LocalizationService.Instance.t("auth.signIn")...</span>
+                    }
+                    else
+                    {
+                        <span>@LocalizationService.Instance.t("auth.signIn")</span>
+                    }
+                </button>
+                </EditForm>
+            }
             
             <div class="auth-footer">
-                <p>
-                    @LocalizationService.Instance.t("auth.dontHaveAccount") 
-                    <a href="/signup@(GetQueryString())">@LocalizationService.Instance.t("auth.signUp")</a>
-                </p>
+                @if (!isBrandMode)
+                {
+                    <p>
+                        @LocalizationService.Instance.t("auth.dontHaveAccount") 
+                        <a href="/signup@(GetQueryString())">@LocalizationService.Instance.t("auth.signUp")</a>
+                    </p>
+                }
+                
+                <button type="button" class="btn-link-style" @onclick="ToggleMode">
+                    @if (isBrandMode)
+                    {
+                        <span>@LocalizationService.Instance.t("auth.signInAsPrincipal")</span>
+                    }
+                    else
+                    {
+                        <span>@LocalizationService.Instance.t("auth.signInAsBrand")</span>
+                    }
+                </button>
             </div>
         }
     </div>
@@ -312,10 +417,29 @@
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
     }
+    
+    .btn-link-style {
+        background: none;
+        border: none;
+        color: #667eea;
+        text-decoration: none;
+        cursor: pointer;
+        padding: 0.5rem;
+        margin-top: 0.5rem;
+        font-size: 0.95rem;
+        width: 100%;
+        text-align: center;
+    }
+    
+    .btn-link-style:hover {
+        text-decoration: underline;
+    }
 </style>
 
 @code {
-    private SignInModel model = new();
+    private PrincipalSignInModel principalModel = new();
+    private BrandSignInModel brandModel = new();
+    private bool isBrandMode = false;
     private bool isSubmitting = false;
     private string? errorMessage;
     private bool isSuccess = false;
@@ -324,10 +448,18 @@
     private bool showPassword = false;
     private bool showValidation = false;
     
-    public class SignInModel
+    public class PrincipalSignInModel
     {
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
+        public bool RememberMe { get; set; }
+    }
+    
+    public class BrandSignInModel
+    {
+        public string BrandId { get; set; } = string.Empty;
+        public string ApiKey { get; set; } = string.Empty;
+        public string ApiPassword { get; set; } = string.Empty;
         public bool RememberMe { get; set; }
     }
     
@@ -370,14 +502,21 @@
         await base.OnAfterRenderAsync(firstRender);
     }
     
-    private async Task HandleSignIn()
+    private void ToggleMode()
+    {
+        isBrandMode = !isBrandMode;
+        showValidation = false;
+        errorMessage = null;
+    }
+    
+    private async Task HandlePrincipalSignIn()
     {
         if (isSubmitting) return;
         
         showValidation = true;
         
         // Client-side validation
-        if (string.IsNullOrEmpty(model.Email) || !IsValidEmail(model.Email) || string.IsNullOrEmpty(model.Password))
+        if (string.IsNullOrEmpty(principalModel.Email) || !IsValidEmail(principalModel.Email) || string.IsNullOrEmpty(principalModel.Password))
         {
             return;
         }
@@ -407,27 +546,14 @@
                 // Wait a moment to show the success message
                 await Task.Delay(1500);
                 
-                // Create a mock JWT token (in real scenario, this would come from backend)
-                var mockToken = GenerateMockJwtToken(model.Email);
+                // Create a mock JWT token for principal
+                var mockToken = GenerateMockPrincipalToken(principalModel.Email);
                 
                 // Mark user as authenticated
                 await AuthStateProvider.MarkUserAsAuthenticated(mockToken);
                 
-                // Check for return URL
-                var uri = new Uri(Navigation.Uri);
-                var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
-                var returnUrl = query["returnUrl"];
-                
-                if (!string.IsNullOrEmpty(returnUrl))
-                {
-                    // Force a full page reload to ensure authentication is recognized
-                    Navigation.NavigateTo(Uri.UnescapeDataString(returnUrl), forceLoad: true);
-                }
-                else
-                {
-                    // Force a full page reload to ensure authentication is recognized
-                    Navigation.NavigateTo("/console", forceLoad: true);
-                }
+                // Navigate to console
+                NavigateAfterSignIn();
             }
             else
             {
@@ -435,13 +561,13 @@
                 var options = new RequestOptions
                 {
                     Lang = selectedLang,
-                    SkipEmail = false // SignIn doesn't use skipEmail but keeping for consistency
+                    SkipEmail = false
                 };
                 
                 var result = await UserService.SignInAsync(
-                    model.Email,
-                    model.Password,
-                    null, // No brand ID for principal sign in
+                    principalModel.Email,
+                    principalModel.Password,
+                    null, // No brand ID for principal
                     options
                 );
                 
@@ -457,27 +583,13 @@
                     // Mark user as authenticated
                     await AuthStateProvider.MarkUserAsAuthenticated(result.Token);
                     
-                    if (model.RememberMe)
+                    if (principalModel.RememberMe)
                     {
                         // Store remember me preference
                         await JS.InvokeVoidAsync("localStorage.setItem", "rememberMe", "true");
                     }
                     
-                    // Check for return URL
-                    var uri = new Uri(Navigation.Uri);
-                    var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
-                    var returnUrl = query["returnUrl"];
-                    
-                    if (!string.IsNullOrEmpty(returnUrl))
-                    {
-                        // Force a full page reload to ensure authentication is recognized
-                        Navigation.NavigateTo(Uri.UnescapeDataString(returnUrl), forceLoad: true);
-                    }
-                    else
-                    {
-                        // Force a full page reload to ensure authentication is recognized
-                        Navigation.NavigateTo("/console", forceLoad: true);
-                    }
+                    NavigateAfterSignIn();
                 }
                 else
                 {
@@ -495,6 +607,89 @@
         }
     }
     
+    private async Task HandleBrandSignIn()
+    {
+        if (isSubmitting) return;
+        
+        showValidation = true;
+        
+        // Client-side validation
+        if (string.IsNullOrEmpty(brandModel.BrandId) || string.IsNullOrEmpty(brandModel.ApiKey) || string.IsNullOrEmpty(brandModel.ApiPassword))
+        {
+            return;
+        }
+        
+        isSubmitting = true;
+        errorMessage = null;
+        isSuccess = false;
+        
+        try
+        {
+            if (mockMode)
+            {
+                // Mock mode - simulate successful sign in
+                await Task.Delay(1000); // Simulate network delay
+                
+                // Set language for mock mode
+                var currentLang = LocalizationService.Instance.CurrentLanguage;
+                if (!string.IsNullOrEmpty(selectedLang) && selectedLang != currentLang)
+                {
+                    LocalizationService.Instance.SetLanguage(selectedLang);
+                }
+                
+                // Show success view
+                isSuccess = true;
+                StateHasChanged();
+                
+                // Wait a moment to show the success message
+                await Task.Delay(1500);
+                
+                // Create a mock JWT token for brand
+                var mockToken = GenerateMockBrandToken(brandModel.BrandId, brandModel.ApiKey);
+                
+                // Mark user as authenticated
+                await AuthStateProvider.MarkUserAsAuthenticated(mockToken);
+                
+                // Navigate to console
+                NavigateAfterSignIn();
+            }
+            else
+            {
+                // Real brand sign in - need to call brand authentication
+                // TODO: Implement brand authentication API call
+                // For now, show error
+                errorMessage = "Brand authentication is not yet implemented in the backend";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+    
+    private void NavigateAfterSignIn()
+    {
+        // Check for return URL
+        var uri = new Uri(Navigation.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        var returnUrl = query["returnUrl"];
+        
+        if (!string.IsNullOrEmpty(returnUrl))
+        {
+            // Force a full page reload to ensure authentication is recognized
+            Navigation.NavigateTo(Uri.UnescapeDataString(returnUrl), forceLoad: true);
+        }
+        else
+        {
+            // Force a full page reload to ensure authentication is recognized
+            Navigation.NavigateTo("/console", forceLoad: true);
+        }
+    }
+    
     
     private string GetQueryString()
     {
@@ -509,7 +704,7 @@
         return parameters.Any() ? "?" + string.Join("&", parameters) : "";
     }
     
-    private string GenerateMockJwtToken(string email)
+    private string GenerateMockPrincipalToken(string email)
     {
         // This is a mock JWT token for development
         // In production, this would come from the server
@@ -520,6 +715,31 @@
             sub = "mock-user-id",
             email = email,
             nameid = "mock-user-id",
+            exp = DateTimeOffset.UtcNow.AddHours(24).ToUnixTimeSeconds(),
+            iat = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
+        };
+        
+        var payloadJson = System.Text.Json.JsonSerializer.Serialize(payloadObj);
+        var payload = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(payloadJson));
+        var signature = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("mock-signature"));
+        
+        return $"{header}.{payload}.{signature}";
+    }
+    
+    private string GenerateMockBrandToken(string brandId, string apiKey)
+    {
+        // This is a mock JWT token for development
+        // In production, this would come from the server
+        var header = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("{\"alg\":\"HS256\",\"typ\":\"JWT\"}"));
+        
+        var payloadObj = new
+        {
+            sub = "mock-brand-user-id",
+            nameid = "mock-brand-user-id",
+            brand_id = brandId,
+            brand_schema = $"brand_{brandId.Replace("-", "_")}",
+            token_type = "BRAND",
+            api_key = apiKey,
             exp = DateTimeOffset.UtcNow.AddHours(24).ToUnixTimeSeconds(),
             iat = DateTimeOffset.UtcNow.ToUnixTimeSeconds()
         };

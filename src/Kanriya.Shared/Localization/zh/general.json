@@ -75,6 +75,10 @@
     "signInSuccess": "登入成功！",
     "welcomeBack": "歡迎回來",
     "redirectingToDashboard": "正在跳轉至控制台...",
+    "brandId": "品牌ID",
+    "brandIdHelp": "輸入品牌ID以品牌身份登入",
+    "signInAsBrand": "品牌登入",
+    "signInAsPrincipal": "郵箱登入",
     "errors": {
       "invalidCredentials": "無效的認證資訊",
       "sessionExpired": "工作階段已過期。請重新登入。",

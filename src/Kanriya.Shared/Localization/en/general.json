@@ -75,6 +75,10 @@
     "signInSuccess": "Sign In Successful!",
     "welcomeBack": "Welcome Back",
     "redirectingToDashboard": "Redirecting to dashboard...",
+    "brandId": "Brand ID",
+    "brandIdHelp": "Enter Brand ID to sign in with brand context",
+    "signInAsBrand": "Sign in as Brand",
+    "signInAsPrincipal": "Sign in with Email",
     "errors": {
       "invalidCredentials": "Invalid credentials",
       "sessionExpired": "Session expired. Please sign in again.",

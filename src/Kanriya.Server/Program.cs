@@ -115,6 +115,10 @@ try
     builder.Services.AddAuthorizationCore();
     builder.Services.AddCascadingAuthenticationState();
     
+    // Add credential management
+    builder.Services.AddScoped<ICredentialManager, CredentialManager>();
+    builder.Services.AddScoped<IAuthService, AuthService>();
+    
     // Add HTTP context accessor for cookie access
     builder.Services.AddHttpContextAccessor();
     

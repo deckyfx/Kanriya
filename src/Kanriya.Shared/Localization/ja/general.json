@@ -75,6 +75,10 @@
     "signInSuccess": "ログインに成功しました！",
     "welcomeBack": "おかえりなさい",
     "redirectingToDashboard": "ダッシュボードにリダイレクトしています...",
+    "brandId": "ブランドID",
+    "brandIdHelp": "ブランドコンテキストでログインするにはブランドIDを入力",
+    "signInAsBrand": "ブランドとしてサインイン",
+    "signInAsPrincipal": "メールでサインイン",
     "errors": {
       "invalidCredentials": "認証情報が無効です",
       "sessionExpired": "セッションの有効期限が切れました。再度ログインしてください。",

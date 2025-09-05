@@ -342,6 +342,109 @@ public class BrandMutations
             };
         }
     }
+    
+    /// <summary>
+    /// Reset brand API credentials
+    /// Can be called by brand owner (principal context) or brand users (brand context)
+    /// </summary>
+    [Authorize]
+    [GraphQLName("resetBrandCredentials")]
+    [GraphQLDescription("Reset API credentials for a brand (brand owner or brand user)")]
+    public async Task<ResetBrandCredentialsOutput> ResetBrandCredentials(
+        string? brandId,  // Optional - if not provided, uses brand context
+        [Service] IBrandService brandService,
+        [Service] ILogger<BrandMutations> logger,
+        [GlobalState] CurrentUser currentUser,
+        CancellationToken cancellationToken = default)
+    {
+        // Determine context and authorization
+        string? userId = null;
+        string? brandUserId = null;
+        string actualBrandId;
+        
+        if (currentUser?.User != null)
+        {
+            // Principal context - user must specify brandId
+            if (string.IsNullOrEmpty(brandId))
+            {
+                return new ResetBrandCredentialsOutput
+                {
+                    Success = false,
+                    Message = "Brand ID is required when using principal authentication"
+                };
+            }
+            
+            userId = currentUser.User.Id;
+            actualBrandId = brandId;
+            
+            logger.LogInformation("Principal user {UserId} attempting to reset credentials for brand {BrandId}", 
+                userId, actualBrandId);
+        }
+        else if (currentUser?.BrandUser != null && !string.IsNullOrEmpty(currentUser.BrandId))
+        {
+            // Brand context - can reset own brand credentials
+            brandUserId = currentUser.BrandUser.Id.ToString();
+            actualBrandId = currentUser.BrandId;
+            
+            // If brandId was provided, ensure it matches the brand context
+            if (!string.IsNullOrEmpty(brandId) && brandId != actualBrandId)
+            {
+                return new ResetBrandCredentialsOutput
+                {
+                    Success = false,
+                    Message = "Cannot reset credentials for a different brand in brand context"
+                };
+            }
+            
+            logger.LogInformation("Brand user {BrandUserId} attempting to reset credentials for their brand {BrandId}", 
+                brandUserId, actualBrandId);
+        }
+        else
+        {
+            return new ResetBrandCredentialsOutput
+            {
+                Success = false,
+                Message = "Authentication required. Please sign in with either email/password or brand API credentials."
+            };
+        }
+        
+        try
+        {
+            // Call the service method which checks authorization
+            var result = await brandService.ResetBrandCredentialsAsync(
+                userId,
+                actualBrandId,
+                brandUserId,
+                cancellationToken);
+            
+            if (result.Success)
+            {
+                logger.LogInformation("Successfully reset credentials for brand {BrandId}", actualBrandId);
+            }
+            else
+            {
+                logger.LogWarning("Failed to reset credentials for brand {BrandId}: {Message}", 
+                    actualBrandId, result.Message);
+            }
+            
+            return new ResetBrandCredentialsOutput
+            {
+                Success = result.Success,
+                Message = result.Message,
+                ApiKey = result.ApiKey,
+                ApiPassword = result.ApiPassword
+            };
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unexpected error resetting brand credentials for brand {BrandId}", actualBrandId);
+            return new ResetBrandCredentialsOutput
+            {
+                Success = false,
+                Message = "An unexpected error occurred while resetting credentials"
+            };
+        }
+    }
 }
 
 #endregion
