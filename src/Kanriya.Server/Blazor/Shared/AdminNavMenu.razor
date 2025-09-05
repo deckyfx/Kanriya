@@ -1,0 +1,130 @@
+@using Kanriya.Server.Blazor.Services
+@inject NavigationManager Navigation
+@inject BlazorLocalizationService L
+
+<div class="admin-nav-header">
+    <MudIcon Icon="@Icons.Material.Filled.Security" Size="Size.Large" Style="color: white;" />
+    <MudText Typo="Typo.h6" Style="color: white; margin-left: 0.5rem;">
+        Admin Panel
+    </MudText>
+</div>
+
+<MudNavMenu Color="Color.Inherit" Class="admin-nav-menu">
+    <MudNavLink Href="/admin" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">
+        Dashboard
+    </MudNavLink>
+    
+    <MudNavGroup Title="User Management" Icon="@Icons.Material.Filled.People" Expanded="false">
+        <MudNavLink Href="/admin/users" Icon="@Icons.Material.Filled.ManageAccounts">
+            All Users
+        </MudNavLink>
+        <MudNavLink Href="/admin/roles" Icon="@Icons.Material.Filled.AdminPanelSettings">
+            Roles & Permissions
+        </MudNavLink>
+        <MudNavLink Href="/admin/sessions" Icon="@Icons.Material.Filled.Token">
+            Active Sessions
+        </MudNavLink>
+    </MudNavGroup>
+    
+    <MudNavGroup Title="Brand Management" Icon="@Icons.Material.Filled.Business" Expanded="false">
+        <MudNavLink Href="/admin/brands" Icon="@Icons.Material.Filled.Store">
+            All Brands
+        </MudNavLink>
+        <MudNavLink Href="/admin/brand-audit" Icon="@Icons.Material.Filled.History">
+            Brand Audit Log
+        </MudNavLink>
+        <MudNavLink Href="/admin/schemas" Icon="@Icons.Material.Filled.Schema">
+            Database Schemas
+        </MudNavLink>
+    </MudNavGroup>
+    
+    <MudNavGroup Title="System" Icon="@Icons.Material.Filled.Settings" Expanded="false">
+        <MudNavLink Href="/admin/configuration" Icon="@Icons.Material.Filled.Tune">
+            Configuration
+        </MudNavLink>
+        <MudNavLink Href="/admin/logs" Icon="@Icons.Material.Filled.Article">
+            System Logs
+        </MudNavLink>
+        <MudNavLink Href="/admin/health" Icon="@Icons.Material.Filled.MonitorHeart">
+            Health Check
+        </MudNavLink>
+        <MudNavLink Href="/admin/metrics" Icon="@Icons.Material.Filled.Analytics">
+            Metrics
+        </MudNavLink>
+    </MudNavGroup>
+    
+    <MudNavGroup Title="Security" Icon="@Icons.Material.Filled.Security" Expanded="false">
+        <MudNavLink Href="/admin/security-logs" Icon="@Icons.Material.Filled.Shield">
+            Security Logs
+        </MudNavLink>
+        <MudNavLink Href="/admin/api-keys" Icon="@Icons.Material.Filled.Key">
+            API Keys
+        </MudNavLink>
+        <MudNavLink Href="/admin/ip-blocks" Icon="@Icons.Material.Filled.Block">
+            IP Blocks
+        </MudNavLink>
+    </MudNavGroup>
+    
+    <MudDivider Class="my-2" Style="background-color: rgba(255,255,255,0.2);" />
+    
+    <MudNavLink Href="/console" Icon="@Icons.Material.Filled.ArrowBack">
+        Back to Console
+    </MudNavLink>
+</MudNavMenu>
+
+@code {
+    protected override void OnInitialized()
+    {
+        L.Initialize();
+    }
+}
+
+<style>
+    .admin-nav-header {
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(0, 0, 0, 0.2);
+    }
+    
+    .admin-nav-menu {
+        padding: 1rem 0;
+    }
+    
+    .admin-nav-menu ::deep .mud-nav-link {
+        color: rgba(255, 255, 255, 0.9) !important;
+        margin: 0.25rem 0.5rem;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+    
+    .admin-nav-menu ::deep .mud-nav-link:hover {
+        background: rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+    }
+    
+    .admin-nav-menu ::deep .mud-nav-link-active {
+        background: rgba(255, 255, 255, 0.2) !important;
+        color: white !important;
+        font-weight: 600;
+    }
+    
+    .admin-nav-menu ::deep .mud-nav-group {
+        color: rgba(255, 255, 255, 0.9) !important;
+    }
+    
+    .admin-nav-menu ::deep .mud-nav-group-header {
+        margin: 0.25rem 0.5rem;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+    
+    .admin-nav-menu ::deep .mud-nav-group-header:hover {
+        background: rgba(255, 255, 255, 0.1) !important;
+    }
+    
+    .admin-nav-menu ::deep .mud-icon-root {
+        color: rgba(255, 255, 255, 0.9) !important;
+    }
+</style>

@@ -5,9 +5,14 @@
         "appName": "Kanriya",
         "dashboard": "仪表板",
         "profile": "个人资料",
+        "adminConsole": "管理控制台",
         "welcome": "欢迎",
         "user": "用户",
-        "logout": "退出"
+        "logout": "退出",
+        "logoutConfirmTitle": "确认退出",
+        "logoutConfirmMessage": "您确定要退出吗？这将从此设备中删除所有管理的品牌凭证。",
+        "logoutConfirmButton": "退出",
+        "cancelButton": "取消"
       },
       "index": {
         "title": "我的品牌",

@@ -5,9 +5,14 @@
         "appName": "Kanriya",
         "dashboard": "Dasbor",
         "profile": "Profil",
+        "adminConsole": "Konsol Admin",
         "welcome": "Selamat datang",
         "user": "Pengguna",
-        "logout": "Keluar"
+        "logout": "Keluar",
+        "logoutConfirmTitle": "Konfirmasi Keluar",
+        "logoutConfirmMessage": "Apakah Anda yakin ingin keluar? Ini akan menghapus semua kredensial brand yang dikelola dari perangkat ini.",
+        "logoutConfirmButton": "Keluar",
+        "cancelButton": "Batal"
       },
       "index": {
         "title": "Brand Saya",

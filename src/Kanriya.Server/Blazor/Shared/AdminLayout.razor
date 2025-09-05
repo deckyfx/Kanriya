@@ -1,0 +1,198 @@
+@inherits LayoutComponentBase
+@using Kanriya.Server.Blazor.Services
+@using Kanriya.Server.Constants
+@using Microsoft.AspNetCore.Components.Authorization
+@inject NavigationManager Navigation
+@inject SimpleAuthStateProvider AuthStateProvider
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject BlazorLocalizationService L
+@inject ICredentialManager CredentialManager
+
+<CascadingAuthenticationState>
+    <AuthorizeView Context="authContext" Roles="@UserRoles.SuperAdmin">
+        <Authorized>
+            @{
+                var tokenType = authContext.User.FindFirst("token_type")?.Value;
+                var isPrincipalContext = string.IsNullOrEmpty(tokenType) || tokenType != "BRAND";
+                var userName = authContext.User.Identity?.Name ?? "Administrator";
+                
+                if (isPrincipalContext && authContext.User.IsInRole(UserRoles.SuperAdmin))
+                {
+                    <div class="page admin-layout">
+                        <div class="sidebar admin-sidebar">
+                            <AdminNavMenu />
+                        </div>
+
+                        <main>
+                            <div class="top-row admin-top-row">
+                                <div class="top-row-content">
+                                    <div class="top-row-left">
+                                        <MudText Typo="Typo.h6" Style="color: var(--mud-palette-error); font-weight: 600;">
+                                            <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Style="vertical-align: middle; margin-right: 8px;" />
+                                            System Administration
+                                        </MudText>
+                                    </div>
+                                    <div class="top-row-right">
+                                        <MudChip T="string" Color="Color.Error" Size="Size.Small" Icon="@Icons.Material.Filled.Shield">
+                                            @userName
+                                        </MudChip>
+                                        <CredentialSwitcher />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <article class="content">
+                                <CustomErrorBoundary>
+                                    @Body
+                                </CustomErrorBoundary>
+                            </article>
+                        </main>
+                    </div>
+                }
+                else
+                {
+                    <div class="unauthorized-container">
+                        <MudContainer MaxWidth="MaxWidth.Small">
+                            <MudAlert Severity="Severity.Error" Icon="@Icons.Material.Filled.GppBad" Class="mt-8">
+                                <MudText Typo="Typo.h6">Access Denied</MudText>
+                                <MudText Typo="Typo.body2" Class="mt-2">
+                                    This area requires SuperAdmin privileges. You must be signed in with a principal account that has SuperAdmin role.
+                                </MudText>
+                            </MudAlert>
+                            <MudButton 
+                                Variant="Variant.Filled" 
+                                Color="Color.Primary" 
+                                Class="mt-4"
+                                StartIcon="@Icons.Material.Filled.ArrowBack"
+                                OnClick="NavigateToConsole">
+                                Return to Console
+                            </MudButton>
+                        </MudContainer>
+                    </div>
+                }
+            }
+        </Authorized>
+        <NotAuthorized>
+            @if (!Navigation.Uri.Contains("/signin", StringComparison.OrdinalIgnoreCase))
+            {
+                <RedirectToLogin />
+            }
+            else
+            {
+                <div class="loading-container">
+                    <div class="loading-content">
+                        <MudProgressCircular Color="Color.Primary" Size="Size.Large" Indeterminate="true" />
+                        <MudText Typo="Typo.h6" Class="mt-3">Loading...</MudText>
+                    </div>
+                </div>
+            }
+        </NotAuthorized>
+    </AuthorizeView>
+</CascadingAuthenticationState>
+
+@code {
+    protected override void OnInitialized()
+    {
+        L.Initialize();
+    }
+    
+    private void NavigateToConsole()
+    {
+        Navigation.NavigateTo("/console");
+    }
+}
+
+<style>
+    .admin-layout {
+        background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    }
+    
+    .admin-sidebar {
+        background: linear-gradient(180deg, #dc2626 0%, #991b1b 100%);
+    }
+    
+    .admin-top-row {
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(10px);
+        border-bottom: 2px solid rgba(220, 38, 38, 0.2);
+    }
+    
+    .page {
+        display: flex;
+        height: 100vh;
+        position: relative;
+        margin: 0;
+    }
+    
+    .sidebar {
+        width: 250px;
+        flex-shrink: 0;
+    }
+    
+    main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    
+    .top-row {
+        height: 3.5rem;
+        display: flex;
+        align-items: center;
+        padding: 0 1.5rem;
+    }
+    
+    .top-row-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+    }
+    
+    .top-row-left {
+        display: flex;
+        align-items: center;
+    }
+    
+    .top-row-right {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.5rem;
+    }
+    
+    .unauthorized-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+    }
+    
+    .loading-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .loading-content {
+        text-align: center;
+        padding: 3rem;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        color: #dc2626;
+    }
+</style>

@@ -1,5 +1,8 @@
 @using Kanriya.Server.Blazor.Services
+@using Kanriya.Server.Constants
+@using Microsoft.AspNetCore.Components.Authorization
 @inject BlazorLocalizationService L
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <div class="nav-menu">
     <div class="nav-header">
@@ -20,13 +23,38 @@
                 <span class="nav-text">@L.T("Blazor.console.navigation.profile")</span>
             </NavLink>
         </div>
+        
+        @if (isSuperAdmin && isPrincipalContext)
+        {
+            <div class="nav-separator"></div>
+            <div class="nav-item">
+                <NavLink class="nav-link admin-link" href="/admin" Match="NavLinkMatch.All">
+                    <span class="nav-icon">🛡️</span>
+                    <span class="nav-text">@L.T("Blazor.console.navigation.adminConsole")</span>
+                </NavLink>
+            </div>
+        }
     </nav>
 </div>
 
 @code {
-    protected override void OnInitialized()
+    private bool isSuperAdmin = false;
+    private bool isPrincipalContext = true;
+    
+    protected override async Task OnInitializedAsync()
     {
         L.Initialize();
+        
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var tokenType = authState.User.FindFirst("token_type")?.Value;
+        
+        // Check if user is in principal context (not brand context)
+        isPrincipalContext = string.IsNullOrEmpty(tokenType) || tokenType != "BRAND";
+        
+        // Check if user has SuperAdmin role
+        isSuperAdmin = authState.User.IsInRole(UserRoles.SuperAdmin);
+        
+        StateHasChanged();
     }
 }
 
@@ -87,5 +115,26 @@
     
     .nav-text {
         font-size: 0.95rem;
+    }
+    
+    .nav-separator {
+        height: 1px;
+        background: rgba(255,255,255,0.2);
+        margin: 1rem 1rem;
+    }
+    
+    .admin-link {
+        background: rgba(220, 38, 38, 0.1);
+        border-left: 3px solid transparent;
+    }
+    
+    .admin-link:hover {
+        background: rgba(220, 38, 38, 0.2) !important;
+        border-left: 3px solid #dc2626;
+    }
+    
+    .admin-link.active {
+        background: #dc2626 !important;
+        border-left: 3px solid #dc2626;
     }
 </style>

@@ -5,9 +5,14 @@
         "appName": "Kanriya",
         "dashboard": "Dashboard",
         "profile": "Profile",
+        "adminConsole": "Admin Console",
         "welcome": "Welcome",
         "user": "User",
-        "logout": "Logout"
+        "logout": "Logout",
+        "logoutConfirmTitle": "Confirm Sign Out",
+        "logoutConfirmMessage": "Are you sure you want to sign out? This will remove all managed brand credentials from this device.",
+        "logoutConfirmButton": "Sign Out",
+        "cancelButton": "Cancel"
       },
       "index": {
         "title": "My Brands",

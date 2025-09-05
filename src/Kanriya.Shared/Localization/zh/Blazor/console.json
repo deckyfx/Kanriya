@@ -5,9 +5,14 @@
         "appName": "Kanriya",
         "dashboard": "儀表板",
         "profile": "個人資料",
+        "adminConsole": "管理控制台",
         "welcome": "歡迎",
         "user": "使用者",
-        "logout": "登出"
+        "logout": "登出",
+        "logoutConfirmTitle": "確認登出",
+        "logoutConfirmMessage": "您確定要登出嗎？這將從此設備中刪除所有管理的品牌憑證。",
+        "logoutConfirmButton": "登出",
+        "cancelButton": "取消"
       },
       "index": {
         "title": "我的品牌",

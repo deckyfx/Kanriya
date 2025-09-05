@@ -5,9 +5,14 @@
         "appName": "Kanriya",
         "dashboard": "ダッシュボード",
         "profile": "プロフィール",
+        "adminConsole": "管理コンソール",
         "welcome": "ようこそ",
         "user": "ユーザー",
-        "logout": "ログアウト"
+        "logout": "ログアウト",
+        "logoutConfirmTitle": "ログアウトの確認",
+        "logoutConfirmMessage": "ログアウトしてもよろしいですか？このデバイスから管理されているすべてのブランド資格情報が削除されます。",
+        "logoutConfirmButton": "ログアウト",
+        "cancelButton": "キャンセル"
       },
       "index": {
         "title": "マイブランド",
